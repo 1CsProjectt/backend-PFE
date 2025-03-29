@@ -67,7 +67,7 @@ router.post(
   router.get("/", protect, restrictedfor("teacher","company"), getAllPFE);
   
   // ✅ Display unvalidated PFEs (for validation)
-  router.get("/pending", displayPFE);
+  router.get("/pending",protect,restrictedfor('admin'), displayPFE);
   
   // ✅ Display validated PFEs for students (based on their year and specialite)
   router.get("/for-students", protect, restrictedfor("student"), displayPFEforstudents);
