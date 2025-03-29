@@ -19,7 +19,7 @@ import cookieParser from 'cookie-parser';
 import mongoSanitize from "express-mongo-sanitize";
 import xss from "xss-clean";
 import hpp from "hpp";
-
+import path from "path";
 
 
 // const express = require("express");
@@ -56,6 +56,7 @@ app.use(cors({ origin: "*", methods: "GET,POST,PUT,DELETE" }));
 app.use(compression());
 app.use(express.json());
 app.use('/uploads', express.static('uploads', { maxAge: '1d' }));
+app.use('/photos', express.static(path.join(process.cwd(), 'photos')));
 
 
 if (process.env.NODE_ENV === 'development') {
@@ -70,6 +71,8 @@ const limiter = rateLimit({
 });
 
 app.use('/api', limiter);
+app.use(express.json()); 
+app.use(express.urlencoded({ extended: true }));
 
 // Routes
 app.use('/api/v1/users', userRoutes);

@@ -45,6 +45,10 @@ const PFE = sequelize.define("PFE", {
             key: 'id'
         },
         onDelete: 'CASCADE'
+    },
+    photo: { 
+        type: DataTypes.STRING,
+        allowNull: true,
     }
 });
 

@@ -1,41 +1,63 @@
-import express from 'express';
-import multer from'multer';
-import path from'path';
-import { fileURLToPath } from 'url'
-import app from '../index.js';
+import multer from "multer";
+import path from "path";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-
-// const express = require('express');
-// const multer = require('multer');
-// const path = require('path');
-// const { fileURLToPath } = require('url');
-// const app = require('./index.js');
-
-// const __filename = fileURLToPath(import.meta.url);
-// const __dirname = path.dirname(__filename);
-
-
-
-
-// Set up storage for uploaded files
-const storage = multer.diskStorage({
+// Storage for PDFs
+const pdfStorage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, 'uploads/');
+    cb(null, "uploads/"); // Store PDFs in 'uploads/'
   },
   filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    const ext = path.extname(file.originalname);
-    cb(null, file.fieldname + '-' + uniqueSuffix + ext); 
-  }
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    cb(null, file.fieldname + "-" + uniqueSuffix + path.extname(file.originalname));
+  },
 });
 
-const upload = multer({ storage });
-export {upload};
+// Storage for Photos
+const photoStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "photos/"); // Store photos in 'photos/'
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+    cb(null, file.fieldname + "-" + uniqueSuffix + path.extname(file.originalname));
+  },
+});
 
+// Multer configuration for both PDF and Photos
+const upload = multer({
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => {
+      if (file.fieldname === "pdfFile") {
+        cb(null, "uploads/"); // PDFs go to 'uploads/'
+      } else if (file.fieldname === "photo") {
+        cb(null, "photos/"); // Photos go to 'photos/'
+      } else {
+        cb(new Error("Unexpected field"), false);
+      }
+    },
+    filename: (req, file, cb) => {
+      const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+      cb(null, file.fieldname + "-" + uniqueSuffix + path.extname(file.originalname));
+    },
+  }),
+  fileFilter: (req, file, cb) => {
+    const allowedPdfTypes = ["application/pdf"];
+    const allowedPhotoTypes = ["image/jpeg", "image/png", "image/jpg"];
 
+    if (file.fieldname === "pdfFile" && allowedPdfTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else if (file.fieldname === "photo" && allowedPhotoTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error("Invalid file type"), false);
+    }
+  },
+});
 
-//module.exports = {upload};
+// Middleware to accept multiple fields
+const uploadFiles = upload.fields([
+  { name: "pdfFile", maxCount: 1 },
+  { name: "photo", maxCount: 1 },
+]);
 
+export { uploadFiles };

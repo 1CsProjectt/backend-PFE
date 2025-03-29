@@ -1,18 +1,18 @@
 import express from 'express';
 import { protect,restrictedfor } from "../middlewares/authmiddleware.js";
 import { checkEventTime } from '../controllers/eventcontroller.js';
+import {uploadFiles} from '../middlewares/file_uploading.js'
 import {
+  getAllPFE,
   createPFE,
   deletePFE,
   deletePFEforcreator,
   displayPFE,
   displaythisyearsPFE,
   downloadfile,
-  uploadfile,
   displayPFEforstudents,
   addSupervisor,
   validatePFE,
-  displayAllPFE,
   getPfesBySpecialization,
   searchForPfes,
   getIsiPfes,
@@ -48,11 +48,12 @@ router.post(
     '/depositPFE',
     protect,
     restrictedfor('teacher', 'company'),
-    uploadfile(), 
+    uploadFiles, 
     checkEventTime('PFE_SUBMISSION'), 
     createPFE
   );
   
+
   // ✅ Delete PFE (only the creator can delete)
   router.delete("/delete/:id", protect, deletePFEforcreator);
   
@@ -63,10 +64,10 @@ router.post(
   router.get("/download/:filename", downloadfile);
   
   // ✅ Display all PFEs (teacher & company view)
-  router.get("/", protect, restrictedfor("teacher","company"), displayAllPFE);
+  router.get("/", protect, restrictedfor("teacher","company"), getAllPFE);
   
   // ✅ Display unvalidated PFEs (for validation)
-  router.get("/pending", protect, restrictedfor("admin"), displayPFE);
+  router.get("/pending", displayPFE);
   
   // ✅ Display validated PFEs for students (based on their year and specialite)
   router.get("/for-students", protect, restrictedfor("student"), displayPFEforstudents);
