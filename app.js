@@ -11,14 +11,21 @@ import http from "http";
 
 // Create an HTTP server
 const server = http.createServer(app);
+const allowedOrigins = [
+  "http://localhost:3800",
+  "http://192.168.212.160:3000",
+  "http://192.168.212.160:3000/pfe"
+];
 
 // Initialize Socket.IO
 const io = new Server(server, {
   cors: {
-    origin: "*", // Adjust this for production security
-    methods: ["GET", "POST"],
+    origin: allowedOrigins, 
+    methods: ["GET", "POST", "PATCH", "DELETE"],
+    credentials: true, 
   },
 });
+
 
 // Store io instance in app
 app.set("socketio", io);
@@ -46,7 +53,7 @@ io.on("connection", (socket) => {
 if (process.env.NODE_ENV === "development") {
     app.use(morgan("dev")); 
 }
-app.use(cors()); 
+
 
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, "0.0.0.0", () => 

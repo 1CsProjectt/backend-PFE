@@ -20,7 +20,7 @@ import mongoSanitize from "express-mongo-sanitize";
 import xss from "xss-clean";
 import hpp from "hpp";
 import path from "path";
-
+import session from "express-session";
 
 // const express = require("express");
 // const cors = require("cors");
@@ -51,10 +51,48 @@ app.use(xss()); // Prevent XSS attacks
 
 app.use(cookieParser());
 
+const allowedOrigins = [
+    "http://localhost:3800",
+    "http://192.168.212.160:3000",
+    "http://192.168.212.160:3000/pfe" // Add any other origins you need
+  ];
+  
+  app.use(cors({
+    origin: function (origin, callback) {
+      if (!origin) return callback(null, true);
+      
+      if (allowedOrigins.indexOf(origin) === -1) {
+        const msg = `The CORS policy for this site does not allow access from ${origin}`;
+        return callback(new Error(msg), false);
+      }
+      return callback(null, true);
+    },
+
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true,
+    exposedHeaders: ["set-cookie"]
+  }));
+
+  app.options('*',cors({
+    origin: function (origin, callback) {
+      if (!origin) return callback(null, true);
+      
+      if (allowedOrigins.indexOf(origin) === -1) {
+        const msg = `The CORS policy for this site does not allow access from ${origin}`;
+        return callback(new Error(msg), false);
+      }
+      return callback(null, true);
+    },
+
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true,
+    exposedHeaders: ["set-cookie"]
+  }));
+  app.use(express.json());
 app.use(helmet());  
-app.use(cors({ origin: "*", methods: "GET,POST,PUT,DELETE" }));  
 app.use(compression());
-app.use(express.json());
 app.use('/uploads', express.static('uploads', { maxAge: '1d' }));
 app.use('/photos', express.static(path.join(process.cwd(), 'photos')));
 
@@ -78,6 +116,20 @@ app.use('/api', limiter);
 app.use(express.json()); 
 app.use(express.urlencoded({ extended: true }));
 
+app.use(session({
+    secret: process.env.SESSION_SECRET || "mysecret",
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+        secure: process.env.NODE_ENV === "production", 
+        httpOnly: true,
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+    },
+}));
+
+
+  
+
 // Routes
 app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/auth', authRoutes);
@@ -89,6 +141,12 @@ app.use("/api/v1/invitation",invitationRoutes);
 app.use("/api/v1/jointeam",jointeamRoutes);
 
 
+app.get("/", (req, res) => {
+    res.status(200).json({
+        status: "success",
+        message: "Welcome to the PFE Web Application API!",
+    });
+});
 
 
 // Handle unmatched routes

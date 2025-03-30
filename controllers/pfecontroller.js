@@ -416,12 +416,22 @@ export const displayPFEforstudents = catchAsync(async (req, res, next) => {
                 model: teacher,
                 as: "supervisors",
                 attributes: ["id", "name"],
-                through: { attributes: [] }, // Hide the join table data
+                through: { attributes: [] }, 
             },
         ],
     });
 
-    // Add full URLs for pdfFile and photo
+    // If no PFE is found, return a message
+    if (pfeList.length === 0) {
+        return res.status(200).json({
+            status: "success",
+            message: "No PFE found for your criteria.",
+            count: 0,
+            pfeList: [],
+        });
+    }
+
+    // Format the PFE list
     const formattedPFEList = pfeList.map((pfe) => ({
         ...pfe.toJSON(),
         pdfFile: pfe.pdfFile ? `${req.protocol}://${req.get("host")}/uploads/${pfe.pdfFile}` : null,
@@ -434,6 +444,7 @@ export const displayPFEforstudents = catchAsync(async (req, res, next) => {
         pfeList: formattedPFEList,
     });
 });
+
 
 
 
