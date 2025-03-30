@@ -86,12 +86,13 @@ export const resetPassword = catchAsync(async (req, res, next) => {
     const user = await User.findByPk(decoded.id);
     if (!user) return next(new appError("User not found", 404));
 
-    user.password = await bcrypt.hash(newPassword, 10);
-    user.resetToken = null;
-    user.resetTokenExpiry = null;
-    user.passwordChangedAt = new Date(); 
-
-    await user.save();
+    await user.update({ 
+        password: await bcrypt.hash(newPassword, 10),
+        resetToken: null,
+        resetTokenExpiry: null,
+        passwordChangedAt: new Date()
+    });
+    
 
     res.json({ message: "Password successfully reset" });
 });

@@ -59,16 +59,20 @@ app.use('/uploads', express.static('uploads', { maxAge: '1d' }));
 app.use('/photos', express.static(path.join(process.cwd(), 'photos')));
 
 
+
 if (process.env.NODE_ENV === 'development') {
     app.use(morgan("dev"));
 }
 
+app.set('trust proxy', 1);
+
 // Rate Limiting (Prevent API abuse)
 const limiter = rateLimit({
-    windowMs: process.env.RATE_LIMIT_WINDOW * 60 * 1000 || 15 * 60 * 1000,
-    max: process.env.RATE_LIMIT_MAX || 100,
+    windowMs: (process.env.RATE_LIMIT_WINDOW ? parseInt(process.env.RATE_LIMIT_WINDOW) : 15) * 60 * 1000,
+    max: parseInt(process.env.RATE_LIMIT_MAX) || 100,
     message: "Too many requests, please try again later."
 });
+
 
 app.use('/api', limiter);
 app.use(express.json()); 
@@ -84,6 +88,9 @@ app.use("/api/v1/groups", groupRoutes);
 app.use("/api/v1/invitation",invitationRoutes);
 app.use("/api/v1/jointeam",jointeamRoutes);
 
+
+
+
 // Handle unmatched routes
 app.all('*', (req, res, next) => { 
     next(new appError(`Can't find ${req.originalUrl} on this server`, 404));
@@ -92,9 +99,12 @@ app.all('*', (req, res, next) => {
 
 });
 
+
+
 // Global error handler
 app.use(errorhandler);
 
 
 export default app;
+
 //module.exports = app;
