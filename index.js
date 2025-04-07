@@ -21,7 +21,7 @@ import xss from "xss-clean";
 import hpp from "hpp";
 import path from "path";
 import session from "express-session";
-
+import mime from 'mime-types';
 // const express = require("express");
 // const cors = require("cors");
 // const helmet = require("helmet");
@@ -51,50 +51,52 @@ app.use(xss()); // Prevent XSS attacks
 
 app.use(cookieParser());
 
+// Consolidated CORS Configuration
 const allowedOrigins = [
-    "http://localhost:3800",
-    "http://192.168.212.160:3000",
-    "http://192.168.212.160:3000/pfe" // Add any other origins you need
-  ];
-  
-  app.use(cors({
-    origin: function (origin, callback) {
-      if (!origin) return callback(null, true);
-      
-      if (allowedOrigins.indexOf(origin) === -1) {
-        const msg = `The CORS policy for this site does not allow access from ${origin}`;
-        return callback(new Error(msg), false);
-      }
-      return callback(null, true);
-    },
+  "http://localhost:3000", 
+  "http://192.168.170.167:3000",
+  "https://8cb9-154-247-119-87.ngrok-free.app",
+  "https://180b-154-247-119-87.ngrok-free.app",
+  "https://98cc-154-246-81-2.ngrok-free.app/api/v1" ,
+  "https://180b-154-247-119-87.ngrok-free.app/api/v1"
+];
 
-    methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-    credentials: true,
-    exposedHeaders: ["set-cookie"]
-  }));
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true); 
+    if (allowedOrigins.indexOf(origin) === -1) {
+      const msg = `The CORS policy for this site does not allow access from ${origin}`;
+      return callback(new Error(msg), false); // Deny the connection
+    }
+    return callback(null, true); // Allow the connection
+  },
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: true, // Allow credentials (cookies, authorization headers, etc.)
+  exposedHeaders: ["set-cookie"], // Expose the "set-cookie" header for client-side cookies
+}));
 
-  app.options('*',cors({
-    origin: function (origin, callback) {
-      if (!origin) return callback(null, true);
-      
-      if (allowedOrigins.indexOf(origin) === -1) {
-        const msg = `The CORS policy for this site does not allow access from ${origin}`;
-        return callback(new Error(msg), false);
-      }
-      return callback(null, true);
-    },
-
-    methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-    credentials: true,
-    exposedHeaders: ["set-cookie"]
-  }));
+// For OPTIONS requests
+app.options('*', cors());
+ 
   app.use(express.json());
 app.use(helmet());  
 app.use(compression());
-app.use('/uploads', express.static('uploads', { maxAge: '1d' }));
-app.use('/photos', express.static(path.join(process.cwd(), 'photos')));
+app.use('/uploads',  express.static(path.join(process.cwd(), 'photos'),{
+  setHeaders: (res, path) => {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Content-Type', mime.getType(path));
+  }
+}));
+app.use('/photos', express.static(path.join(process.cwd(), 'photos'), {
+  setHeaders: (res, path) => {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Content-Type', mime.getType(path));
+    res.setHeader('Cache-Control', 'public, max-age=31536000'); // 1 year cache
+  }
+}));
+
+
 
 
 
@@ -103,7 +105,7 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 app.set('trust proxy', 1);
-
+ 
 // Rate Limiting (Prevent API abuse)
 const limiter = rateLimit({
     windowMs: (process.env.RATE_LIMIT_WINDOW ? parseInt(process.env.RATE_LIMIT_WINDOW) : 15) * 60 * 1000,
@@ -136,7 +138,7 @@ app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/pfe', pfeRoutes);
 app.use("/api/v1/session", eventRoutes);
 app.use("/api/v1/student", studentroute);
-app.use("/api/v1/groups", groupRoutes);
+app.use("/api/v1/teams", groupRoutes);
 app.use("/api/v1/invitation",invitationRoutes);
 app.use("/api/v1/jointeam",jointeamRoutes);
 
@@ -146,6 +148,19 @@ app.get("/", (req, res) => {
         status: "success",
         message: "Welcome to the PFE Web Application API!",
     });
+});
+
+app.get('/test-mime', (req, res) => {
+  const testCases = {
+    'test.jpg': mime.lookup('./photos/photo-1743261336544-673918170.jpg'),
+    'document.pdf': mime.lookup('document.pdf'),
+    'unknown.xyz': mime.lookup('unknown.xyz')
+  };
+  
+  res.json({
+    status: 'MIME test successful',
+    results: testCases
+  });
 });
 
 

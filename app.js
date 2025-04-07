@@ -12,17 +12,31 @@ import http from "http";
 // Create an HTTP server
 const server = http.createServer(app);
 const allowedOrigins = [
-  "http://localhost:3800",
-  "http://192.168.212.160:3000",
-  "http://192.168.212.160:3000/pfe"
-];
+  "http://localhost:3000", 
+  "http://192.168.170.167:3000",
+  "https://180b-154-247-119-87.ngrok-free.app",
+  "https://98cc-154-246-81-2.ngrok-free.app",
+  "https://98cc-154-246-81-2.ngrok-free.app/api/v1" ,
+  "https://180b-154-247-119-87.ngrok-free.app/api/v1"// Add the ngrok URL from your error
+]; 
 
 // Initialize Socket.IO
 const io = new Server(server, {
   cors: {
-    origin: allowedOrigins, 
+    origin: function (origin, callback) {
+      if (!origin) return callback(null, true); // Allow requests without origin (e.g., from internal server)
+      
+      // Check if the origin is in the allowedOrigins list
+      if (allowedOrigins.indexOf(origin) === -1) {
+        const msg = `The CORS policy for this site does not allow access from ${origin}`;
+        return callback(new Error(msg), false); // Deny the connection
+      }
+      
+      // Allow the connection
+      return callback(null, true);
+    },
     methods: ["GET", "POST", "PATCH", "DELETE"],
-    credentials: true, 
+    credentials: true, // Allow cookies and credentials
   },
 });
 

@@ -75,13 +75,13 @@ export const sendinvitation = catchAsync(async (req, res, next) => {
   res.status(201).json({ message: "Invitation sent successfully" });
 });
 
+ 
 
-
-export const getAllMyInvitations = catchAsync(async (req, res, next) => {
+export const getAllMypendingInvitations = catchAsync(async (req, res, next) => {
   const user = req.user;
 
   const invitations = await Invitation.findAll({
-    where: { receiver_email: user.email, status: "pending" },
+    where: { sender_id:user.id, status: "pending" },
     include: [
       {
         model: Student,
@@ -97,9 +97,36 @@ export const getAllMyInvitations = catchAsync(async (req, res, next) => {
     ],
   });
 
-  if (!invitations.length) {
-    return next(new appError("No pending invitations found", 404));
-  }
+  // if (!invitations.length) {
+  //   return next(new appError("No pending invitations found", 404));
+  // }
+
+  res.status(200).json(invitations);
+});
+
+export const getAllMyrecievedInvitations = catchAsync(async (req, res, next) => {
+  const user = req.user;
+
+  const invitations = await Invitation.findAll({
+    where: { receiver_email:user.email, status: "pending" },
+    include: [
+      {
+        model: Student,
+        as: "sender",
+        include: [
+          {
+            model: User,
+            as: "user",
+            attributes: ["email"],
+          },
+        ],
+      },
+    ],
+  });
+
+  // if (!invitations.length) {
+  //   return next(new appError("No pending invitations found", 404));
+  // }
 
   res.status(200).json(invitations);
 });
@@ -114,9 +141,8 @@ export const getAllMyInvitations = catchAsync(async (req, res, next) => {
  
 
 
-// Accept invitation and reject all others
-export const acceptInvitation = catchAsync(async (req, res, next) => {
 
+export const acceptInvitation = catchAsync(async (req, res, next) => {
   const { invitationId } = req.body;
   const user = req.user;
 
@@ -133,9 +159,11 @@ export const acceptInvitation = catchAsync(async (req, res, next) => {
     return next(new appError(`This invitation has already been ${invitation.status}`, 400));
   }
 
+  // Accept the invitation
   invitation.status = "accepted";
   await invitation.save();
 
+  // Get sender student and their team
   const sender = await Student.findByPk(invitation.sender_id);
   if (!sender) {
     return next(new appError("Sender not found", 404));
@@ -146,17 +174,36 @@ export const acceptInvitation = catchAsync(async (req, res, next) => {
     return next(new appError("Receiver student profile not found", 404));
   }
 
+  // Add receiver to the team
   receiver.team_id = sender.team_id;
-  receiver.status = "in a team"; 
+  receiver.status = "in a team";
   await receiver.save();
 
+  // Reject other invitations sent to this user
   await Invitation.update(
     { status: "rejected" },
-    { where: { receiver_email: user.email, status: "pending", id: { [Op.ne]: invitationId } } }
+    {
+      where: {
+        receiver_email: user.email,
+        status: "pending",
+        id: { [Op.ne]: invitationId },
+      },
+    }
   );
+
+  // Check if team is full
+  const team = await Team.findByPk(sender.team_id, {
+    include: [{ model: Student, as: 'members' }],
+  });
+
+  if (team.members.length >= team.maxNumber) {
+    team.full = true;
+    await team.save();
+  }
 
   res.status(200).json({ message: "Invitation accepted successfully" });
 });
+
 
 
 

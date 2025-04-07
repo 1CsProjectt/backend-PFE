@@ -5,6 +5,7 @@ import User from '../models/UserModel.js';
 import { catchAsync } from '../utils/catchAsync.js';
 import { Op, Sequelize } from "sequelize";
 import jwt from "jsonwebtoken";
+import app from '../index.js';
 
 export const createTeam = catchAsync(async (req, res, next) => {
     const { groupName } = req.body;
@@ -43,6 +44,85 @@ export const createTeam = catchAsync(async (req, res, next) => {
         group: newTeam
     });
 });
+
+export const listAllTeams = catchAsync(async (req, res, next) => {
+    const teams = await Team.findAll({
+        include: [
+            {
+                model: Student,
+                as: 'members',
+                attributes: ['id', 'firstname', 'lastname'],
+                include: [
+                    {
+                        model: User,
+                        as: 'user',
+                        attributes: ['email'],
+                    }
+                ]
+            }
+        ],
+        attributes: ['id', 'groupName', 'supervisorId', 'maxNumber', 'createdAt']
+    });
+
+    return res.status(200).json({
+        status: 'success',
+        results: teams.length,
+        teams
+    });
+});
+
+
+
+export const showMyTeam = catchAsync(async (req, res, next) => {
+
+
+    if (!req.user || !req.user.id) {
+        return next(new appError('Unauthorized: No user found in request', 401));
+    }
+
+    const student = await Student.findOne({ where: { id: req.user.id } });
+
+    if (!student) {
+        return next(new appError('Student not found', 404));
+    }
+
+    if (!student.team_id) {
+        return res.status(200).json({
+            status: 'success',
+            team_id: null,
+            team:[]
+        });;
+    }
+
+    const team = await Team.findOne({
+        where: { id: student.team_id },
+        include: [
+            {
+                model: Student,
+                as: 'members',
+                attributes: ['id', 'firstname', 'lastname'],
+                include: [
+                    {
+                        model: User,
+                        as: 'user',
+                        attributes: ['email'],
+                    }
+                ]
+            }
+        ],
+        attributes: ['id', 'groupName', 'supervisorId', 'maxNumber', 'createdAt']
+    });
+    if (!team){
+        return next(new appError('no team found , there must be an error',404));
+    }
+
+    return res.status(200).json({
+        status: 'success',
+        team
+    });
+});
+
+
 
 export const leaveTeam = catchAsync(async (req, res, next) => {
     try {

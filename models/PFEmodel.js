@@ -26,7 +26,7 @@ const PFE = sequelize.define("PFE", {
     },
     description: {
         type: DataTypes.STRING,
-        allowNull: true,
+        allowNull: true, 
     },
     pdfFile: {
         type: DataTypes.STRING,

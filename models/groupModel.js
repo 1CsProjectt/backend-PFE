@@ -35,6 +35,10 @@ const Team = sequelize.define('Team', {
   },maxNumber:{
     type:DataTypes.INTEGER,
     allowNull:false
+  },
+  full:{
+    type:DataTypes.BOOLEAN,
+    defaultValue:false
   }
 },
  {

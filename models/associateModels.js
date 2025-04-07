@@ -20,8 +20,8 @@ import Company from './companyModel.js';
 
 
 // Group - Student
-Student.belongsTo(Team, { foreignKey: 'team_id' });
-Team.hasMany(Student, { foreignKey: 'team_id' });
+Student.belongsTo(Team, { foreignKey: 'team_id' , as: 'team' });
+Team.hasMany(Student, { foreignKey: 'team_id' , as: 'members'});
 
 
 
