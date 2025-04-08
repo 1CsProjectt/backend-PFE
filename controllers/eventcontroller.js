@@ -62,6 +62,53 @@ import Student from "../models/studenModel.js";
 });
 
 
+const updateEvent = catchAsync(async (req, res, next) => {
+    const { name, year, startTime, endTime, maxNumber } = req.body;
+
+    if (!name || !year) {
+        return next(new appError("Event name and year are required", 400));
+    }
+
+    const event = await Event.findOne({ where: { name, year: year.toUpperCase() } });
+
+    if (!event) {
+        return next(new appError("Event not found", 404));
+    }
+
+    const parsedStartTime = new Date(startTime);
+    const parsedEndTime = new Date(endTime);
+    parsedStartTime.setUTCHours(0, 0, 0, 0);
+    parsedEndTime.setUTCHours(0, 0, 0, 0);
+
+    if (parsedStartTime >= parsedEndTime) {
+        return next(new appError("Start time must be before end time", 400));
+    }
+
+    // Apply updates
+    event.startTime = parsedStartTime;
+    event.endTime = parsedEndTime;
+
+    if (name === "TEAM_CREATION") {
+        if (maxNumber === undefined || isNaN(maxNumber) || maxNumber <= 0) {
+            return next(new appError("Max number must be a positive number", 400));
+        }
+        event.maxNumber = maxNumber;
+    }
+
+    await event.save();
+
+    const io = req.app.get("socketio");
+    io.emit("notification", { message: `Event updated: ${name}` });
+
+    res.status(200).json({
+        status: "success",
+        message: "Event updated successfully",
+        event
+    });
+});
+
+
+
 
  const checkEventTime = (eventName) => {
     return catchAsync( async (req, res, next) => {
