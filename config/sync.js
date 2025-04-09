@@ -23,8 +23,9 @@ import invitation from "../models/invitationModel.js";
 
 (async () => {
   try {
-    await sequelize.sync({  alter: true }); // Creates or updates tables
+    await sequelize.sync({  alter: true }); // Creates or updates tables 
     console.log("✅ Database synced!");
+    
   } catch (error) {
     console.error("❌ Sync error:", error); 
   } finally {

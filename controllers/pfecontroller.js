@@ -462,11 +462,11 @@ export const searchForPfes = catchAsync(async (req, res, next) => {
     const pfes = await PFE.findAll({
         where: {
             [Op.or]: [
-                { title: { [Op.iLike]: `%${query}%` } },
-                { '$supervisors.firstname$': { [Op.iLike]: `%${query}%` } },
-                { '$supervisors.lastname$': { [Op.iLike]: `%${query}%` } },
-                { '$supervisors.User.email$': { [Op.iLike]: `%${query}%` } },
-                { '$creator.email$': { [Op.iLike]: `%${query}%` } }
+                { title: { [Op.like]: `%${query}%` } },
+                { '$supervisors.firstname$': { [Op.like]: `%${query}%` } },
+                { '$supervisors.lastname$': { [Op.like]: `%${query}%` } },
+                { '$supervisors.User.email$': { [Op.like]: `%${query}%` } },
+                { '$creator.email$': { [Op.like]: `%${query}%` } }
             ]
         },
         include: [

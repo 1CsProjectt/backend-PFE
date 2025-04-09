@@ -344,8 +344,8 @@ export const searchForUser = catchAsync( async (req, res) => {
         const users = await User.findAll({
             where: {
                 [Op.or]: [
-                    { username: { [Op.iLike]: `%${query}%` } }, // PostgreSQL (use Op.like for MySQL/SQLite)
-                    { email: { [Op.iLike]: `%${query}%` } }
+                    { username: { [Op.like]: `%${query}%` } }, // PostgreSQL (use Op.like for MySQL/SQLite)
+                    { email: { [Op.like]: `%${query}%` } }
                 ]
             }
         });
