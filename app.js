@@ -12,11 +12,11 @@ import http from "http";
 // Create an HTTP server
 const server = http.createServer(app);
 const allowedOrigins = [
-  "http://localhost:3000", 
+  "http://192.168.206.209:3000", 
   "http://192.168.170.167:3000",
   "https://180b-154-247-119-87.ngrok-free.app",
   "https://98cc-154-246-81-2.ngrok-free.app",
-  "https://98cc-154-246-81-2.ngrok-free.app/api/v1" ,
+  "https://6072-105-235-138-57.ngrok-free.app/api/v1" ,
   "https://96c5-105-235-139-82.ngrok-free.app/api/v1"
 ]; 
 

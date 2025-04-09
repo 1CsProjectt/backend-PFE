@@ -17,7 +17,8 @@ import {
   searchForPfes,
   getIsiPfes,
   getIasdPfes
-  ,getSiwPfes
+  ,getSiwPfes,
+  getMyPfe
  } from "../controllers/pfecontroller.js";
 
 
@@ -80,6 +81,8 @@ router.post(
   
   // ✅ Validate a PFE (only admin can validate)
   router.patch("/:id/validate", protect, restrictedfor("admin"), validatePFE);
+
+  router.get("/my-pfes", protect, getMyPfe);
   
 router.get("/getPfes/:specialization", getPfesBySpecialization);
 router.get("/searchForPfes", searchForPfes);

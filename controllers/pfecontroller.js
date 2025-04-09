@@ -13,6 +13,7 @@ import teacher from "../models/teacherModel.js";
 import Student from "../models/studenModel.js";
 import { Op, fn, col,literal } from "sequelize"; 
 import User from "../models/UserModel.js";
+import Company from "../models/companyModel.js";
 // const sequelize = require("../database.js");
 // const PFE = require("../models/PFEmodel.js");
 // const { upload } = require("../file_uploading.js");
@@ -139,7 +140,7 @@ export const getAllPFE = catchAsync(async (req, res, next) => {
                 model: teacher,
                 as: "supervisors",
                 attributes: ["id", "name"],
-                through: { attributes: [] }, // Hide the join table data
+                through: { attributes: [] }, 
             }
         ],
     });
@@ -156,6 +157,76 @@ export const getAllPFE = catchAsync(async (req, res, next) => {
         count: formattedPFEList.length,
         pfeList: formattedPFEList,
     });
+});
+
+
+export const getMyPfe = catchAsync(async (req, res, next) => {
+
+        const userId = req.user?.id;
+
+        if (!userId) {
+            return next(new appError("User not authenticated", 401));
+        }
+
+        const pfes = await PFE.findAll({
+            where: {
+                createdBy: userId
+            },
+            include: [
+                {
+                    model: User,
+                    as: 'creator',
+                    attributes: ['id', 'email'],
+                    include: [
+                        {
+                            model: teacher,
+                            as: 'teacher',
+                            attributes: ['firstname', 'lastname'],
+                            required: false
+                        },
+                        {
+                            model: Company,
+                            as: 'company',  
+                            required: false
+                        }
+                    ]
+                },
+                {
+                    model: teacher,
+                    as: 'supervisors',
+                    required: false,
+                    include: [
+                        {
+                            model: User,
+                            as: 'user',
+                            attributes: ['email'],
+                            required: false
+                        }
+                    ]
+                }
+            ]
+        });
+
+        if (!pfes || pfes.length === 0) {
+            return next(new appError("You have not created any PFEs.", 404));
+        }
+
+        const formattedPfes = pfes.map((pfe) => ({
+            ...pfe.toJSON(),
+            pdfFile: pfe.pdfFile ? `${req.protocol}://${req.get("host")}/uploads/${pfe.pdfFile}` : null,
+            photo: pfe.photo ? `${req.protocol}://${req.get("host")}/photos/${pfe.photo}` : null,
+            creator: {
+                ...pfe.creator?.toJSON(),
+                firstname: pfe.creator?.teacher?.firstname || null,
+                lastname: pfe.creator?.teacher?.lastname || null
+            }
+        }));
+
+        res.status(200).json({
+            status: "success",
+            data: formattedPfes
+        });
+    
 });
 
 

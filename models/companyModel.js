@@ -48,7 +48,7 @@ const Company = sequelize.define('Company', {
 });
 
 
-User.hasOne(Company, { foreignKey: 'id' });
+User.hasOne(Company, { foreignKey: 'id',as: 'company' });
 Company.belongsTo(User, { foreignKey: 'id' });
 
 export default Company;
