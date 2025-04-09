@@ -381,7 +381,7 @@ export const displayPFEforstudents = catchAsync(async (req, res, next) => {
         return next(new appError("Unauthorized: No user found in request", 401));
     }
 
-    // Find the current student
+    
     const currentStudent = await Student.findByPk(req.user.id);
     if (!currentStudent) {
         return next(new appError("Student not found", 404));
@@ -400,7 +400,7 @@ export const displayPFEforstudents = catchAsync(async (req, res, next) => {
 
     console.log("Query Filters:", filterConditions);
 
-    // Fetch PFEs that match the filter conditions
+    
     const pfeList = await PFE.findAll({
         where: {
             ...filterConditions,
@@ -408,20 +408,21 @@ export const displayPFEforstudents = catchAsync(async (req, res, next) => {
         },
         include: [
             {
-                model: User,
-                as: "creator",
-                attributes: ["id", "username", "email"],
-            },
-            {
                 model: teacher,
-                as: "supervisors",
-                attributes: ["id", "name"],
-                through: { attributes: [] }, 
+                as: "supervisors",  
+                attributes: ["id", "firstname", "lastname"],  
+                include: [
+                    {
+                        model: User,  
+                        as: "user",  
+                        attributes: ["id", "username", "email"],
+                    }
+                ]
             },
         ],
     });
 
-    // If no PFE is found, return a message
+    
     if (pfeList.length === 0) {
         return res.status(200).json({
             status: "success",
@@ -431,12 +432,26 @@ export const displayPFEforstudents = catchAsync(async (req, res, next) => {
         });
     }
 
-    // Format the PFE list
-    const formattedPFEList = pfeList.map((pfe) => ({
-        ...pfe.toJSON(),
-        pdfFile: pfe.pdfFile ? `${req.protocol}://${req.get("host")}/uploads/${pfe.pdfFile}` : null,
-        photo: pfe.photo ? `${req.protocol}://${req.get("host")}/photos/${pfe.photo}` : null,
-    }));
+    const formattedPFEList = pfeList.map((pfe) => {
+        const supervisor = pfe.supervisors[0];  
+        const createdBy = supervisor ? supervisor.user : null;
+
+        return {
+            ...pfe.toJSON(),
+            createdBy: createdBy
+                ? {
+                    id: createdBy.id,
+                    username: createdBy.username,
+                    email: createdBy.email,
+                    firstname: supervisor.firstname,
+                    lastname: supervisor.lastname,
+                }
+                : "Company or Other Entity",  // Fallback for company or others
+            pdfFile: pfe.pdfFile ? `${req.protocol}://${req.get("host")}/uploads/${pfe.pdfFile}` : null,
+            // photo: pfe.photo ? `${req.protocol}://${req.get("host")}/photos/${pfe.photo}` : null,
+            photo: "https://s3-alpha-sig.figma.com/img/3c09/f76d/8de97470c93e1e24bac8b4d8a1f71e7e?Expires=1745193600&Key-Pair-Id=APKAQ4GOSFWCW27IBOMQ&Signature=rtzL3QzYfNGLbbbFzQ-DLvr~umpe0nCpcF2OvL8G~OqHqeK0bukfumJWE9S-bFNF3b8cyt6SKx3Ij5KbuMfpdZhfXZhb4rBOKnzxOQEn9RHz8062nwzScMphgqBf6PqIoMeN24MClice5rXLnUuCK2jHy7lx6UZk9ekGzaRDiX22lzRheztSLuCsNtcq2uQ8Jf-WEOQiutkPzDsMzfVCAjCd8ao3SkuleQvlRO25EXiefzknwyh5a210rpuUz-N5sO7--q8PAD-fqe4GXP7WjXDALqdLPVvv-Jkrev9K17DNOi2IkJlbO2krEMLEK--g4LbwTIxQe0pdjiq8wVMxEQ__",
+        };
+    });
 
     res.status(200).json({
         status: "success",
@@ -444,6 +459,7 @@ export const displayPFEforstudents = catchAsync(async (req, res, next) => {
         pfeList: formattedPFEList,
     });
 });
+
 
 
 
@@ -465,7 +481,7 @@ export const searchForPfes = catchAsync(async (req, res, next) => {
                 { title: { [Op.iLike]: `%${query}%` } },
                 { '$supervisors.firstname$': { [Op.iLike]: `%${query}%` } },
                 { '$supervisors.lastname$': { [Op.iLike]: `%${query}%` } },
-                { '$supervisors.User.email$': { [Op.iLike]: `%${query}%` } },
+                { '$supervisors.user.email$': { [Op.iLike]: `%${query}%` } },
                 { '$creator.email$': { [Op.iLike]: `%${query}%` } }
             ]
         },
@@ -474,12 +490,20 @@ export const searchForPfes = catchAsync(async (req, res, next) => {
                 model: teacher,
                 as: "supervisors",
                 required: false,
-                include: [{ model: User, as: "User", attributes: ["email"], required: false }]
+                include: [{ model: User, as: "user", attributes: ["email"], required: false }]
             },
             {
                 model: User,
                 as: "creator",
-                attributes: ["email"]
+                attributes: ["id", "email"],
+                include: [
+                    {
+                        model: teacher,
+                        as: "teacher",
+                        attributes: ["firstname", "lastname"],
+                        required: false
+                    }
+                ]
             }
         ]
     });
@@ -488,7 +512,6 @@ export const searchForPfes = catchAsync(async (req, res, next) => {
         return next(new appError("No PFEs found matching the search criteria.", 404));
     }
 
-    // Add full URLs for pdfFile and photo
     const formattedPfes = pfes.map((pfe) => ({
         ...pfe.toJSON(),
         pdfFile: pfe.pdfFile ? `${req.protocol}://${req.get("host")}/uploads/${pfe.pdfFile}` : null,
@@ -499,7 +522,7 @@ export const searchForPfes = catchAsync(async (req, res, next) => {
 });
 
 
-// Get PFEs by specialization (optimized)  
+
 export const getPfesBySpecialization = catchAsync(async (req, res, next) => {
     const { specialization } = req.params;
 

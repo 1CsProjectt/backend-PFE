@@ -6,6 +6,7 @@ import User from "../models/UserModel.js";
 import appError from "../utils/appError.js";
 import { catchAsync } from "../utils/catchAsync.js";
 import dotenv from "dotenv";
+import Student from "../models/studenModel.js";
 
 dotenv.config();
 
@@ -31,6 +32,15 @@ export const login = catchAsync(async (req, res, next) => {
         return next(new appError("Incorrect email or password", 401));
     }
 
+    let student;
+    if(user.role==='student'){
+         student= await Student.findByPk(user.id);
+        if(!student){
+            return next(new appError('student not found',403))
+        };
+        console.log('Student object:', student);
+    }
+
     const token = signToken(user.id);
     
     res.cookie("jwt", token, {
@@ -40,7 +50,7 @@ export const login = catchAsync(async (req, res, next) => {
         maxAge: 168 * 60 * 60 * 1000,
     });
 
-    res.status(200).json({ status: "success", user: { id: user.id, email: user.email, role: user.role } });
+    res.status(200).json({ status: "success", user: { id: user.id, email: user.email, role: user.role , team_id: student ? student.team_id : null,} });
 });
 
 

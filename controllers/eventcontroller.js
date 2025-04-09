@@ -12,9 +12,20 @@ import Student from "../models/studenModel.js";
 
 
 
- const setEvent = catchAsync(async (req, res, next) => {
+const setEvent = catchAsync(async (req, res, next) => {
     const { name, startTime, endTime, maxNumber } = req.body;
     const year = req.body.year?.toUpperCase();
+
+    const allowedNames = ['PFE_SUBMISSION', 'PFE_VALIDATION', 'TEAM_CREATION', 'PFE_ASSIGNMENT', 'WORK_STARTING'];
+    const allowedYears = ['2CP', '1CS', '2CS', '3CS'];
+
+    if (!allowedNames.includes(name)) {
+        return next(new appError("Invalid event name", 400));
+    }
+
+    if (!allowedYears.includes(year)) {
+        return next(new appError("Invalid academic year", 400));
+    }
 
     if (new Date(startTime) >= new Date(endTime)) {
         return next(new appError("Start time must be before end time", 400));
@@ -29,40 +40,54 @@ import Student from "../models/studenModel.js";
     parsedStartTime.setUTCHours(0, 0, 0, 0);
     parsedEndTime.setUTCHours(0, 0, 0, 0);
 
-    const eventData = {
-        startTime: parsedStartTime,
-        endTime: parsedEndTime,
-    };
-
-    if (name === "TEAM_CREATION") {
-        eventData.maxNumber = maxNumber; 
-    }
     const io = req.app.get("socketio");
     io.emit("notification", { message: `New event posted: ${name}` });
 
-    const [event, created] = await Event.findOrCreate({
-        where: { name, year },
-        defaults: eventData
-    });
+    const existingEvent = await Event.findOne({ where: { year } });
 
-    if (!created) {
-        event.startTime = parsedStartTime;
-        event.endTime = parsedEndTime;
-        if (name === "TEAM_CREATION") {
-            event.maxNumber = maxNumber;
+    if (existingEvent) {
+        const existingEventEndTime = new Date(existingEvent.endTime);
+        existingEventEndTime.setUTCHours(0, 0, 0, 0); 
+        
+        if (existingEventEndTime > new Date()) {
+            return next(new appError(`An event is already active for ${year} until ${existingEvent.endTime}`, 400));
         }
-        await event.save();
+    }
+
+    
+    let event;
+    if (existingEvent) {
+        existingEvent.name = name;
+        existingEvent.startTime = parsedStartTime;
+        existingEvent.endTime = parsedEndTime;
+        existingEvent.maxNumber = name === "TEAM_CREATION" ? maxNumber : null;
+        await existingEvent.save();
+        event = existingEvent;
+    } else {
+        // Create new event
+        event = await Event.create({
+            name,
+            year,
+            startTime: parsedStartTime,
+            endTime: parsedEndTime,
+            maxNumber: name === "TEAM_CREATION" ? maxNumber : null
+        });
     }
 
     res.status(200).json({
         status: "success",
-        message: created ? "SESSION created successfully" : "SESSION updated successfully",
+        message: existingEvent ? "SESSION updated successfully" : "SESSION created successfully",
         event
     });
 });
 
 
-const updateEvent = catchAsync(async (req, res, next) => {
+
+
+
+
+
+export const updateEvent = catchAsync(async (req, res, next) => {
     const { name, year, startTime, endTime, maxNumber } = req.body;
 
     if (!name || !year) {

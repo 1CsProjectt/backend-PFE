@@ -1,5 +1,5 @@
 import express from 'express';
-import { createTeam,leaveTeam,listAllTeams,showMyTeam} from '../controllers/groupcontroller.js';
+import { createTeam,leaveTeam,listAllTeams,showMyTeam,listAllTeamsforstudent} from '../controllers/groupcontroller.js';
 import { getStudentsByTeam } from '../controllers/studentcontroller.js';
 import { protect,restrictedfor } from "../middlewares/authmiddleware.js";
 import { checkEventTime } from '../controllers/eventcontroller.js';
@@ -14,10 +14,11 @@ import { checkEventTime } from '../controllers/eventcontroller.js';
 
 
 const router = express.Router();
-router.post('/creategroup',protect,restrictedfor('student'),checkEventTime('TEAM_CREATION') ,createTeam);
+router.post('/creategroup',protect,restrictedfor('student') ,createTeam);
 router.get('/:groupId/students', getStudentsByTeam);
-router.post("/leaveTeam",protect, leaveTeam);
+router.patch("/leaveTeam",protect, leaveTeam);
 router.get('/all', protect, listAllTeams);
+router.get('/allgroups', protect,restrictedfor('student'), listAllTeamsforstudent);
 router.get('/myteam', protect, showMyTeam);
 
 

@@ -21,7 +21,7 @@ import xss from "xss-clean";
 import hpp from "hpp";
 import path from "path";
 import session from "express-session";
-import mime from 'mime-types';
+import mime from 'mime';
 // const express = require("express");
 // const cors = require("cors");
 // const helmet = require("helmet");
@@ -58,7 +58,7 @@ const allowedOrigins = [
   "https://8cb9-154-247-119-87.ngrok-free.app",
   "https://180b-154-247-119-87.ngrok-free.app",
   "https://98cc-154-246-81-2.ngrok-free.app/api/v1" ,
-  "https://180b-154-247-119-87.ngrok-free.app/api/v1"
+  "https://96c5-105-235-139-82.ngrok-free.app/api/v1"
 ];
 
 app.use(cors({
@@ -82,17 +82,15 @@ app.options('*', cors());
   app.use(express.json());
 app.use(helmet());  
 app.use(compression());
-app.use('/uploads',  express.static(path.join(process.cwd(), 'photos'),{
+app.use('/uploads',  express.static(path.join(process.cwd(), 'uploads'),{
   setHeaders: (res, path) => {
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Content-Type', mime.getType(path));
+    res.setHeader('Content-Type', mime.getType(path))
   }
 }));
 app.use('/photos', express.static(path.join(process.cwd(), 'photos'), {
   setHeaders: (res, path) => {
-    res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Content-Type', mime.getType(path));
-    res.setHeader('Cache-Control', 'public, max-age=31536000'); // 1 year cache
+    res.setHeader('Cache-Control', 'public, max-age=31536000'); 
   }
 }));
 
@@ -150,18 +148,38 @@ app.get("/", (req, res) => {
     });
 });
 
+
+
 app.get('/test-mime', (req, res) => {
-  const testCases = {
-    'test.jpg': mime.lookup('./photos/photo-1743261336544-673918170.jpg'),
-    'document.pdf': mime.lookup('document.pdf'),
-    'unknown.xyz': mime.lookup('unknown.xyz')
-  };
-  
-  res.json({
-    status: 'MIME test successful',
-    results: testCases
-  });
+  const images = [
+    '/photos/photo.jpg', 
+    '/photos/photo-1743709159069-467003800.jpg', 
+  ];
+
+  const html = `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <title>MIME Test</title>
+        <style>
+          body { font-family: sans-serif; text-align: center; }
+          img { margin: 20px; max-width: 300px; height: auto; border: 1px solid #ccc; }
+        </style>
+      </head>
+      <body>
+        <h1>MIME Test: Displaying Photos</h1>
+        ${images
+          .map(
+            (src) => `<div><img src="${src}" alt="${path.basename(src)}"/></div>`
+          )
+          .join('')}
+      </body>
+    </html>
+  `;
+
+  res.send(html);
 });
+
 
 
 // Handle unmatched routes

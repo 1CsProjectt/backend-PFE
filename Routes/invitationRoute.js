@@ -7,7 +7,7 @@ const router = express.Router();
 router.post("/sendinvitation",protect, sendinvitation);
 router.get("/getallmyinvitations",protect,getAllMypendingInvitations);
 router.get("/getallmyrecievedinvitations",protect,getAllMyrecievedInvitations);
-router.post("/acceptInvitation", protect,acceptInvitation);
+router.patch("/acceptInvitation", protect,acceptInvitation);
 router.post("/declineInvitation",protect, declineInvitation);
 
 

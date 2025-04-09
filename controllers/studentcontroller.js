@@ -3,6 +3,7 @@ import appError from '../utils/appError.js';
 import Student from '../models/studenModel.js';
 import User from '../models/UserModel.js';
 import { catchAsync } from '../utils/catchAsync.js';
+import { Op } from 'sequelize';
 
 // const Team = require('../models/groupModel.js');
 // const appError = require('../utils/appError.js');
@@ -63,7 +64,9 @@ export const listAllStudents = catchAsync(async (req, res, next) => {
   }
 
   const students = await Student.findAll({
-    where: { year: userYear },
+    where: { year: userYear,
+      id: { [Op.ne]: id }
+     },
     include: [
       {
         model: User,
