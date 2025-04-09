@@ -17,10 +17,10 @@ const allowedOrigins = [
   "https://180b-154-247-119-87.ngrok-free.app",
   "https://98cc-154-246-81-2.ngrok-free.app",
   "https://98cc-154-246-81-2.ngrok-free.app/api/v1" ,
-  "https://180b-154-247-119-87.ngrok-free.app/api/v1"// Add the ngrok URL from your error
+  "https://96c5-105-235-139-82.ngrok-free.app/api/v1"
 ]; 
 
-// Initialize Socket.IO
+
 const io = new Server(server, {
   cors: {
     origin: function (origin, callback) {
@@ -41,7 +41,6 @@ const io = new Server(server, {
 });
 
 
-// Store io instance in app
 app.set("socketio", io);
 
 // Handle connection

@@ -46,6 +46,8 @@ export const createTeam = catchAsync(async (req, res, next) => {
 });
 
 export const listAllTeams = catchAsync(async (req, res, next) => {
+
+
     const teams = await Team.findAll({
         include: [
             {
@@ -70,6 +72,47 @@ export const listAllTeams = catchAsync(async (req, res, next) => {
         teams
     });
 });
+
+export const listAllTeamsforstudent = catchAsync(async (req, res, next) => {
+        if (!req.user || !req.user.id) {
+            return next(new appError("Unauthorized: No user found in request", 401));
+        }
+        const student = await Student.findOne({ where: { id: req.user.id } });
+    
+        if (!student) {
+            return next(new appError("Student not found", 404));
+        }
+        const userYear = student.year; 
+    
+        const teams = await Team.findAll({
+            include: [
+                {
+                    model: Student,
+                    as: 'members',
+                    include: [
+                        {
+                            model: User,
+                            as: 'user',
+                            attributes: ['email'],
+                        }
+                    ]
+                }
+            ],
+            where: {
+                '$members.year$': userYear 
+            },
+            attributes: ['id', 'groupName', 'supervisorId', 'maxNumber', 'createdAt']
+        });
+    
+        return res.status(200).json({
+            status: 'success',
+            results: teams.length,
+            teams
+        });
+    });
+    
+
+
 
 
 
@@ -125,8 +168,11 @@ export const showMyTeam = catchAsync(async (req, res, next) => {
 
 
 export const leaveTeam = catchAsync(async (req, res, next) => {
-    try {
+    
         const user = req.user;
+        if(!user){
+            return next(new appError('user not found',400));
+        }
         const student = await Student.findOne({ where: { id: user.id } });
 
         if (!student) {
@@ -137,10 +183,7 @@ export const leaveTeam = catchAsync(async (req, res, next) => {
         await student.save();
 
         res.status(200).json({ message: "You have left the team successfully" });
-    } catch (error) {
-        console.error("Error leaving team:", error);
-        next(new appError("Server error", 500));
-    }
+    
 });
 
 

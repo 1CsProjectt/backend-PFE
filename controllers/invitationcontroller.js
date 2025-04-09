@@ -35,6 +35,10 @@ export const sendinvitation = catchAsync(async (req, res, next) => {
   const senderId = student.id;
 
   const { receiver_email } = req.body;
+  if(!receiver_email){
+    return next(new appError('receiver email is missing',403))
+  };
+  console.log(receiver_email);
 
   const receiverUser = await User.findOne({
     where: { email: receiver_email, role: "student" },
@@ -132,16 +136,6 @@ export const getAllMyrecievedInvitations = catchAsync(async (req, res, next) => 
 });
 
 
-
-
-
-
-
-
- 
-
-
-
 export const acceptInvitation = catchAsync(async (req, res, next) => {
   const { invitationId } = req.body;
   const user = req.user;
@@ -203,25 +197,6 @@ export const acceptInvitation = catchAsync(async (req, res, next) => {
 
   res.status(200).json({ message: "Invitation accepted successfully" });
 });
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
