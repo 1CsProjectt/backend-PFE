@@ -52,9 +52,10 @@ import invitation from "./models/invitationModel.js";
     
   } catch (error) {
     console.error("❌ Sync error:", error); 
-  } finally {
-    await sequelize.close(); // Close the database connection
   }
+  // } finally {
+  //   await sequelize.close(); // Close the database connection
+  // }
 })();
 
 
