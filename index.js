@@ -26,28 +26,37 @@ import swaggerUi from 'swagger-ui-express';
 import {swaggerSpec} from './config/wsagger.js';
 import dotenv from "dotenv";
 dotenv.config(); 
-
-
-
-
 import { Server } from "socket.io";
 import http from "http"; 
-// const express = require("express");
-// const cors = require("cors");
-// const helmet = require("helmet");
-// const compression = require("compression");
-// const morgan = require("morgan");
-// const rateLimit = require("express-rate-limit");
-// const appError = require("./utils/appError.js");
-// const { errorhandler } = require("./controllers/errController.js");
-// const studentroute = require("./Routes/studentRoute.js");
-// const userRoutes = require("./Routes/userRoute.js");
-// const authRoutes = require("./Routes/authRoute.js");
-// const pfeRoutes = require("./Routes/pfeRoute.js");
-// const eventRoutes = require("./Routes/eventRoute.js");
-// const groupRoutes = require("./Routes/groupRoute.js");
-// require("./models/associateModels.js");
-// const cookieParser = require("cookie-parser");
+
+import sequelize from "./database.js";
+import User from "../models/UserModel.js"; // Import the model
+import PFE from "../models/PFEmodel.js";
+import Event from "../models/eventModel.js";
+import Student from "../models/studenModel.js";
+import teacher from "../models/teacherModel.js";
+import Company from "../models/companyModel.js";
+import Admin from "../models/adminModel.js";
+import JoinRequest from "../models/jointeamModel.js";
+import invitation from "../models/invitationModel.js";
+
+
+
+
+
+
+(async () => {
+  try {
+    await sequelize.sync({  alter: true }); // Creates or updates tables 
+    console.log("✅ Database synced!");
+    
+  } catch (error) {
+    console.error("❌ Sync error:", error); 
+  } finally {
+    await sequelize.close(); // Close the database connection
+  }
+})();
+
 
 
 
