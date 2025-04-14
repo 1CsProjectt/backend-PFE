@@ -180,6 +180,7 @@ export const leaveTeam = catchAsync(async (req, res, next) => {
         }
 
         student.team_id = null;
+        student.status="available"
         await student.save();
 
         res.status(200).json({ message: "You have left the team successfully" });
