@@ -22,6 +22,8 @@ import hpp from "hpp";
 import path from "path";
 import session from "express-session";
 import mime from 'mime';
+import swaggerUi from 'swagger-ui-express';
+import {swaggerSpec} from './config/wsagger.js';
 // const express = require("express");
 // const cors = require("cors");
 // const helmet = require("helmet");
@@ -53,12 +55,13 @@ app.use(cookieParser());
 
 // Consolidated CORS Configuration
 const allowedOrigins = [ 
+  "http://localhost:5000",
   "http://192.168.206.209:3000", 
   "http://192.168.170.167:3000",
   "https://8cb9-154-247-119-87.ngrok-free.app",
   "https://180b-154-247-119-87.ngrok-free.app",
   "https://6072-105-235-138-57.ngrok-free.app/api/v1" ,
-  "https://96c5-105-235-139-82.ngrok-free.app/api/v1"
+  "https://9625-105-235-138-133.ngrok-free.app/api/v1"
 ];
 
 app.use(cors({
@@ -127,7 +130,7 @@ app.use(session({
     },
 }));
 
-
+ 
   
 
 // Routes
@@ -139,6 +142,8 @@ app.use("/api/v1/student", studentroute);
 app.use("/api/v1/teams", groupRoutes);
 app.use("/api/v1/invitation",invitationRoutes);
 app.use("/api/v1/jointeam",jointeamRoutes);
+
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 
 app.get("/", (req, res) => {
@@ -152,8 +157,8 @@ app.get("/", (req, res) => {
 
 app.get('/test-mime', (req, res) => {
   const images = [
-    '/photos/photo.jpg', 
-    '/photos/photo-1743709159069-467003800.jpg', 
+    'https://d587-105-235-138-133.ngrok-free.app/photos/photo-1744308138691-713144865.jpg', 
+    'https://d587-105-235-138-133.ngrok-free.app/photos/photo-1743709159069-467003800.jpg', 
   ];
 
   const html = `

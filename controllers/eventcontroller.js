@@ -64,7 +64,6 @@ const setEvent = catchAsync(async (req, res, next) => {
         await existingEvent.save();
         event = existingEvent;
     } else {
-        // Create new event
         event = await Event.create({
             name,
             year,

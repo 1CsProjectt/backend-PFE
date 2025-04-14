@@ -3,7 +3,9 @@ import appError from '../utils/appError.js';
 import Student from '../models/studenModel.js';
 import User from '../models/UserModel.js';
 import { catchAsync } from '../utils/catchAsync.js';
-import { Op } from 'sequelize';
+import { Op
+  
+ } from 'sequelize';
 
 // const Team = require('../models/groupModel.js');
 // const appError = require('../utils/appError.js');
@@ -48,8 +50,8 @@ export const listAllStudents = catchAsync(async (req, res, next) => {
 
   const id = req.user.id;
 
-  if (req.user.role !== "student") {
-    return next(new appError("You are not a student", 403));
+  if ((req.user.role !== "student") && (req.user.role !== "admin")) {
+    return next(new appError("You are not a student or an admin , you're signed in as : " + req.user.role, 403));
   }
 
   const mystudentinfo = await Student.findOne({ where: { id } });

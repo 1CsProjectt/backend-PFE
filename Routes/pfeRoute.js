@@ -18,7 +18,8 @@ import {
   getIsiPfes,
   getIasdPfes
   ,getSiwPfes,
-  getMyPfe
+  getMyPfe,
+  displayvalidePFE
  } from "../controllers/pfecontroller.js";
 
 
@@ -50,7 +51,6 @@ router.post(
     protect,
     restrictedfor('teacher', 'company'),
     uploadFiles, 
-    checkEventTime('PFE_SUBMISSION'), 
     createPFE
   );
   
@@ -69,11 +69,13 @@ router.post(
   
   // ✅ Display unvalidated PFEs (for validation)
   router.get("/pending",protect,restrictedfor('admin'), displayPFE);
+  //display valide PFEs for admin
+  router.get("/validpfe",protect,restrictedfor('admin'), displayvalidePFE);
   
   // ✅ Display validated PFEs for students (based on their year and specialite)
   router.get("/for-students", protect, restrictedfor("student"), displayPFEforstudents);
   
-  // ✅ Display this year's PFEs ex(2CS)
+  // ✅ Display this year's PFEs ex(2CS) 
   router.get("/this-year", protect, displaythisyearsPFE);
   
   // ✅ Add Supervisor to a PFE
@@ -83,6 +85,7 @@ router.post(
   router.patch("/:id/validate", protect, restrictedfor("admin"), validatePFE);
 
   router.get("/my-pfes", protect, getMyPfe);
+
   
 router.get("/getPfes/:specialization", getPfesBySpecialization);
 router.get("/searchForPfes", searchForPfes);

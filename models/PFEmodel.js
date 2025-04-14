@@ -52,7 +52,6 @@ const PFE = sequelize.define("PFE", {
     }
 });
 
-// Associations
 
 
 

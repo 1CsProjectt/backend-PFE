@@ -8,5 +8,6 @@ router.post("/sendjoinrequest", protect,sendJoinRequest);
 router.post("/accepteJoinRequests",protect, acceptJoinRequest);
 router.post("/rejectJoinRequests",protect, rejectJoinRequests);
 router.get("/getalljoinmyteamrequests",protect, getAllJoinMyTeamRequests)
-
+ 
 export default router;
+ 

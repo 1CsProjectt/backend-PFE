@@ -144,6 +144,8 @@ export const acceptJoinRequest = catchAsync(async (req, res, next) => {
 
 export const rejectJoinRequests = catchAsync(async (req, res, next) => {
   const { requestId } = req.body;
+  
+  console.log(requestId)
 
   const joinRequest = await JoinRequest.findByPk(requestId);
   if (!joinRequest) {

@@ -7,7 +7,7 @@ import sequelize from "../config/database.js";
 import teacher from "../models/teacherModel.js";
 import Company from "../models/companyModel.js";
 import Admin from "../models/adminModel.js";
-
+import bcrypt from "bcryptjs";
 
 
 
@@ -114,20 +114,56 @@ const createUser = catchAsync(async (req, res, next) => {
 });
 
 
- const updateUser = catchAsync(async (req, res, next) => {
+export const updateUserByAdmin = catchAsync(async (req, res, next) => {
     const t = await sequelize.transaction();
 
     try {
-        const { firstname, lastname, year, specialite, name, industry, phone, address, website, admin_level, permissions } = req.body;
+        const {
+            email, 
+            username,
+            firstname,
+            lastname,
+            newEmail, 
+            password,
+            year,
+            specialite,
+            companyName,
+            phone,
+            address,
+            website,
+            admin_level,
+            permissions
+        } = req.body;
 
-        // Ensure the user exists
-        const user = await User.findByPk(req.user.id);
+        if (!email) {
+            await t.rollback();
+            return next(new appError("Current email is required to identify the user", 400));
+        }
+
+        const user = await User.findOne({ where: { email } });
         if (!user) {
             await t.rollback();
             return next(new appError("User not found", 404));
         }
 
-        if (user.role === "student") {
+        
+        if (newEmail && newEmail !== user.email) {
+            const existingEmail = await User.findOne({ where: { email: newEmail } });
+            if (existingEmail) {
+                await t.rollback();
+                return next(new appError("New email is already in use", 400));
+            }
+            user.email = newEmail;
+        }
+        const hashedpass=await bcrypt.hash(user.password, 10);
+        if (username) user.username = username;
+        if (hashedpass!=user.password) user.password = hashedpass; 
+
+        await user.save({ transaction: t });
+
+        const currentRole = user.role.toLowerCase();
+
+        if (currentRole === "student") {
             const student = await Student.findByPk(user.id);
             if (!student) {
                 await t.rollback();
@@ -135,48 +171,47 @@ const createUser = catchAsync(async (req, res, next) => {
             }
 
             if (year) student.year = year.toUpperCase();
+
             if (["2CS", "3CS"].includes(year?.toUpperCase()) && !specialite) {
                 await t.rollback();
-                return next(new appError("Specialite is required for 2CS and 3CS", 400));
+                return next(new appError("Specialite is required for 2CS and 3CS students", 400));
             }
-            student.specialite = specialite || null;
+
+            student.specialite = specialite || student.specialite;
             student.firstname = firstname || student.firstname;
             student.lastname = lastname || student.lastname;
-            student.phone = phone || student.phone;
-            student.address = address || student.address;
-
+            
             await student.save({ transaction: t });
 
-        } else if (user.role === "teacher") {
-            const teacher = await teacher.findByPk(user.id);
-            if (!teacher) {
+        } else if (currentRole === "teacher") {
+            const Teacher = await teacher.findByPk(user.id);
+            if (!Teacher) {
                 await t.rollback();
                 return next(new appError("Teacher record not found", 404));
             }
 
-            teacher.firstname = firstname || teacher.firstname;
-            teacher.lastname = lastname || teacher.lastname;
-            teacher.phone = phone || teacher.phone;
-            teacher.address = address || teacher.address;
+            Teacher.firstname = firstname || Teacher.firstname;
+            Teacher.lastname = lastname || Teacher.lastname;
 
-            await teacher.save({ transaction: t });
 
-        } else if (user.role === "company") {
+            await Teacher.save({ transaction: t });
+
+        } else if (currentRole === "company") {
             const company = await Company.findByPk(user.id);
             if (!company) {
                 await t.rollback();
                 return next(new appError("Company record not found", 404));
             }
 
-            company.name = name || company.name;
-            company.industry = industry || company.industry;
+            company.name = companyName || company.name;
             company.phone = phone || company.phone;
             company.address = address || company.address;
             company.website = website || company.website;
 
             await company.save({ transaction: t });
-        } else if (user.role === "admin") {
-            const admin = await Admin.findOne({ where: { user_id: user.id } });
+
+        } else if (currentRole === "admin") {
+            const admin = await Admin.findOne({ where: { id: user.id } });
             if (!admin) {
                 await t.rollback();
                 return next(new appError("Admin record not found", 404));
@@ -184,8 +219,8 @@ const createUser = catchAsync(async (req, res, next) => {
 
             admin.firstname = firstname || admin.firstname;
             admin.lastname = lastname || admin.lastname;
-            admin.admin_level = admin_level || admin.admin_level;
-            admin.permissions = permissions || admin.permissions;
+            admin.admin_level = admin_level ?? admin.admin_level;
+            admin.permissions = permissions ?? admin.permissions;
 
             await admin.save({ transaction: t });
         }
@@ -194,7 +229,7 @@ const createUser = catchAsync(async (req, res, next) => {
 
         res.status(200).json({
             status: "success",
-            message: "User updated successfully",
+            message: `User ${user.id} updated successfully`,
         });
 
     } catch (error) {
@@ -202,6 +237,8 @@ const createUser = catchAsync(async (req, res, next) => {
         return next(error);
     }
 });
+
+
 
 const getUser = catchAsync(async (req, res, next) => {
     
@@ -365,6 +402,6 @@ export const searchForUser = catchAsync( async (req, res) => {
 export {getUser};
 export {createUser} ;
 export {deletuser};
-export {updateUser};
+
 
   

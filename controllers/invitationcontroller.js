@@ -5,6 +5,7 @@ import User from "../models/UserModel.js";
 import jwt from "jsonwebtoken";
 import appError from "../utils/appError.js";
 import { catchAsync  } from "../utils/catchAsync.js";
+import Team from "../models/groupModel.js";
 
 
 
@@ -223,6 +224,9 @@ export const declineInvitation = catchAsync(async (req, res, next) => {
 
   res.status(200).json({ message: "Invitation declined successfully" });
 });
+
+
+
 
 
 

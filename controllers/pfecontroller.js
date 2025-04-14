@@ -232,20 +232,16 @@ export const getMyPfe = catchAsync(async (req, res, next) => {
 
 
 
-
-
-
-
-
-
-  
-
-
-
-
 export const deletePFEforcreator = catchAsync(async (req, res, next) => {
     const { id } = req.params;
-    const currentUserId = req.user.id; // Logged-in user's ID
+    if(!id){
+        return next(new appError('you must provide id',404))
+    }
+    console.log(id)
+    const currentUserId = req.user.id; 
+    if(!currentUserId){
+        return next(new appError('user not found',404))
+    }
 
     const pfe = await PFE.findByPk(id);
     if (!pfe) {
@@ -276,6 +272,14 @@ export const deletePFEforcreator = catchAsync(async (req, res, next) => {
             }
         });
     }
+    if (pfe.photo) {
+        const photoPath = path.resolve(__dirname, "..", "photos", pfe.photo);
+        fs.unlink(photoPath, (err) => {
+            if (err && err.code !== "ENOENT") {
+                console.error(`Error deleting photo file: ${err.message}`);
+            }
+        });
+    }
 
     await pfe.destroy();
     res.status(200).json({ message: "PFE and associated files deleted successfully" });
@@ -297,7 +301,7 @@ const downloadfile=(req, res) => {
       }); 
     }
 
-
+ 
 
 
 export const displayPFE = catchAsync(async (req, res, next) => {
@@ -391,6 +395,44 @@ export const displayPFE = catchAsync(async (req, res, next) => {
             pfeList: formattedPFEList,
         });
     });
+
+
+    export const displayvalidePFE = catchAsync(async (req, res, next) => {
+        const currentYear = new Date().getFullYear();
+    
+        const pfeList = await PFE.findAll({
+            where: {
+                valide: true,
+                [Op.and]: [literal(`EXTRACT(YEAR FROM "PFE"."createdAt") = ${currentYear}`)],
+            },
+            include: [
+                {
+                    model: User,
+                    as: "creator",
+                    attributes: ["id", "username", "email"],
+                },
+                {
+                    model: teacher,
+                    as: "supervisors",
+                    attributes: ["id", "name"],
+                    through: { attributes: [] }, 
+                }
+            ],
+        });
+    
+        const formattedPFEList = pfeList.map((pfe) => ({
+            ...pfe.toJSON(),
+            pdfFile: pfe.pdfFile ? `${req.protocol}://${req.get("host")}/uploads/${pfe.pdfFile}` : null,
+            photo: pfe.photo ? `${req.protocol}://${req.get("host")}/photos/${pfe.photo}` : null,
+        }));
+    
+        res.status(200).json({
+            status: "success",
+            count: formattedPFEList.length,
+            pfeList: formattedPFEList,
+        });
+    });
+    
     
     
 
@@ -549,11 +591,11 @@ export const searchForPfes = catchAsync(async (req, res, next) => {
     const pfes = await PFE.findAll({
         where: {
             [Op.or]: [
-                { title: { [Op.like]: `%${query}%` } },
-                { '$supervisors.firstname$': { [Op.like]: `%${query}%` } },
-                { '$supervisors.lastname$': { [Op.like]: `%${query}%` } },
-                { '$supervisors.User.email$': { [Op.like]: `%${query}%` } },
-                { '$creator.email$': { [Op.like]: `%${query}%` } }
+                { title: { [Op.iLike]: `%${query}%` } },
+                { '$supervisors.firstname$': { [Op.iLike]: `%${query}%` } },
+                { '$supervisors.lastname$': { [Op.iLike]: `%${query}%` } },
+                { '$supervisors.user.email$': { [Op.iLike]: `%${query}%` } },
+                { '$creator.email$': { [Op.iLike]: `%${query}%` } }
             ]
         },
         include: [

@@ -1,24 +1,18 @@
 import { Sequelize }  from "sequelize";
-import dotenv from 'dotenv';
-dotenv.config(); // ✅ this should be before using process.env
 
 
 // const { Sequelize } = require("sequelize");
 
 
-const sequelize = new Sequelize(
-  process.env.DB_NAME,      // "3csprj"
-  process.env.DB_USER,      // "abdouknc"
-  process.env.DB_PASSWORD,  // "your_password"
-  {
-    host: process.env.DB_HOST, // "127.0.0.1"
-    dialect: "mysql",          // ✅ MySQL
-    logging: false,
-  }
-);
+const sequelize = new Sequelize("postgres", "postgres", "mohamed", {
+  host: "localhost",
+  dialect: "postgres", // Tells Sequelize we're using PostgreSQL
+  logging: false, // Disable SQL query logs (optional)
+});
+
 
 sequelize.authenticate()
-  .then(() => console.log("✅ Connected to mysql successfully!"))
+  .then(() => console.log("✅ Connected to PostgreSQL successfully!"))
   .catch(err => console.error("❌ Unable to connect:", err));
 
 
