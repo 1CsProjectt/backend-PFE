@@ -1,12 +1,4 @@
-import dotenv from "dotenv";
-dotenv.config(); 
 
-import express from "express";
-import app from "./index.js";
-import morgan from "morgan";
-import cors from "cors";
-import { Server } from "socket.io";
-import http from "http"; 
 
 
 // Create an HTTP server

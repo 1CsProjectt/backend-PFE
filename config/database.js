@@ -10,10 +10,10 @@ const sequelize = new Sequelize(
     port: process.env.DB_PORT || 5432,
     logging: false,
     dialectOptions: {
-      ssl: {
-        require: true,
-        rejectUnauthorized: false, // needed for Render
-      },
+      // ssl: {
+      //   require: true,
+      //   rejectUnauthorized: false, // needed for Render
+      // },
     },
   }
 );
