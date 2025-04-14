@@ -1,5 +1,4 @@
 import { Sequelize } from "sequelize";
-import sequelize from "./database.js";
 import User from "../models/UserModel.js"; // Import the model
 import PFE from "../models/PFEmodel.js";
 import Event from "../models/eventModel.js";
