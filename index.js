@@ -29,16 +29,16 @@ dotenv.config();
 import { Server } from "socket.io";
 import http from "http"; 
 
-import sequelize from "./database.js";
-import User from "../models/UserModel.js"; // Import the model
-import PFE from "../models/PFEmodel.js";
-import Event from "../models/eventModel.js";
-import Student from "../models/studenModel.js";
-import teacher from "../models/teacherModel.js";
-import Company from "../models/companyModel.js";
-import Admin from "../models/adminModel.js";
-import JoinRequest from "../models/jointeamModel.js";
-import invitation from "../models/invitationModel.js";
+import sequelize from "./config/database.js";
+import User from "./models/UserModel.js"; // Import the model
+import PFE from "./models/PFEmodel.js";
+import Event from "./models/eventModel.js";
+import Student from "./models/studenModel.js";
+import teacher from "./models/teacherModel.js";
+import Company from "./models/companyModel.js";
+import Admin from "./models/adminModel.js";
+import JoinRequest from "./models/jointeamModel.js";
+import invitation from "./models/invitationModel.js";
 
 
 
