@@ -158,6 +158,7 @@ export const updateUserByAdmin = catchAsync(async (req, res, next) => {
         const isSame = await bcrypt.compare(password, user.password);
         if (!isSame) {
         user.password = password;
+        console.log('Password Changed At:', new Date());
         user.passwordChangedAt = new Date(); 
         }
 
