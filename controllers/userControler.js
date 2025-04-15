@@ -155,13 +155,12 @@ export const updateUserByAdmin = catchAsync(async (req, res, next) => {
             }
             user.email = newEmail;
         }
-        const hashedpass=await bcrypt.hash(password, 10);
-        if (username) user.username = username;
-        if (hashedpass!=user.password) 
-        {
-            user.password = password;
-            user.passwordChangedAt=new DATE();
+        const isSame = await bcrypt.compare(password, user.password);
+        if (!isSame) {
+        user.password = password;
+        user.passwordChangedAt = new Date(); 
         }
+
 
         await user.save({ transaction: t });
 

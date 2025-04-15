@@ -55,13 +55,20 @@ const User = sequelize.define("User", {
 
 
 
-//before saving , encrypt password
+
 User.beforeCreate(async(user)=>{
   if (user.changed('password')) {
     // Hash password before saving
     user.password = await bcrypt.hash(user.password, 10);
   }
 });
+
+User.beforeUpdate(async (user) => {
+  if (user.changed('password')) {
+    user.password = await bcrypt.hash(user.password, 10);
+  }
+});
+
 
 
 
