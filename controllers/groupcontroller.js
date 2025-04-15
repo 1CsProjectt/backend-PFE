@@ -330,6 +330,32 @@ export const destroyTeam = catchAsync(async (req, res, next) => {
   
   
   
+  export const createTeamByAdmin = catchAsync(async (req, res, next) => {
+    const { groupName, supervisorId, maxNumber } = req.body;
+
+    if (!maxNumber || isNaN(maxNumber) || maxNumber < 1) {
+        return next(new appError('Valid maxNumber is required', 400));
+    }
+
+    if (supervisorId) {
+        const supervisorExists = await teacher.findByPk(supervisorId);
+        if (!supervisorExists) {
+            return next(new appError('Supervisor not found', 404));
+        }
+    }
+
+    const newTeam = await Team.create({
+        groupName: groupName.trim(),
+        supervisorId: supervisorId || null,
+        maxNumber,
+    });
+
+    return res.status(201).json({
+        status: 'success',
+        message: 'Team created successfully by admin',
+        team: newTeam
+    });
+});
 
 
 

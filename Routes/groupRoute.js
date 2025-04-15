@@ -1,5 +1,5 @@
 import express from 'express';
-import { createTeam,leaveTeam,listAllTeams,showMyTeam,listAllTeamsforstudent,addStudentsToTeam,destroyTeam,moveStudentsToAnotherTeam} from '../controllers/groupcontroller.js';
+import { createTeam,leaveTeam,listAllTeams,showMyTeam,listAllTeamsforstudent,addStudentsToTeam,destroyTeam,moveStudentsToAnotherTeam,createTeamByAdmin} from '../controllers/groupcontroller.js';
 import { getStudentsByTeam } from '../controllers/studentcontroller.js';
 import { protect,restrictedfor } from "../middlewares/authmiddleware.js";
 import { checkEventTime } from '../controllers/eventcontroller.js';
@@ -23,6 +23,7 @@ router.get('/myteam', protect, showMyTeam);
 // router.post('/add-student', protect, restrictTo('admin'), addStudentsToTeam);
 router.delete('/teams/:team_id', protect,restrictedfor('admin'),destroyTeam);
 router.patch('/move-student', protect, restrictedfor('admin'), moveStudentsToAnotherTeam);
+router.post('/admin/create-team', protect, restrictedfor('admin'), createTeamByAdmin);
 
 
 export default router;
