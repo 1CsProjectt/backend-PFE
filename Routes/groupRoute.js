@@ -22,7 +22,7 @@ router.get('/allgroups', protect,restrictedfor('student'), listAllTeamsforstuden
 router.get('/myteam', protect, showMyTeam);
 // router.post('/add-student', protect, restrictTo('admin'), addStudentsToTeam);
 router.delete('/teams/:team_id', protect,restrictedfor('admin'),destroyTeam);
-router.patch('/move-student', protect, restrictTo('admin'), moveStudentsToAnotherTeam);
+router.patch('/move-student', protect, restrictedfor('admin'), moveStudentsToAnotherTeam);
 
 
 export default router;
