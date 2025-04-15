@@ -93,7 +93,7 @@ const router = express.Router();
  *         description: Forbidden (not an admin)
  */
 
-router.post("/create",protect, restrictedfor("admin"), createUser);
+router.post("/create", createUser);
 
 
  router.patch("/update", protect,restrictedfor("admin"),  updateUserByAdmin);
