@@ -86,6 +86,66 @@ export const listAllStudents = catchAsync(async (req, res, next) => {
 });
 
 
+export const setStudentRole = catchAsync(async (req, res, next) => {
+  
+  if(!req.user){
+    return next(new appError('user not found , login again and try ',403))
+  }
+  const userId = req.user.id; 
+  const { role } = req.body;
+
+  if (!role) {
+    return next(new appError('Role is required', 400));
+  }
+
+  const student = await Student.findOne({ where: { id: userId } });
+
+  if (!student) {
+    return next(new appError('Student not found', 404));
+  }
+
+  if (student.role !== 'member') {
+    return next(new appError('Role already set. Use edit instead.', 400));
+  }
+
+  student.role = role;
+  await student.save();
+
+  return res.status(200).json({
+    message: 'Role set successfully.',
+    student,
+  });
+});
+
+export const editStudentRole = catchAsync(async (req, res, next) => {
+
+  if(!req.user){
+    return next(new appError('user not found , login again and try ',403))
+  }
+  const userId = req.user.id;
+  const { role } = req.body;
+
+  if (!role) {
+    return next(new appError('Role is required', 400));
+  }
+
+  const student = await Student.findOne({ where: { id: userId } });
+
+  if (!student) {
+    return next(new appError('Student not found', 404));
+  }
+
+  student.role = role;
+  await student.save();
+
+  return res.status(200).json({
+    message: 'Role updated successfully.',
+    student,
+  });
+});
+
+
+
 
 //   module.exports = {
 //     getStudentsByTeam,

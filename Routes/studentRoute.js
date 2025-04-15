@@ -1,7 +1,9 @@
 import express from 'express';
 import { 
   getStudentsByTeam, 
-  listAllStudents 
+  listAllStudents,
+  setStudentRole,
+  editStudentRole
 } from '../controllers/studentcontroller.js';
 import { protect,restrictedfor } from "../middlewares/authmiddleware.js";
 
@@ -17,6 +19,8 @@ const router = express.Router();
 
 router.get('/liststudents', protect, listAllStudents);
 router.get('/:team_id/students', protect, getStudentsByTeam);
+router.put('/set-role',protect,restrictedfor('student'), setStudentRole);
+router.put('/edit-role',protect,restrictedfor('student'), editStudentRole);
 
 
 export default router;

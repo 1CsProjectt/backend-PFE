@@ -9,7 +9,8 @@ import {
     getAllteachers,
     getAllcompanies,
     deletuser,
-    searchForUser
+    searchForUser,
+    searchForTeacher
 } from "../controllers/userControler.js";
 import { protect, restrictedfor } from "../middlewares/authmiddleware.js";
 
@@ -105,5 +106,6 @@ router.get("/teachers", protect, getAllteachers);
 router.get("/companies", protect, getAllcompanies);
 router.delete("/delete", protect, restrictedfor("admin"), deletuser);
 router.get("/search", protect, searchForUser);
+router.get("/teachers/search", protect, searchForTeacher);
 
 export default router;

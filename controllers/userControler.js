@@ -1,7 +1,7 @@
 import User  from "../models/UserModel.js";
 import { catchAsync } from "../utils/catchAsync.js";
 import appError from "../utils/appError.js";
-import { Op } from "sequelize";
+import { DATE, Op } from "sequelize";
 import Student from "../models/studenModel.js";
 import sequelize from "../config/database.js";
 import teacher from "../models/teacherModel.js";
@@ -155,9 +155,13 @@ export const updateUserByAdmin = catchAsync(async (req, res, next) => {
             }
             user.email = newEmail;
         }
-        const hashedpass=await bcrypt.hash(user.password, 10);
+        const hashedpass=await bcrypt.hash(password, 10);
         if (username) user.username = username;
-        if (hashedpass!=user.password) user.password = hashedpass; 
+        if (hashedpass!=user.password) 
+        {
+            user.password = password;
+            user.passwordChangedAt=new DATE();
+        }
 
         await user.save({ transaction: t });
 
@@ -317,7 +321,7 @@ export const getAllStudents = async (req, res) => {
 
 export const getAllteachers = async (req, res) => {
     try {
-        const teachers = await Teacher.findAll({include:{
+        const teachers = await teacher.findAll({include:{
             model:User,
             attributes:["email"]
         }});
@@ -398,6 +402,37 @@ export const searchForUser = catchAsync( async (req, res) => {
 
     
 });
+
+
+
+
+export const searchForTeacher =catchAsync( async (searchTerm) => {
+  
+    const results = await teacher.findAll({
+      where: {
+        [Op.or]: [
+          { firstname: { [Op.iLike]: `%${searchTerm}%` } },
+          { lastname: { [Op.iLike]: `%${searchTerm}%` } },
+          { name: { [Op.iLike]: `%${searchTerm}%` } },
+        ]
+      },
+      include: [
+        {
+          model: User,
+          as: 'user',
+          where: {
+            email: { [Op.iLike]: `%${searchTerm}%` }
+          },
+          required: false, 
+          attributes: ['email', 'username'] 
+        }
+      ]
+    });
+
+    return results;
+  
+});
+
 
 export {getUser};
 export {createUser} ;
