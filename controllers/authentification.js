@@ -55,6 +55,7 @@ export const login = catchAsync(async (req, res, next) => {
 
 
 export const forgotPassword = catchAsync(async (req, res, next) => {
+
     const { email } = req.body;
     const user = await User.findOne({ where: { email } });
     if (!user) return next(new appError("User not found", 404));
@@ -64,7 +65,7 @@ export const forgotPassword = catchAsync(async (req, res, next) => {
     user.resetTokenExpiry = Date.now() + parseInt(process.env.RESET_TOKEN_EXPIRY);
     await user.save();
 
-    const resetUrl = `${frontUrl}/api/v1/auth/reset-password/${resetToken}`;
+    const resetUrl = `https://backend-pfe-1.onrender.com/api/v1/auth/reset-password/${resetToken}`;
 
     await transporter.sendMail({
         from: process.env.EMAIL_USER,

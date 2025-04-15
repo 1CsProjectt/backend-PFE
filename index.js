@@ -209,9 +209,6 @@ app.get('/test-mime', (req, res) => {
 // Handle unmatched routes
 app.all('*', (req, res, next) => { 
     next(new appError(`Can't find ${req.originalUrl} on this server`, 404));
-
-
-
 });
 
 
@@ -235,7 +232,7 @@ const io = new Server(server, {
       return callback(null, true);
     },
     methods: ["GET", "POST", "PATCH", "DELETE"],
-    credentials: true, // Allow cookies and credentials
+    credentials: true, 
   },
 });
 
