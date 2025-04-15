@@ -3,7 +3,7 @@ import {
   getStudentsByTeam, 
   listAllStudents,
   setStudentRole,
-  editStudentRole
+  editStudentRole,
 } from '../controllers/studentcontroller.js';
 import { protect,restrictedfor } from "../middlewares/authmiddleware.js";
 
@@ -21,6 +21,7 @@ router.get('/liststudents', protect, listAllStudents);
 router.get('/:team_id/students', protect, getStudentsByTeam);
 router.put('/set-role',protect,restrictedfor('student'), setStudentRole);
 router.put('/edit-role',protect,restrictedfor('student'), editStudentRole);
+
 
 
 export default router;

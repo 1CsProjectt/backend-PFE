@@ -195,80 +195,104 @@ export const leaveTeam = catchAsync(async (req, res, next) => {
 });
 
 
+export const destroyTeam = catchAsync(async (req, res, next) => {
+
+    const { team_id } = req.params;
+  
+    if (!team_id) {
+      return next(new appError("Team ID is required", 400));
+    }
+  
+    const team = await Team.findByPk(team_id);
+    if (!team) {
+      return next(new appError("Team not found", 404));
+    }
+    await Student.update(
+      { team_id: null, status: 'available' },
+      { where: { team_id } }
+    );
+    await team.destroy();
+    res.status(200).json({
+      status: 'success',
+      message: 'Team deleted and members updated successfully',
+    });
+  });
+
+
+  
+  export const addStudentToTeam = catchAsync(async (req, res, next) => {
+    const { student_id, team_id } = req.body;
+  
+    if (!student_id || !team_id) {
+      return next(new appError("student_id and team_id are required", 400));
+    }
+    const student = await Student.findByPk(student_id);
+    if (!student) {
+      return next(new appError("Student not found", 404));
+    }
+    const team = await Team.findByPk(team_id);
+    if (!team) {
+      return next(new appError("Team not found", 404));
+    }
+    const currentMembers = await Student.count({ where: { team_id } });
+    if (currentMembers >= team.maxNumber) {
+      return next(new appError("This team is already full", 400));
+    }
+  
+    student.team_id = team.id;
+    student.status = "in a team";
+    await student.save();
+
+    const updatedMembers = await Student.count({ where: { team_id } });
+    if (updatedMembers >= team.maxNumber) {
+      team.full = true;
+      await team.save();
+    }
+  
+    res.status(200).json({
+      status: 'success',
+      message: 'Student added to the team successfully',
+      student,
+    });
+  });
+
+
+
+  export const moveStudentToAnotherTeam = catchAsync(async (req, res, next) => {
+    
+    const { studentId, newTeamId } = req.body;
+  
+    if (!studentId || !newTeamId) {
+      return next(new appError("Student ID and new Team ID are required", 400));
+    }
+  
+    const student = await Student.findByPk(studentId);
+    if (!student) {
+      return next(new appError("Student not found", 404));
+    }
+  
+    const newTeam = await Team.findByPk(newTeamId);
+    if (!newTeam) {
+      return next(new appError("Target team not found", 404));
+    }
+  
+    const currentMembers = await Student.count({ where: { team_id: newTeamId } });
+  
+    if (currentMembers >= newTeam.maxNumber) {
+      return next(new appError("Target team is already full", 400));
+    }
+  
+    student.team_id = newTeamId;
+    student.status = "in a team";
+    await student.save();
+  
+    res.status(200).json({
+      status: "success",
+      message: "Student moved to the new team successfully",
+      student
+    });
+  });
 
 
 
 
-
-
-
-
-
-
-
-
-
-// const Team = require('../models/groupModel.js');
-// const appError = require('../utils/appError.js');
-// const Student = require('../models/studentModel.js');
-// const User = require('../models/UserModel.js');
-// const { catchAsync } = require('../utils/catchAsync.js');
-// const { Op, Sequelize } = require("sequelize");
-// const jwt = require("jsonwebtoken");
-
-// exports.createTeam = catchAsync(async (req, res, next) => {
-//     const { groupName } = req.body;
-//     console.log(req.maxnum);
-
-//     if (!req.user || !req.user.id) {
-//         return next(new appError('Unauthorized: No user found in request', 401));
-//     }
-
-//     const id = req.user.id;
-//     const mystudent = await Student.findOne({ where: { id } });
-//     if (!mystudent) {
-//         return next(new appError('Invalid token, login again', 400));
-//     }
-
-//     if (!groupName || groupName.trim() === '') {
-//         return next(new appError('Team name is required', 400));
-//     }
-
-//     if (mystudent.team_id) {
-//         return next(new appError('You are already part of a group', 400));
-//     }
-
-//     const newTeam = await Team.create({
-//         groupName: groupName.trim(),
-//         supervisorId: null,
-//         maxNumber: req.maxnum || 5 
-//     });
-
-//     mystudent.team_id = newTeam.id;
-//     await mystudent.save();
-
-//     return res.status(201).json({
-//         status: 'success',
-//         message: 'Team created successfully',
-//         group: newTeam
-//     });
-// });
-
-// exports.leaveTeam = catchAsync(async (req, res, next) => {
-//     try {
-//         const user = req.user;
-//         const student = await Student.findOne({ where: { id: user.id } });
-
-//         if (!student) {
-//             return next(new appError("Student not found", 404));
-//         }
-
-//         student.team_id = null;
-//         await student.save();
-
-//         res.status(200).json({ message: "You have left the team successfully" });
-//     } catch (error) {
-//         console.error("Error leaving team:", error);
-//         next(new appError("Server error", 500));
-//     }
-// });
