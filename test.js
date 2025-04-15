@@ -1,6 +1,6 @@
 import bcrypt from 'bcryptjs';
 
-const hashedPassword = "$2b$10$aO.FP/SK/D3abJW/o/i6HOUAHU4Yfjrspd.itEtDCfQ9e.GBkhmPG";
+const hashedPassword = "$2b$10$ozOYMSBbZQGJRWGKSjwg5.V3biyfVYZpTfK7qmXI7.4WwlGHmesli";
 const inputPassword = "12345678";
 
 const isMatch = await bcrypt.compare(inputPassword, hashedPassword);

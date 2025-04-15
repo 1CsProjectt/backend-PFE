@@ -59,7 +59,7 @@ router.post(
   router.delete("/delete/:id", protect, deletePFEforcreator);
   
   // ✅ Admin can delete any PFE
-  router.delete("/admin/:id", protect, restrictedfor("admin"), deletePFE);
+  router.delete("/admin/delete/:id", protect, restrictedfor("admin"), deletePFE);
   
   // ✅ Download PFE file
   router.get("/download/:filename", downloadfile);
