@@ -107,7 +107,12 @@ export const resetPassword = catchAsync(async (req, res, next) => {
     res.json({ message: "Password successfully reset" });
 });
 
-
+export const getMe = (req, res) => {
+  if (!req.user) {
+    return res.status(401).json({ message: "Not logged in" });
+  }
+  res.json({ id: req.user.id, name: req.user.name, email: req.user.email });
+};
 
 // const bcrypt = require("bcryptjs");
 // const jwt = require("jsonwebtoken");
