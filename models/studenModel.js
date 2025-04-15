@@ -56,7 +56,11 @@ const Student = sequelize.define('Student', {
             key: 'id'
         },
         onDelete: 'SET NULL'
-    }
+    },
+    role:{
+        type:DataTypes.ENUM("front_end", "back_end","design","member"),
+        defaultValue:"member"
+      }
 }, {
     tableName: 'students'
 });
