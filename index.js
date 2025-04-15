@@ -71,6 +71,9 @@ app.use(xss()); // Prevent XSS attacks
 
 app.use(cookieParser());
 
+app.set('trust proxy', 1);
+
+
 // Consolidated CORS Configuration
 const allowedOrigins = [ 
 
