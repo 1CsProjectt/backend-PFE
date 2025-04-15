@@ -77,7 +77,7 @@ const allowedOrigins = [
   "http://192.168.206.209:3000", 
   "http://192.168.170.167:3000",
   "https://backend-pfe-1.onrender.com",
-  "https://180b-154-247-119-87.ngrok-free.app",
+  "https://backend-pfe-1.onrender.com/api/v1",
   "https://6072-105-235-138-57.ngrok-free.app/api/v1" ,
   "https://9625-105-235-138-133.ngrok-free.app/api/v1"
 ];
