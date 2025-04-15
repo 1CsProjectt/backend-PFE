@@ -7,6 +7,18 @@ import { Op, Sequelize } from "sequelize";
 import jwt from "jsonwebtoken";
 import app from '../index.js';
 
+
+const checkAndDestroyEmptyTeam = async (teamId) => {
+    const currentMembers = await Student.count({ where: { team_id: teamId } });
+    if (currentMembers === 0) {
+      const team = await Team.findByPk(teamId);
+      if (team) {
+        await team.destroy();
+        console.log(`Team with ID ${teamId} has been destroyed due to no members.`);
+      }
+    }
+  };
+
 export const createTeam = catchAsync(async (req, res, next) => {
     const { groupName } = req.body;
     console.log(req.maxnum);
@@ -268,11 +280,11 @@ export const destroyTeam = catchAsync(async (req, res, next) => {
 
 
 
-  export const moveStudentsToTeam = catchAsync(async (req, res, next) => {
+  export const moveStudentsToAnotherTeam = catchAsync(async (req, res, next) => {
     const { studentIds, newTeamId } = req.body;
   
-    if (!studentIds || !Array.isArray(studentIds) || studentIds.length === 0 || !newTeamId) {
-      return next(new appError("Student IDs array and new Team ID are required", 400));
+    if (!studentIds || !newTeamId) {
+      return next(new appError("Student IDs and new Team ID are required", 400));
     }
   
     const newTeam = await Team.findByPk(newTeamId);
@@ -282,37 +294,41 @@ export const destroyTeam = catchAsync(async (req, res, next) => {
   
     const currentMembers = await Student.count({ where: { team_id: newTeamId } });
   
-    const remainingSpots = newTeam.maxNumber - currentMembers;
-  
-    if (studentIds.length > remainingSpots) {
-      return next(new appError(`Team only has ${remainingSpots} spot(s) left`, 400));
+    if (currentMembers + studentIds.length > newTeam.maxNumber) {
+      return next(new appError("Target team does not have enough space", 400));
     }
   
-    const students = await Student.findAll({ where: { id: studentIds } });
+    for (const studentId of studentIds) {
+      const student = await Student.findByPk(studentId);
+      if (!student) {
+        return next(new appError(`Student with ID ${studentId} not found`, 404));
+      }
   
-    if (students.length !== studentIds.length) {
-      return next(new appError("Some students were not found", 404));
-    }
+      const oldTeamId = student.team_id;
   
-    await Promise.all(students.map(async (student) => {
       student.team_id = newTeamId;
       student.status = "in a team";
       await student.save();
-    }));
+
+      if (oldTeamId && oldTeamId !== newTeamId) {
+        await checkAndDestroyEmptyTeam(oldTeamId);
+      }
+    }
   
     
-    const updatedCount = await Student.count({ where: { team_id: newTeamId } });
-    if (updatedCount >= newTeam.maxNumber && !newTeam.full) {
+    const updatedMembers = await Student.count({ where: { team_id: newTeamId } });
+    if (updatedMembers >= newTeam.maxNumber) {
       newTeam.full = true;
       await newTeam.save();
     }
   
     res.status(200).json({
       status: "success",
-      message: "All students moved to the new team successfully",
-      studentsMoved: studentIds.length
+      message: "Students moved to the new team successfully",
     });
   });
+  
+  
   
 
 
