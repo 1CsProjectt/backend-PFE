@@ -56,7 +56,7 @@ router.post(
   
 
   // ✅ Delete PFE (only the creator can delete)
-  router.delete("/delete/:id", protect, deletePFEforcreator);
+  router.delete("/delete/:id", protect,restrictedfor('teacher'), deletePFEforcreator);
   
   // ✅ Admin can delete any PFE
   router.delete("/admin/delete/:id", protect, restrictedfor("admin"), deletePFE);

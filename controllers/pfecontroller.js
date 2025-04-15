@@ -248,7 +248,6 @@ export const deletePFEforcreator = catchAsync(async (req, res, next) => {
         return next(new appError("PFE not found", 404));
     }
 
-    // 🔥 Ensure the logged-in user is the creator
     if (Number(pfe.createdBy) !== Number(currentUserId)) {
         return next(new appError("You are not authorized to delete this PFE", 403));
     }
