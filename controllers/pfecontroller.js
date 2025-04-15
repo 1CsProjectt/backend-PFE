@@ -470,8 +470,8 @@ export const displayPFE = catchAsync(async (req, res, next) => {
 
 
 export  const validatePFE = catchAsync(async (req, res, next) => {
-    const { id } = req.params; 
 
+    const { id } = req.params; 
     
     const pfe = await PFE.findByPk(id);
     if (!pfe) {

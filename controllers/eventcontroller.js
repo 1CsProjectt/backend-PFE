@@ -190,6 +190,24 @@ export const updateEvent = catchAsync(async (req, res, next) => {
     });
 };
 
+export const getAllEvents = catchAsync(async (req, res, next) => {
+    const events = await Event.findAll(); // Fetch all events from the database
+  
+    if (!events || events.length === 0) {
+      return res.status(404).json({
+        status: 'fail',
+        message: 'No events found',
+      });
+    }
+  
+    return res.status(200).json({
+      status: 'success',
+      data: {
+        events,
+      },
+    });
+  });
+
 export{checkEventTime,setEvent};
 
 // module.exports={
