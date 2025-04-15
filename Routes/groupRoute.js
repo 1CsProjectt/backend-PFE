@@ -21,7 +21,7 @@ router.get('/all', protect, listAllTeams);
 router.get('/allgroups', protect,restrictedfor('student'), listAllTeamsforstudent);
 router.get('/myteam', protect, showMyTeam);
 // router.post('/add-student', protect, restrictTo('admin'), addStudentsToTeam);
-router.delete('/teams/:team_id', protect,restrictedfor('admin'),destroyTeam);
+router.delete('/delete/:team_id', protect,restrictedfor('admin'),destroyTeam);
 router.patch('/move-student', protect, restrictedfor('admin'), moveStudentsToAnotherTeam);
 router.post('/admin/create-team', protect, restrictedfor('admin'), createTeamByAdmin);
 
