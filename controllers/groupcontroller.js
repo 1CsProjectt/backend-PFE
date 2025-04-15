@@ -178,10 +178,17 @@ export const leaveTeam = catchAsync(async (req, res, next) => {
         if (!student) {
             return next(new appError("Student not found", 404));
         }
-
+        const teamId = student.team_id;
         student.team_id = null;
         student.status="available"
         await student.save();
+
+        const remainingMembers = await Student.count({ where: { team_id: teamId } });
+
+    if (remainingMembers === 0 && teamId) {
+        
+        await Team.destroy({ where: { id: teamId } });
+    }
 
         res.status(200).json({ message: "You have left the team successfully" });
     
