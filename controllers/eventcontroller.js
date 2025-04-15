@@ -191,7 +191,7 @@ export const updateEvent = catchAsync(async (req, res, next) => {
 };
 
 export const getAllEvents = catchAsync(async (req, res, next) => {
-    const events = await Event.findAll(); // Fetch all events from the database
+    const events = await Event.findAll(); 
   
     if (!events || events.length === 0) {
       return res.status(404).json({

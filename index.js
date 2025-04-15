@@ -30,7 +30,7 @@ import { Server } from "socket.io";
 import http from "http"; 
 
 import sequelize from "./config/database.js";
-import User from "./models/UserModel.js"; // Import the model
+import User from "./models/UserModel.js"; 
 import PFE from "./models/PFEmodel.js";
 import Event from "./models/eventModel.js";
 import Student from "./models/studenModel.js";
@@ -47,7 +47,7 @@ import invitation from "./models/invitationModel.js";
 
 (async () => {
   try {
-    await sequelize.sync({  alter: true }); // Creates or updates tables 
+    await sequelize.sync({  alter: true }); 
     console.log("✅ Database synced!");
     
   } catch (error) {
@@ -71,8 +71,12 @@ app.use(xss()); // Prevent XSS attacks
 
 app.use(cookieParser());
 
+app.set('trust proxy', 1);
+
+
 // Consolidated CORS Configuration
 const allowedOrigins = [ 
+
   "http://localhost:5000",
   "http://192.168.206.209:3000", 
   "http://192.168.170.167:3000",
@@ -175,8 +179,8 @@ app.get("/", (req, res) => {
 
 app.get('/test-mime', (req, res) => {
   const images = [
-    'https://d587-105-235-138-133.ngrok-free.app/photos/photo-1744308138691-713144865.jpg', 
-    'https://d587-105-235-138-133.ngrok-free.app/photos/photo-1743709159069-467003800.jpg', 
+    'https://backend-pfe-1.onrender.com/photos/photo-1744308138691-713144865.jpg', 
+    'https://backend-pfe-1.onrender.com/photos/photo-1743709159069-467003800.jpg', 
   ];
 
   const html = `
@@ -208,9 +212,6 @@ app.get('/test-mime', (req, res) => {
 // Handle unmatched routes
 app.all('*', (req, res, next) => { 
     next(new appError(`Can't find ${req.originalUrl} on this server`, 404));
-
-
-
 });
 
 
@@ -234,7 +235,7 @@ const io = new Server(server, {
       return callback(null, true);
     },
     methods: ["GET", "POST", "PATCH", "DELETE"],
-    credentials: true, // Allow cookies and credentials
+    credentials: true, 
   },
 });
 
