@@ -98,11 +98,7 @@ export const resetPassword = catchAsync(async (req, res, next) => {
     if (!user) return next(new appError("User not found", 404));
 
     await user.update({ 
-<<<<<<< HEAD
         password:newPassword,
-=======
-        password: newPassword,
->>>>>>> e283698cb70a3450a0472e96a00211f77e063d1e
         resetToken: null,
         resetTokenExpiry: null,
         passwordChangedAt: new Date()
@@ -113,20 +109,11 @@ export const resetPassword = catchAsync(async (req, res, next) => {
 });
 
 export const getMe = (req, res) => {
-<<<<<<< HEAD
-    if (!req.user) {
-      return res.status(401).json({ message: "Not logged in" });
-    }
-    res.json({ id: req.user.id, name: req.user.name, email: req.user.email });
-  };
-
-=======
   if (!req.user) {
     return res.status(401).json({ message: "Not logged in" });
   }
   res.json({ id: req.user.id, name: req.user.name, email: req.user.email });
 };
->>>>>>> e283698cb70a3450a0472e96a00211f77e063d1e
 
 // const bcrypt = require("bcryptjs");
 // const jwt = require("jsonwebtoken");
