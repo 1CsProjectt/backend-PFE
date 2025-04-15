@@ -9,76 +9,85 @@ import Team from "../models/groupModel.js";
 
 
 
-export const sendinvitation = catchAsync(async (req, res, next) => {
-  
+export const sendInvitations = catchAsync(async (req, res, next) => {
   if (!req.user || !req.user.id) {
     return next(new appError("Unauthorized: No user found in request", 401));
   }
 
   const userId = req.user.id;
 
-  
   const student = await Student.findOne({ where: { id: userId } });
   if (!student) {
     return next(new appError("Student profile not found", 404));
   }
 
-  
   if (!student.team_id) {
     return next(new appError("You must be in a team to send invitations", 403));
   }
 
   const teamMembers = await Student.count({ where: { team_id: student.team_id } });
-  if (teamMembers >= 6) {
-    return next(new appError("Your team already has 6 members", 400));
-  }
+  const remainingSlots = 6 - teamMembers;
 
+  const { receiver_emails } = req.body;
+  if (!Array.isArray(receiver_emails) || receiver_emails.length === 0) {
+    return next(new appError("receiver_emails array is required", 400));
+  }
+  if (receiver_emails.length > remainingSlots) {
+    return next(new appError(`You can only invite ${remainingSlots} more student(s)`, 400));
+  }
   const senderId = student.id;
-
-  const { receiver_email } = req.body;
-  if(!receiver_email){
-    return next(new appError('receiver email is missing',403))
-  };
-  console.log(receiver_email);
-
-  const receiverUser = await User.findOne({
-    where: { email: receiver_email, role: "student" },
-  });
-
-  if (!receiverUser) {
-    return next(new appError("Receiver not found", 404));
-  }
-
-  const receiverStudent = await Student.findOne({ where: { id: receiverUser.id } });
-
-  if (!receiverStudent) {
-    return next(new appError("Receiver student profile not found", 404));
-  }
-
-
-  if (receiverStudent.team_id !== null) {
-    return next(new appError("This student is already in a team.", 400));
-  }
-
-  const existingInvitation = await Invitation.findOne({
-    where: { sender_id: senderId, receiver_email, status: "pending" },
-  });
-
-  if (existingInvitation) {
-    return next(new appError("Invitation already sent", 409));
-  }
-
-
-  await Invitation.create({ sender_id: senderId, receiver_email });
-
   const io = req.app.get("socketio");
-  io.to(receiverUser.id).emit("invitation", {
-    sender: student.name,
-    message: "You have received a new team invitation.",
-  });
+  const results = [];
 
-  res.status(201).json({ message: "Invitation sent successfully" });
+  for (const email of receiver_emails) {
+    try {
+      const receiverUser = await User.findOne({
+        where: { email, role: "student" },
+      });
+
+      if (!receiverUser) {
+        results.push({ email, status: "failed", reason: "User not found" });
+        continue;
+      }
+      const receiverStudent = await Student.findOne({
+        where: { id: receiverUser.id },
+      });
+      if (!receiverStudent) {
+        results.push({ email, status: "failed", reason: "Student profile not found" });
+        continue;
+      }
+      if (receiverStudent.team_id !== null) {
+        results.push({ email, status: "failed", reason: "Student already in a team" });
+        continue;
+      }
+      const existingInvitation = await Invitation.findOne({
+        where: {
+          sender_id: senderId,
+          receiver_email: email,
+          status: "pending",
+        },
+      });
+      if (existingInvitation) {
+        results.push({ email, status: "failed", reason: "Invitation already sent" });
+        continue;
+      }
+      await Invitation.create({ sender_id: senderId, receiver_email: email });
+      io.to(receiverUser.id).emit("invitation", {
+        sender: student.name,
+        message: "You have received a new team invitation.",
+      });
+      results.push({ email, status: "success" });
+
+    } catch (err) {
+      results.push({ email, status: "failed", reason: "Unexpected error" });
+    }
+  }
+  res.status(201).json({
+    message: "Invitations processed",
+    results,
+  });
 });
+
 
  
 

@@ -219,56 +219,60 @@ export const destroyTeam = catchAsync(async (req, res, next) => {
   });
 
 
+  export const addStudentsToTeam = catchAsync(async (req, res, next) => {
+    const { student_ids, team_id } = req.body;
   
-  export const addStudentToTeam = catchAsync(async (req, res, next) => {
-    const { student_id, team_id } = req.body;
+    if (!Array.isArray(student_ids) || student_ids.length === 0 || !team_id) {
+      return next(new appError("student_ids array and team_id are required", 400));
+    }
   
-    if (!student_id || !team_id) {
-      return next(new appError("student_id and team_id are required", 400));
-    }
-    const student = await Student.findByPk(student_id);
-    if (!student) {
-      return next(new appError("Student not found", 404));
-    }
     const team = await Team.findByPk(team_id);
     if (!team) {
       return next(new appError("Team not found", 404));
     }
+  
     const currentMembers = await Student.count({ where: { team_id } });
-    if (currentMembers >= team.maxNumber) {
-      return next(new appError("This team is already full", 400));
+    const availableSpots = team.maxNumber - currentMembers;
+  
+    if (student_ids.length > availableSpots) {
+      return next(
+        new appError(`Team only has ${availableSpots} spot(s) left`, 400)
+      );
     }
   
-    student.team_id = team.id;
-    student.status = "in a team";
-    await student.save();
-
+    const students = await Student.findAll({ where: { id: student_ids } });
+  
+    if (students.length !== student_ids.length) {
+      return next(new appError("Some students were not found", 404));
+    }
+    await Promise.all(
+      students.map(async (student) => {
+        student.team_id = team.id;
+        student.status = "in a team";
+        await student.save();
+      })
+    );
+  
     const updatedMembers = await Student.count({ where: { team_id } });
-    if (updatedMembers >= team.maxNumber) {
+    if (updatedMembers >= team.maxNumber && !team.full) {
       team.full = true;
       await team.save();
     }
-  
     res.status(200).json({
-      status: 'success',
-      message: 'Student added to the team successfully',
-      student,
+      status: "success",
+      message: "Students added to the team successfully",
+      added: student_ids.length,
     });
   });
-
-
-
-  export const moveStudentToAnotherTeam = catchAsync(async (req, res, next) => {
-    
-    const { studentId, newTeamId } = req.body;
   
-    if (!studentId || !newTeamId) {
-      return next(new appError("Student ID and new Team ID are required", 400));
-    }
+
+
+
+  export const moveStudentsToTeam = catchAsync(async (req, res, next) => {
+    const { studentIds, newTeamId } = req.body;
   
-    const student = await Student.findByPk(studentId);
-    if (!student) {
-      return next(new appError("Student not found", 404));
+    if (!studentIds || !Array.isArray(studentIds) || studentIds.length === 0 || !newTeamId) {
+      return next(new appError("Student IDs array and new Team ID are required", 400));
     }
   
     const newTeam = await Team.findByPk(newTeamId);
@@ -278,20 +282,38 @@ export const destroyTeam = catchAsync(async (req, res, next) => {
   
     const currentMembers = await Student.count({ where: { team_id: newTeamId } });
   
-    if (currentMembers >= newTeam.maxNumber) {
-      return next(new appError("Target team is already full", 400));
+    const remainingSpots = newTeam.maxNumber - currentMembers;
+  
+    if (studentIds.length > remainingSpots) {
+      return next(new appError(`Team only has ${remainingSpots} spot(s) left`, 400));
     }
   
-    student.team_id = newTeamId;
-    student.status = "in a team";
-    await student.save();
+    const students = await Student.findAll({ where: { id: studentIds } });
+  
+    if (students.length !== studentIds.length) {
+      return next(new appError("Some students were not found", 404));
+    }
+  
+    await Promise.all(students.map(async (student) => {
+      student.team_id = newTeamId;
+      student.status = "in a team";
+      await student.save();
+    }));
+  
+    
+    const updatedCount = await Student.count({ where: { team_id: newTeamId } });
+    if (updatedCount >= newTeam.maxNumber && !newTeam.full) {
+      newTeam.full = true;
+      await newTeam.save();
+    }
   
     res.status(200).json({
       status: "success",
-      message: "Student moved to the new team successfully",
-      student
+      message: "All students moved to the new team successfully",
+      studentsMoved: studentIds.length
     });
   });
+  
 
 
 
