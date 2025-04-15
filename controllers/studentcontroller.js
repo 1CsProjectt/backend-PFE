@@ -44,14 +44,15 @@ export const getStudentsByTeam =catchAsync( async (req, res,next) => {
 
 
 export const listAllStudents = catchAsync(async (req, res, next) => {
+
   if (!req.user || !req.user.id) {
     return next(new appError("Unauthorized: No user found in request", 401));
   }
 
   const id = req.user.id;
 
-  if ((req.user.role !== "student") && (req.user.role !== "admin")) {
-    return next(new appError("You are not a student or an admin , you're signed in as : " + req.user.role, 403));
+  if ((req.user.role !== "student") ) {
+    return next(new appError("You are not a student , you're signed in as : " + req.user.role, 403));
   }
 
   const mystudentinfo = await Student.findOne({ where: { id } });
