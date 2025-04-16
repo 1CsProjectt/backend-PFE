@@ -25,7 +25,7 @@ const router = express.Router();
 
 /**
  * @swagger
- * /depositPFE:
+ * api/v1/pfe/depositPFE:
  * post:
  * summary: Upload PFE file
  * tags: [PFE]
@@ -79,7 +79,7 @@ router.post(
 
 /**
  * @swagger
- * /delete/{id}:
+ * api/v1/pfe/delete/{id}:
  * delete:
  * summary: Delete PFE (only the creator can delete)
  * tags: [PFE]
@@ -104,7 +104,7 @@ router.delete("/delete/:id", protect, restrictedfor('teacher'), deletePFEforcrea
 
 /**
  * @swagger
- * /admin/delete/{id}:
+ * api/v1/pfe/admin/delete/{id}:
  * delete:
  * summary: Admin can delete any PFE
  * tags: [PFE]
@@ -129,7 +129,7 @@ router.delete("/admin/delete/:id", protect, restrictedfor("admin"), deletePFE);
 
 /**
  * @swagger
- * /download/{filename}:
+ * api/v1/pfe/download/{filename}:
  * get:
  * summary: Download PFE file
  * tags: [PFE]
@@ -152,7 +152,7 @@ router.get("/download/:filename", downloadfile);
 
 /**
  * @swagger
- * /:
+ * api/v1/pfe/:
  * get:
  * summary: Display all PFEs (teacher & company view)
  * tags: [PFE]
@@ -232,7 +232,7 @@ router.get("/", protect, restrictedfor("teacher", "company"), getAllPFE);
 
 /**
  * @swagger
- * /pending:
+ * api/v1/pfe/pending:
  * get:
  * summary: Display unvalidated PFEs (for validation)
  * tags: [PFE]
@@ -246,7 +246,7 @@ router.get("/pending", protect, restrictedfor('admin'), displayPFE);
 
 /**
  * @swagger
- * /validpfe:
+ * api/v1/pfe/validpfe:
  * get:
  * summary: Display validated PFEs (for admin)
  * tags: [PFE]
@@ -260,7 +260,7 @@ router.get("/validpfe", protect, restrictedfor('admin'), displayvalidePFE);
 
 /**
  * @swagger
- * /for-students:
+ * api/v1/pfe/for-students:
  * get:
  * summary: Display validated PFEs for students (based on their year and specialite)
  * tags: [PFE]
@@ -274,7 +274,7 @@ router.get("/for-students", protect, restrictedfor("student"), displayPFEforstud
 
 /**
  * @swagger
- * /this-year:
+ * api/v1/pfe/this-year:
  * get:
  * summary: Display this year's PFEs ex(2CS)
  * tags: [PFE]
@@ -288,7 +288,7 @@ router.get("/this-year", protect, displaythisyearsPFE);
 
 /**
  * @swagger
- * /{pfeId}/add-supervisor:
+ * api/v1/pfe/{pfeId}/add-supervisor:
  * post:
  * summary: Add Supervisor to a PFE
  * tags: [PFE]
@@ -325,7 +325,7 @@ router.post("/:pfeId/add-supervisor", protect, restrictedfor("teacher", "company
 
 /**
  * @swagger
- * /{id}/validate:
+ * api/v1/pfe/{id}/validate:
  * patch:
  * summary: Validate a PFE (only admin can validate)
  * tags: [PFE]
@@ -348,7 +348,7 @@ router.patch("/:id/validate", protect, restrictedfor("admin"), validatePFE);
 
 /**
  * @swagger
- * /my-pfes:
+ * api/v1/pfe/my-pfes:
  * get:
  * summary: Get the PFEs created by the logged-in user
  * tags: [PFE]
@@ -366,7 +366,7 @@ router.get("/my-pfes", protect, getMyPfe);
 
 /**
  * @swagger
- * /getPfes/{specialization}:
+ * api/v1/pfe/getPfes/{specialization}:
  * get:
  * summary: Get PFEs by specialization
  * tags: [PFE]
@@ -389,7 +389,7 @@ router.get("/getPfes/:specialization", getPfesBySpecialization);
 
 /**
  * @swagger
- * /searchForPfes:
+ * api/v1/pfe/searchForPfes:
  * get:
  * summary: Search for PFEs by title, supervisor's name/email, or creator's email
  * tags: [PFE]
@@ -412,7 +412,7 @@ router.get("/searchForPfes", searchForPfes);
 
 /**
  * @swagger
- * /getIsiPfes:
+ * api/v1/pfe/getIsiPfes:
  * get:
  * summary: Get PFEs with ISI specialization
  * tags: [PFE]
@@ -424,7 +424,7 @@ router.get('/getIsiPfes', getIsiPfes);
 
 /**
  * @swagger
- * /getIasdPfes:
+ * api/v1/pfe/getIasdPfes:
  * get:
  * summary: Get PFEs with IASD specialization
  * tags: [PFE]
@@ -436,7 +436,7 @@ router.get('/getIasdPfes', getIasdPfes);
 
 /**
  * @swagger
- * /getSiwPfes:
+ * api/v1/pfe/getSiwPfes:
  * get:
  * summary: Get PFEs with SIW specialization
  * tags: [PFE]
