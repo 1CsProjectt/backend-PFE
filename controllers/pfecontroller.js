@@ -14,22 +14,7 @@ import Student from "../models/studenModel.js";
 import { Op, fn, col,literal } from "sequelize"; 
 import User from "../models/UserModel.js";
 import Company from "../models/companyModel.js";
-// const sequelize = require("../database.js");
-// const PFE = require("../models/PFEmodel.js");
-// const { upload } = require("../file_uploading.js");
-// const express = require("express");
-// const app = require("../index.js");
-// const path = require("path");
-// const fs = require("fs");
-// const { catchAsync } = require("../utils/catchAsync.js");
-// const appError = require("../utils/appError.js");
-// const teacher = require("../models/teacherModel.js");
-// const Student = require("../models/studenModel.js");
-// const { Op, fn, col, literal } = require("sequelize");
 
-// // Get __dirname equivalent in CommonJS
-// const __dirname = path.dirname(require.main.filename);
-// const __filename = __filename
 
 
 
