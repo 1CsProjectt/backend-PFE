@@ -16,11 +16,11 @@ const swaggerOptions = {
     },
     servers: [
       {
-        url: 'http://localhost:5000',
+        url: 'https://backend-pfe-1.onrender.com',
       },
     ],
   },
-  apis: [`${__dirname}/../routes/*.js`], 
+  apis: [`${__dirname}/../Routes/*.js`], 
 };
 
 const swaggerSpec = swaggerJSDoc(swaggerOptions);

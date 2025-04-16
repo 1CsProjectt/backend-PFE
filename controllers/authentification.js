@@ -98,7 +98,7 @@ export const resetPassword = catchAsync(async (req, res, next) => {
     if (!user) return next(new appError("User not found", 404));
 
     await user.update({ 
-        password: newPassword,
+        password:newPassword,
         resetToken: null,
         resetTokenExpiry: null,
         passwordChangedAt: new Date()
