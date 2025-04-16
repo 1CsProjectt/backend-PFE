@@ -25,6 +25,13 @@ const router = express.Router();
 
 /**
  * @swagger
+ * tags:
+ *   name: PFE
+ *   description: PFE-related operations
+ */
+
+/**
+ * @swagger
  * api/v1/pfe/depositPFE:
  * post:
  * summary: Upload PFE file
