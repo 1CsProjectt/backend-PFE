@@ -185,14 +185,208 @@ router.post("/create",protect, restrictedfor("admin"), createUser);
 
 
  router.patch("/update", protect,restrictedfor("admin"),  updateUserByAdmin);
+
+
+ /**
+ * @swagger
+ * /api/v1/users/get/{id}:
+ *   get:
+ *     summary: Get a user by ID
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: User ID
+ *     responses:
+ *       200:
+ *         description: User found
+ *       400:
+ *         description: Invalid ID format
+ *       404:
+ *         description: User not found
+ */
+
 router.get("/get/:id", protect, getUser);
+
+
+/**
+ * @swagger
+ * /api/v1/users/get-all:
+ *   get:
+ *     summary: Get all users
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of all users
+ *       403:
+ *         description: Forbidden (admin only)
+ */
+
 router.get("/get-all", protect,restrictedfor('admin'), getAllUsers);
+
+
+
+/**
+ * @swagger
+ * /api/v1/users/get-my-year:
+ *   get:
+ *     summary: Get all users from the same academic year
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of users from the same year
+ *       400:
+ *         description: Current user or student record not found
+ *       403:
+ *         description: Forbidden (student only)
+ */
+
 router.get("/get-my-year", protect,restrictedfor("student"),  getAllUsersfrom_myyear);
+
+
+/**
+ * @swagger
+ * /api/v1/users/students:
+ *   get:
+ *     summary: Get all student records
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of students
+ *       500:
+ *         description: Error fetching users
+ */
+
 router.get("/students", protect, getAllStudents);
+
+
+/**
+ * @swagger
+ * /api/v1/users/teachers:
+ *   get:
+ *     summary: Get all teacher records
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of teachers
+ *       500:
+ *         description: Error fetching users
+ */
+
 router.get("/teachers", protect, getAllteachers);
+
+
+/**
+ * @swagger
+ * /api/v1/users/companies:
+ *   get:
+ *     summary: Get all company records
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of companies
+ *       500:
+ *         description: Error fetching users
+ */
+
 router.get("/companies", protect, getAllcompanies);
+
+
+/**
+ * @swagger
+ * /api/v1/users/delete:
+ *   delete:
+ *     summary: Delete a user by ID or email
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               id:
+ *                 type: integer
+ *                 example: 5
+ *               email:
+ *                 type: string
+ *                 example: user@example.com
+ *     responses:
+ *       200:
+ *         description: User(s) deleted successfully
+ *       400:
+ *         description: Missing ID or email
+ *       404:
+ *         description: No user found
+ */
+
 router.delete("/delete", protect, restrictedfor("admin"), deletuser);
+
+
+/**
+ * @swagger
+ * /api/v1/users/search:
+ *   get:
+ *     summary: Search for users by username or email
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: query
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: Username or email search term
+ *     responses:
+ *       200:
+ *         description: Users found
+ *       400:
+ *         description: Query parameter missing
+ *       404:
+ *         description: No users found
+ */
+
 router.get("/search", protect, searchForUser);
+/**
+ * @swagger
+ * /api/v1/users/teachers/search:
+ *   get:
+ *     summary: Search for teachers by firstname, lastname, or email
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: searchTerm
+ *         schema:
+ *           type: string
+ *         required: true
+ *         description: Name or email to search for
+ *     responses:
+ *       200:
+ *         description: Teachers found
+ *       400:
+ *         description: Missing search term
+ */
+
 router.get("/teachers/search", protect, searchForTeacher);
 
 export default router;
