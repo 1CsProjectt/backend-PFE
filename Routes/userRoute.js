@@ -99,7 +99,7 @@ router.post("/create",protect, restrictedfor("admin"), createUser);
 /**
  * @swagger
  * /api/v1/users/update:
- *   put:
+ *   patch:
  *     summary: Update a user by admin
  *     tags: [Users]
  *     security:
