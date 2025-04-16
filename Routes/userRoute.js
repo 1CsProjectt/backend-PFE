@@ -96,6 +96,93 @@ const router = express.Router();
 
 router.post("/create",protect, restrictedfor("admin"), createUser);
 
+/**
+ * @swagger
+ * /api/v1/users/admin/update:
+ *   put:
+ *     summary: Update a user by admin
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 description: Current email of the user to be updated
+ *                 example: user@example.com
+ *               newEmail:
+ *                 type: string
+ *                 description: New email to assign
+ *                 example: newuser@example.com
+ *               password:
+ *                 type: string
+ *                 description: New password to update
+ *                 example: newPassword123
+ *               username:
+ *                 type: string
+ *               firstname:
+ *                 type: string
+ *                 example: John
+ *               lastname:
+ *                 type: string
+ *                 example: Doe
+ *               year:
+ *                 type: string
+ *                 example: 2CS
+ *               specialite:
+ *                 type: string
+ *                 example: ISIL
+ *               companyName:
+ *                 type: string
+ *                 example: Tech Corp
+ *               phone:
+ *                 type: string
+ *                 example: "+213123456789"
+ *               address:
+ *                 type: string
+ *                 example: "123 Tech Street"
+ *               website:
+ *                 type: string
+ *                 example: "https://techcorp.com"
+ *               admin_level:
+ *                 type: integer
+ *                 example: 2
+ *               permissions:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 example: ["MANAGE_USERS", "VIEW_STATS"]
+ *     responses:
+ *       200:
+ *         description: User updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 message:
+ *                   type: string
+ *                   example: User 123 updated successfully
+ *       400:
+ *         description: Bad request (e.g. missing required fields or invalid input)
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Internal server error
+ */
+
+
+
 
  router.patch("/update", protect,restrictedfor("admin"),  updateUserByAdmin);
 router.get("/get/:id", protect, getUser);
