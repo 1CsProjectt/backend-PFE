@@ -7,6 +7,7 @@ import teacher from '../models/teacherModel.js';
 
 import { catchAsync } from '../utils/catchAsync.js';
 import { Op, Sequelize } from "sequelize";
+import { nanoid } from 'nanoid'; // Optional: Use nanoid for more unique IDs if desired.
 
 
 
@@ -441,9 +442,11 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
           chosenTeam = allTeams[Math.floor(Math.random() * allTeams.length)];
         } else {
           // No existing teams — create a new one
+          const newGroupName = `Group ${Math.random().toString(36).substr(2, 9)}-${Date.now()}`; // Unique group name
+
           const newTeam = await Team.create({
             name: `Generated Team 1`,
-            groupName: `Group 1`,  // Add groupName here
+            groupName: newGroupName,
             maxNumber: maxNumber,
           });
           allTeams.push(newTeam);
@@ -467,9 +470,11 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
       const newTeams = [];
 
       while (studentsInYear.length - index >= maxNumber) {
+        const newGroupName = `Group ${++newTeamCount}-${Math.random().toString(36).substr(2, 9)}-${Date.now()}`; // Unique group name
+
         const newTeam = await Team.create({
-          name: `Generated Team ${++newTeamCount}`,
-          groupName: `Group ${newTeamCount}`,  // Add groupName here
+          name: `Generated Team ${newTeamCount}`,
+          groupName: newGroupName,
           maxNumber: maxNumber,
         });
 
@@ -491,9 +496,11 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
       const availableTeams = [...allTeams, ...newTeams];
 
       if (overflowStudents.length >= overflowThreshold) {
+        const newGroupName = `Group ${++newTeamCount}-${Math.random().toString(36).substr(2, 9)}-${Date.now()}`; // Unique group name
+
         const newTeam = await Team.create({
-          name: `Generated Team ${++newTeamCount}`,
-          groupName: `Group ${newTeamCount}`,  // Add groupName here
+          name: `Generated Team ${newTeamCount}`,
+          groupName: newGroupName,
           maxNumber: maxNumber,
         });
 
@@ -512,8 +519,11 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
       } else {
         // Overflow to existing or newly created teams
         if (availableTeams.length === 0) {
+          const newGroupName = `Group ${++newTeamCount}-${Math.random().toString(36).substr(2, 9)}-${Date.now()}`; // Unique group name
+
           const newTeam = await Team.create({
-          groupName: `Group ${newTeamCount}-${new Date().getTime()}`,  // Ensure uniqueness by adding timestamp            maxNumber: maxNumber,
+            groupName: newGroupName,
+            maxNumber: maxNumber,
           });
           availableTeams.push(newTeam);
         }
@@ -533,5 +543,4 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
     message: 'Students have been automatically organized into teams',
   });
 });
-
 
