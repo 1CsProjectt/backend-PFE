@@ -3,7 +3,7 @@ import Student from './studenModel.js';
 import teacher from './teacherModel.js';
 import PFE from './PFEmodel.js';
 import User from './UserModel.js';
-import Company from './companyModel.js';
+import JoinRequest from './jointeamModel.js';
 
 
 
@@ -33,6 +33,18 @@ teacher.hasMany(Team, { foreignKey: 'supervisorId', as: 'groups' });
 
 PFE.belongsTo(User, { foreignKey: "createdBy", as: "creator" });
 PFE.belongsToMany(teacher, { through: "PFE_Teachers", as: "supervisors" });
+
+JoinRequest.belongsTo(Team, {
+  foreignKey: "team_id",
+  as: "team",
+  onDelete: "CASCADE"
+});
+
+JoinRequest.belongsTo(Student, {
+  foreignKey: "student_id",
+  as: "student",
+  onDelete: "CASCADE"
+});
 
 
 
