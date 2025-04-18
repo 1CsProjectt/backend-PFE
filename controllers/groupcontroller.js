@@ -406,7 +406,7 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
   let allTeams = await Team.findAll();
 
   // Set default maxNumber if there are no teams
-  let maxNumber = allTeams.length > 0 ? allTeams[0].maxNumber : 5;
+let maxNumber = allTeams[0]?.maxNumber || 5;
   const overflowThreshold = Math.round(maxNumber / 2) + 1;
 
   if (studentsWithoutATeam.length <= overflowThreshold) {
