@@ -143,18 +143,38 @@ export const updateEvent = catchAsync(async (req, res, next) => {
 
 
 
-const checkEventTime = (eventName) => {
+const checkEventTime = (eventName, targetedParam = null) => {
     return catchAsync(async (req, res, next) => {
         let year = null;
-        let targeted = null;
+        let targeted = targetedParam;
 
         if (!req.user || !req.user.role) {
             return next(new appError("Unauthorized: No user found in request", 401));
         }
 
-        if (req.user.role === "student") {
-            targeted = "students";
+        
+        if (!targeted) {
+            if (req.user.role === "student") {
+                targeted = "students";
+                const studentData = await Student.findOne({ where: { id: req.user.id } });
+
+                if (!studentData) {
+                    return next(new appError("Student record not found", 404));
+                }
+
+                year = studentData.year?.toUpperCase();
+                if (!year) {
+                    return next(new appError('Student year is missing', 400));
+                }
+
+            } else if (["teacher", "company"].includes(req.user.role)) {
+                targeted = "teachers";
+            } else {
+                return next(new appError("Invalid user role", 400));
+            }
+        } else if (targeted === "students") {
             const studentData = await Student.findOne({ where: { id: req.user.id } });
+
             if (!studentData) {
                 return next(new appError("Student record not found", 404));
             }
@@ -163,14 +183,9 @@ const checkEventTime = (eventName) => {
             if (!year) {
                 return next(new appError('Student year is missing', 400));
             }
-
-        } else if (["teacher", "company"].includes(req.user.role)) {
-            targeted = "teachers";
-        } else {
-            return next(new appError("Invalid user role", 400));
         }
 
-        console.log(`User role: ${req.user.role}, Targeted: ${targeted}, Year: ${year || "N/A"}`);
+        console.log(`Event check -> Role: ${req.user.role}, Targeted: ${targeted}, Year: ${year || "N/A"}`);
 
         let eventQuery = {
             name: eventName,
@@ -204,6 +219,7 @@ const checkEventTime = (eventName) => {
         next();
     });
 };
+
 
 
 export const getAllEvents = catchAsync(async (req, res, next) => {
