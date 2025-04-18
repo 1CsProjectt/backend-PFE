@@ -282,6 +282,8 @@ router.get("/students", protect, getAllStudents);
  *     responses:
  *       200:
  *         description: List of teachers
+ *       400:
+ *         no teachers where found
  *       500:
  *         description: Error fetching users
  */

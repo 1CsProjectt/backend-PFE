@@ -319,18 +319,18 @@ export const getAllStudents = async (req, res) => {
     }
 };
 
-export const getAllteachers = async (req, res) => {
-    try {
+export const getAllteachers = catchAsync(async (req, res,next) => {
+    
         const teachers = await teacher.findAll({include:{
             model:User,
             attributes:["email"]
         }});
-         
+        if(!teachers){
+            return next(new appError('no teachers where found',400))
+        }
         res.json(teachers);
-    } catch (error) {
-        res.status(500).json({ message: "Error fetching users", error });
-    }
-};
+    
+});
 
 export const getAllcompanies = async (req, res) => {
     try {
