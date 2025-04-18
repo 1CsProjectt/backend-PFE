@@ -326,8 +326,8 @@ export const getAllteachers = catchAsync(async (req, res,next) => {
             as: 'user',
             attributes:["email"]
         }});
-        if(!teachers){
-            return next(new appError('no teachers where found',400))
+        if (!teachers || teachers.length === 0) {
+            return next(new appError('No teachers were found', 400));
         }
         res.json(teachers);
     
