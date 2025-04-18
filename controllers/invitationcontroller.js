@@ -76,7 +76,7 @@ export const sendInvitations = catchAsync(async (req, res, next) => {
         sender: student.name,
         message: "You have received a new team invitation.",
       });
-      results.push({ email, status: "success" });
+      results.push({ email, status: "success"});
 
     } catch (err) {
       results.push({ email, status: "failed", reason: "Unexpected error" });
