@@ -42,7 +42,7 @@ const setEvent = catchAsync(async (req, res, next) => {
 
     const now = new Date();
 
-    // === Dependency checks ===
+    // === Dependency checks (per year) ===
     if (targeted === 'students') {
         const conditions = { targeted, year };
 
@@ -53,11 +53,11 @@ const setEvent = catchAsync(async (req, res, next) => {
             ]);
 
             if (!pfeSubmission || !teamCreation) {
-                return next(new appError("PFE_SUBMISSION and TEAM_CREATION events must be created before PFE_ASSIGNMENT", 400));
+                return next(new appError(`PFE_SUBMISSION and TEAM_CREATION must exist for ${year} before creating PFE_ASSIGNMENT`, 400));
             }
 
             if (new Date(pfeSubmission.endTime) > now || new Date(teamCreation.endTime) > now) {
-                return next(new appError("PFE_ASSIGNMENT cannot start until both PFE_SUBMISSION and TEAM_CREATION have ended", 400));
+                return next(new appError(`PFE_ASSIGNMENT for ${year} cannot start until both PFE_SUBMISSION and TEAM_CREATION have ended`, 400));
             }
         }
 
@@ -65,16 +65,16 @@ const setEvent = catchAsync(async (req, res, next) => {
             const assignmentEvent = await Event.findOne({ where: { ...conditions, name: "PFE_ASSIGNMENT" } });
 
             if (!assignmentEvent) {
-                return next(new appError("PFE_ASSIGNMENT must be created before WORK_STARTING", 400));
+                return next(new appError(`PFE_ASSIGNMENT must exist for ${year} before creating WORK_STARTING`, 400));
             }
 
             if (new Date(assignmentEvent.endTime) > now) {
-                return next(new appError("WORK_STARTING cannot start until PFE_ASSIGNMENT has ended", 400));
+                return next(new appError(`WORK_STARTING for ${year} cannot start until PFE_ASSIGNMENT has ended`, 400));
             }
         }
     }
 
-    // === Check for existing session with same name + year/targeted
+    // === Check for existing session with same name, target, and (if students) year
     const existingEvent = await Event.findOne({
         where: {
             name,
@@ -107,6 +107,7 @@ const setEvent = catchAsync(async (req, res, next) => {
         event
     });
 });
+
 
 
 
