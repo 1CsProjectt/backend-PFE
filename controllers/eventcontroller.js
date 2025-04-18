@@ -59,22 +59,24 @@ const setEvent = catchAsync(async (req, res, next) => {
     }
 
     let event;
+    const finalMaxNumber = name === "TEAM_CREATION" && ['2CS', '3CS'].includes(year) ? 2 : maxNumber;
+
     if (existingEvent) {
         existingEvent.name = name;
         existingEvent.startTime = parsedStartTime;
         existingEvent.endTime = parsedEndTime;
-        existingEvent.maxNumber = name === "TEAM_CREATION" ? maxNumber : null;
+        existingEvent.maxNumber = name === "TEAM_CREATION" ? finalMaxNumber : null;
         existingEvent.targeted = targeted;
         await existingEvent.save();
         event = existingEvent;
     } else {
         event = await Event.create({
             name,
-            year: targeted === 'students' ? year : null, 
+            year: targeted === 'students' ? year : null,
             targeted,
             startTime: parsedStartTime,
             endTime: parsedEndTime,
-            maxNumber: name === "TEAM_CREATION" ? maxNumber : null
+            maxNumber: name === "TEAM_CREATION" ? finalMaxNumber : null
         });
     }
 
@@ -84,6 +86,7 @@ const setEvent = catchAsync(async (req, res, next) => {
         event
     });
 });
+
 
 
 
@@ -140,18 +143,38 @@ export const updateEvent = catchAsync(async (req, res, next) => {
 
 
 
-const checkEventTime = (eventName) => {
+const checkEventTime = (eventName, targetedParam = null) => {
     return catchAsync(async (req, res, next) => {
         let year = null;
-        let targeted = null;
+        let targeted = targetedParam;
 
         if (!req.user || !req.user.role) {
             return next(new appError("Unauthorized: No user found in request", 401));
         }
 
-        if (req.user.role === "student") {
-            targeted = "students";
+        
+        if (!targeted) {
+            if (req.user.role === "student") {
+                targeted = "students";
+                const studentData = await Student.findOne({ where: { id: req.user.id } });
+
+                if (!studentData) {
+                    return next(new appError("Student record not found", 404));
+                }
+
+                year = studentData.year?.toUpperCase();
+                if (!year) {
+                    return next(new appError('Student year is missing', 400));
+                }
+
+            } else if (["teacher", "company"].includes(req.user.role)) {
+                targeted = "teachers";
+            } else {
+                return next(new appError("Invalid user role", 400));
+            }
+        } else if (targeted === "students") {
             const studentData = await Student.findOne({ where: { id: req.user.id } });
+
             if (!studentData) {
                 return next(new appError("Student record not found", 404));
             }
@@ -160,14 +183,9 @@ const checkEventTime = (eventName) => {
             if (!year) {
                 return next(new appError('Student year is missing', 400));
             }
-
-        } else if (["teacher", "company"].includes(req.user.role)) {
-            targeted = "teachers";
-        } else {
-            return next(new appError("Invalid user role", 400));
         }
 
-        console.log(`User role: ${req.user.role}, Targeted: ${targeted}, Year: ${year || "N/A"}`);
+        console.log(`Event check -> Role: ${req.user.role}, Targeted: ${targeted}, Year: ${year || "N/A"}`);
 
         let eventQuery = {
             name: eventName,
@@ -201,6 +219,7 @@ const checkEventTime = (eventName) => {
         next();
     });
 };
+
 
 
 export const getAllEvents = catchAsync(async (req, res, next) => {
