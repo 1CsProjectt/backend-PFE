@@ -404,9 +404,15 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
   });
 
   let allTeams = await Team.findAll();
-  let maxNumber = allTeams[0]?.maxNumber || 5; // fallback if all teams were deleted
+  let maxNumber = allTeams[0]?.maxNumber;
 
-  if (studentsWithoutATeam.length <= Math.round(maxNumber / 2) + 1) {
+  if (!maxNumber) {
+    return next(new appError("No teams found to determine maxNumber", 400));
+  }
+
+  const overflowThreshold = Math.round(maxNumber / 2) + 1;
+
+  if (studentsWithoutATeam.length <= overflowThreshold) {
     // Overflow into existing teams
     for (const student of studentsWithoutATeam) {
       const teamsWithSpace = [];
@@ -420,13 +426,12 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
 
       let chosenTeam;
       if (teamsWithSpace.length > 0) {
-  chosenTeam = teamsWithSpace[Math.floor(Math.random() * teamsWithSpace.length)];
-} else if (allTeams.length > 0) {
-  chosenTeam = allTeams[Math.floor(Math.random() * allTeams.length)];
-} else {
-  return next(new appError("No teams available to overflow students into", 400));
-}
-
+        chosenTeam = teamsWithSpace[Math.floor(Math.random() * teamsWithSpace.length)];
+      } else if (allTeams.length > 0) {
+        chosenTeam = allTeams[Math.floor(Math.random() * allTeams.length)];
+      } else {
+        return next(new appError("No teams available to overflow students into", 400));
+      }
 
       student.team_id = chosenTeam.id;
       student.status = 'in a team';
@@ -459,17 +464,15 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
 
       newTeam.full = true;
       await newTeam.save();
-
       newTeams.push(newTeam);
       index += maxNumber;
     }
 
     // Handle overflow (less than maxNumber students left)
-    const overflowThreshold = Math.round(maxNumber / 2) + 1;
     const overflowStudents = studentsWithoutATeam.slice(index);
+    const availableTeams = [...allTeams, ...newTeams];
 
     if (overflowStudents.length >= overflowThreshold) {
-      // Create one last team
       const newTeam = await Team.create({
         name: `Generated Team ${++newTeamCount}`,
         maxNumber: maxNumber,
@@ -488,8 +491,10 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
 
       newTeams.push(newTeam);
     } else {
-      // Overflow to existing teams
-      const availableTeams = [...allTeams, ...newTeams];
+      // Safety check
+      if (availableTeams.length === 0) {
+        return next(new appError("No teams available to overflow remaining students into", 400));
+      }
 
       for (const student of overflowStudents) {
         const randomTeam = availableTeams[Math.floor(Math.random() * availableTeams.length)];
@@ -505,4 +510,5 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
     message: 'Students have been automatically organized into teams',
   });
 });
+
 
