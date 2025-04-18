@@ -503,4 +503,3 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
   });
 });
 
-
