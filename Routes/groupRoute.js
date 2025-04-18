@@ -8,7 +8,7 @@ import {
   addStudentsToTeam,
   destroyTeam,
   moveStudentsToAnotherTeam,
-  createTeamByAdmin
+  createTeamByAdmin,autoOrganizeTeams
 } from '../controllers/groupcontroller.js';
 import { getStudentsByTeam } from '../controllers/studentcontroller.js';
 import { protect, restrictedfor } from "../middlewares/authmiddleware.js";
@@ -37,6 +37,7 @@ const router = express.Router();
  *         description: Team created successfully
  */
 router.post('/creategroup', protect, restrictedfor('student'), createTeam);
+router.post('/autoOrganizeTeams', protect, restrictedfor('admin'), autoOrganizeTeams);
 
 /**
  * @swagger
