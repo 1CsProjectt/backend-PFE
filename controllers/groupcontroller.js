@@ -406,7 +406,7 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
   let allTeams = await Team.findAll();
 
   // Set default maxNumber if there are no teams
-let maxNumber = allTeams[0]?.maxNumber || 5;
+  let maxNumber = allTeams[0]?.maxNumber || 5;
   const overflowThreshold = Math.round(maxNumber / 2) + 1;
 
   if (studentsWithoutATeam.length <= overflowThreshold) {
@@ -428,8 +428,10 @@ let maxNumber = allTeams[0]?.maxNumber || 5;
         chosenTeam = allTeams[Math.floor(Math.random() * allTeams.length)];
       } else {
         // No existing teams — create a new one
+        const newTeamCount = 1;
         const newTeam = await Team.create({
-          name: `Generated Team 1`,
+          name: `Generated Team ${newTeamCount}`,
+          groupName: `Group ${newTeamCount}`,
           maxNumber: maxNumber,
         });
         allTeams.push(newTeam);
@@ -455,6 +457,7 @@ let maxNumber = allTeams[0]?.maxNumber || 5;
     while (studentsWithoutATeam.length - index >= maxNumber) {
       const newTeam = await Team.create({
         name: `Generated Team ${++newTeamCount}`,
+        groupName: `Group ${newTeamCount}`,
         maxNumber: maxNumber,
       });
 
@@ -478,6 +481,7 @@ let maxNumber = allTeams[0]?.maxNumber || 5;
     if (overflowStudents.length >= overflowThreshold) {
       const newTeam = await Team.create({
         name: `Generated Team ${++newTeamCount}`,
+        groupName: `Group ${newTeamCount}`,
         maxNumber: maxNumber,
       });
 
@@ -494,11 +498,10 @@ let maxNumber = allTeams[0]?.maxNumber || 5;
 
       newTeams.push(newTeam);
     } else {
-      // Overflow to existing or newly created teams
       if (availableTeams.length === 0) {
         const newTeam = await Team.create({
           name: `Generated Team ${++newTeamCount}`,
-          groupName: `Group ${newTeamCount}`, 
+          groupName: `Group ${newTeamCount}`,
           maxNumber: maxNumber,
         });
         availableTeams.push(newTeam);
