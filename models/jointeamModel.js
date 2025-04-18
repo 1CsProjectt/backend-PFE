@@ -1,7 +1,6 @@
 import { DataTypes } from "sequelize";
 import sequelize from "../config/database.js";
-import Student from "./studenModel.js";
-import Team from "./groupModel.js";
+
 
 const JoinRequest = sequelize.define("join_request", {
   id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
