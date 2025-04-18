@@ -18,7 +18,7 @@ import {
     getIasdPfes,
     getSiwPfes,
     getMyPfe,
-    displayvalidePFE
+    displayvalidePFE,autoAssignPfes
 } from "../controllers/pfecontroller.js";
 
 const router = express.Router();
@@ -84,6 +84,13 @@ router.post(
     restrictedfor('teacher', 'company'),
     uploadFiles,
     createPFE
+);
+router.post(
+    '/autoAssignPfes',
+    protect,
+    restrictedfor('admin'),
+    
+    autoAssignPfes
 );
 /**
  * @swagger
