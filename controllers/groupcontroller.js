@@ -513,8 +513,7 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
         // Overflow to existing or newly created teams
         if (availableTeams.length === 0) {
           const newTeam = await Team.create({
-            groupName: `Group ${newTeamCount}`,  // Add groupName here
-            maxNumber: maxNumber,
+          groupName: `Group ${newTeamCount}-${new Date().getTime()}`,  // Ensure uniqueness by adding timestamp            maxNumber: maxNumber,
           });
           availableTeams.push(newTeam);
         }
