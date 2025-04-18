@@ -48,6 +48,7 @@ export const createTeam = catchAsync(async (req, res, next) => {
     });
 
     mystudent.team_id = newTeam.id;
+    mystudent.status = 'in a team';
     await mystudent.save();
 
     return res.status(201).json({

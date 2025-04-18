@@ -7,7 +7,7 @@ const JoinRequest = sequelize.define("join_request", {
   id: { type: DataTypes.INTEGER, autoIncrement: true, primaryKey: true },
 
   student_id: { type: DataTypes.INTEGER, allowNull: false },
-  team_id: { type: DataTypes.INTEGER, allowNull: false },
+  team_id: { type: DataTypes.INTEGER, allowNull: false, onDelete: 'CASCADE', },
 
   status:{
     type: DataTypes.ENUM("pending", "accepted", "rejected"),
