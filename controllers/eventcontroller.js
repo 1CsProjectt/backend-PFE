@@ -40,52 +40,74 @@ const setEvent = catchAsync(async (req, res, next) => {
     parsedStartTime.setUTCHours(0, 0, 0, 0);
     parsedEndTime.setUTCHours(0, 0, 0, 0);
 
-    const io = req.app.get("socketio");
-    io.emit("notification", { message: `New event posted: ${name}` });
+    const now = new Date();
 
-    let existingEvent = null;
-
+    // === Dependency checks ===
     if (targeted === 'students') {
-        existingEvent = await Event.findOne({ where: { year, targeted: 'students' } });
-    
-        if (existingEvent) {
-            const existingEventEndTime = new Date(existingEvent.endTime);
-            existingEventEndTime.setUTCHours(0, 0, 0, 0);
+        const conditions = { targeted, year };
 
-            if (existingEventEndTime > new Date()) {
-                return next(new appError(`An event is already active for ${year} until ${existingEvent.endTime}`, 400));
+        if (name === "PFE_ASSIGNMENT") {
+            const [pfeSubmission, teamCreation] = await Promise.all([
+                Event.findOne({ where: { ...conditions, name: "PFE_SUBMISSION" } }),
+                Event.findOne({ where: { ...conditions, name: "TEAM_CREATION" } })
+            ]);
+
+            if (!pfeSubmission || !teamCreation) {
+                return next(new appError("PFE_SUBMISSION and TEAM_CREATION events must be created before PFE_ASSIGNMENT", 400));
+            }
+
+            if (new Date(pfeSubmission.endTime) > now || new Date(teamCreation.endTime) > now) {
+                return next(new appError("PFE_ASSIGNMENT cannot start until both PFE_SUBMISSION and TEAM_CREATION have ended", 400));
+            }
+        }
+
+        if (name === "WORK_STARTING") {
+            const assignmentEvent = await Event.findOne({ where: { ...conditions, name: "PFE_ASSIGNMENT" } });
+
+            if (!assignmentEvent) {
+                return next(new appError("PFE_ASSIGNMENT must be created before WORK_STARTING", 400));
+            }
+
+            if (new Date(assignmentEvent.endTime) > now) {
+                return next(new appError("WORK_STARTING cannot start until PFE_ASSIGNMENT has ended", 400));
             }
         }
     }
 
-    let event;
-    const finalMaxNumber = name === "TEAM_CREATION" && ['2CS', '3CS'].includes(year) ? 2 : maxNumber;
+    // === Check for existing session with same name + year/targeted
+    const existingEvent = await Event.findOne({
+        where: {
+            name,
+            targeted,
+            ...(targeted === 'students' ? { year } : {})
+        }
+    });
 
     if (existingEvent) {
-        existingEvent.name = name;
-        existingEvent.startTime = parsedStartTime;
-        existingEvent.endTime = parsedEndTime;
-        existingEvent.maxNumber = name === "TEAM_CREATION" ? finalMaxNumber : null;
-        existingEvent.targeted = targeted;
-        await existingEvent.save();
-        event = existingEvent;
-    } else {
-        event = await Event.create({
-            name,
-            year: targeted === 'students' ? year : null,
-            targeted,
-            startTime: parsedStartTime,
-            endTime: parsedEndTime,
-            maxNumber: name === "TEAM_CREATION" ? finalMaxNumber : null
-        });
+        return next(new appError(`A "${name}" session already exists for ${targeted}${year ? " - " + year : ""}.`, 400));
     }
 
-    res.status(200).json({
+    const io = req.app.get("socketio");
+    io.emit("notification", { message: `New event posted: ${name}` });
+
+    const finalMaxNumber = name === "TEAM_CREATION" && ['2CS', '3CS'].includes(year) ? 2 : maxNumber;
+
+    const event = await Event.create({
+        name,
+        year: targeted === 'students' ? year : null,
+        targeted,
+        startTime: parsedStartTime,
+        endTime: parsedEndTime,
+        maxNumber: name === "TEAM_CREATION" ? finalMaxNumber : null
+    });
+
+    res.status(201).json({
         status: "success",
-        message: existingEvent ? "SESSION updated successfully" : "SESSION created successfully",
+        message: "SESSION created successfully",
         event
     });
 });
+
 
 
 
