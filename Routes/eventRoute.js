@@ -12,12 +12,7 @@ import {
 
 const router = express.Router();
 
-/**
- * @swagger
- * tags:
- *   name: session managment
- *   description: session operations
- */
+
 
 /**
  * @swagger
