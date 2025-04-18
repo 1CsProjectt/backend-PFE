@@ -42,26 +42,25 @@ const setEvent = catchAsync(async (req, res, next) => {
 
     const now = new Date();
 
-    // === Dependency checks for student-targeted events ===
+    // === Dependency checks ===
     if (targeted === 'students') {
         const conditions = { targeted, year };
 
         if (name === "PFE_ASSIGNMENT") {
-            const [pfeSubmission, teamCreation] = await Promise.all([
-                Event.findOne({ where: { ...conditions, name: "PFE_SUBMISSION" } }),
-                Event.findOne({ where: { ...conditions, name: "TEAM_CREATION" } })
-            ]);
+            // Global PFE_SUBMISSION
+            const pfeSubmission = await Event.findOne({ where: { name: "PFE_SUBMISSION", targeted: 'students' } });
+            const teamCreation = await Event.findOne({ where: { ...conditions, name: "TEAM_CREATION" } });
 
             if (!pfeSubmission || !teamCreation) {
-                return next(new appError(`PFE_SUBMISSION and TEAM_CREATION must exist for ${year} before creating PFE_ASSIGNMENT`, 400));
+                return next(new appError(`TEAM_CREATION for ${year} and global PFE_SUBMISSION must exist before creating PFE_ASSIGNMENT`, 400));
             }
 
             if (new Date(pfeSubmission.endTime) > now) {
-                return next(new appError(`PFE_SUBMISSION for ${year} must be finished before starting PFE_ASSIGNMENT`, 400));
+                return next(new appError(`Global PFE_SUBMISSION must be finished before creating PFE_ASSIGNMENT`, 400));
             }
 
             if (new Date(teamCreation.endTime) > now) {
-                return next(new appError(`TEAM_CREATION for ${year} must be finished before starting PFE_ASSIGNMENT`, 400));
+                return next(new appError(`TEAM_CREATION for ${year} must be finished before creating PFE_ASSIGNMENT`, 400));
             }
         }
 
@@ -73,12 +72,12 @@ const setEvent = catchAsync(async (req, res, next) => {
             }
 
             if (new Date(assignmentEvent.endTime) > now) {
-                return next(new appError(`PFE_ASSIGNMENT for ${year} must be finished before starting WORK_STARTING`, 400));
+                return next(new appError(`PFE_ASSIGNMENT for ${year} must be finished before creating WORK_STARTING`, 400));
             }
         }
     }
 
-    // === Check if the same event already exists for the same target and year ===
+    // === Check for existing event with same name and target/year ===
     const existingEvent = await Event.findOne({
         where: {
             name,
@@ -111,6 +110,7 @@ const setEvent = catchAsync(async (req, res, next) => {
         event
     });
 });
+
 
 
 
