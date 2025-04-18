@@ -30,7 +30,9 @@ const Company = sequelize.define('Company', {
     name: {
         type: DataTypes.STRING,
         allowNull: false,
-        unique: true
+        unique: true,
+        allowNull:true 
+        
     },
     phone: {
         type: DataTypes.STRING,
