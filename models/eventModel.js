@@ -27,6 +27,9 @@ const Event = sequelize.define("Event", {
     startTime: {
         type: DataTypes.DATE,
         allowNull: false
+    },targeted:{
+        type:DataTypes.ENUM('teachers','students'),
+        defaultValue:'students'
     },
     endTime: {
         type: DataTypes.DATE,

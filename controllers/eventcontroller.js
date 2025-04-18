@@ -13,18 +13,19 @@ import Student from "../models/studenModel.js";
 
 
 const setEvent = catchAsync(async (req, res, next) => {
-    const { name, startTime, endTime, maxNumber } = req.body;
+    const { name, startTime, endTime, maxNumber, targeted = 'students' } = req.body;
     const year = req.body.year?.toUpperCase();
 
     const allowedNames = ['PFE_SUBMISSION', 'PFE_VALIDATION', 'TEAM_CREATION', 'PFE_ASSIGNMENT', 'WORK_STARTING'];
     const allowedYears = ['2CP', '1CS', '2CS', '3CS'];
+    const allowedTargets = ['teachers', 'students'];
 
     if (!allowedNames.includes(name)) {
         return next(new appError("Invalid event name", 400));
     }
 
-    if (!allowedYears.includes(year)) {
-        return next(new appError("Invalid academic year", 400));
+    if (!allowedTargets.includes(targeted)) {
+        return next(new appError("Invalid targeted value", 400));
     }
 
     if (new Date(startTime) >= new Date(endTime)) {
@@ -35,6 +36,12 @@ const setEvent = catchAsync(async (req, res, next) => {
         return next(new appError("Max number is required and must be a positive number for TEAM_CREATION", 400));
     }
 
+    if (targeted === 'students') {
+        if (!allowedYears.includes(year)) {
+            return next(new appError("Invalid academic year", 400));
+        }
+    }
+
     const parsedStartTime = new Date(startTime);
     const parsedEndTime = new Date(endTime);
     parsedStartTime.setUTCHours(0, 0, 0, 0);
@@ -43,30 +50,35 @@ const setEvent = catchAsync(async (req, res, next) => {
     const io = req.app.get("socketio");
     io.emit("notification", { message: `New event posted: ${name}` });
 
-    const existingEvent = await Event.findOne({ where: { year } });
+    let existingEvent = null;
 
-    if (existingEvent) {
-        const existingEventEndTime = new Date(existingEvent.endTime);
-        existingEventEndTime.setUTCHours(0, 0, 0, 0); 
-        
-        if (existingEventEndTime > new Date()) {
-            return next(new appError(`An event is already active for ${year} until ${existingEvent.endTime}`, 400));
+    if (targeted === 'students') {
+        existingEvent = await Event.findOne({ where: { year } });
+
+        if (existingEvent) {
+            const existingEventEndTime = new Date(existingEvent.endTime);
+            existingEventEndTime.setUTCHours(0, 0, 0, 0);
+
+            if (existingEventEndTime > new Date()) {
+                return next(new appError(`An event is already active for ${year} until ${existingEvent.endTime}`, 400));
+            }
         }
     }
 
-    
     let event;
     if (existingEvent) {
         existingEvent.name = name;
         existingEvent.startTime = parsedStartTime;
         existingEvent.endTime = parsedEndTime;
         existingEvent.maxNumber = name === "TEAM_CREATION" ? maxNumber : null;
+        existingEvent.targeted = targeted;
         await existingEvent.save();
         event = existingEvent;
     } else {
         event = await Event.create({
             name,
-            year,
+            year: targeted === 'students' ? year : null, // only set year if targeted is students
+            targeted,
             startTime: parsedStartTime,
             endTime: parsedEndTime,
             maxNumber: name === "TEAM_CREATION" ? maxNumber : null
@@ -79,6 +91,7 @@ const setEvent = catchAsync(async (req, res, next) => {
         event
     });
 });
+
 
 
 
@@ -134,61 +147,68 @@ export const updateEvent = catchAsync(async (req, res, next) => {
 
 
 
- const checkEventTime = (eventName) => {
-    return catchAsync( async (req, res, next) => {
-        
-            let year = null;
+const checkEventTime = (eventName) => {
+    return catchAsync(async (req, res, next) => {
+        let year = null;
+        let targeted = null;
 
-            if (!req.user || !req.user.role) {
-                return next(new appError("Unauthorized: No user found in request", 401));
+        if (!req.user || !req.user.role) {
+            return next(new appError("Unauthorized: No user found in request", 401));
+        }
+
+        if (req.user.role === "student") {
+            targeted = "students";
+            const studentData = await Student.findOne({ where: { id: req.user.id } });
+            if (!studentData) {
+                return next(new appError("Student record not found", 404));
             }
 
-            if (req.user.role === "student") {
-                const studentData = await Student.findOne({ where: { id: req.user.id } });
-                if (!studentData) {
-                    return next(new appError("Student record not found", 404));
-                }
-
-                year = studentData.year.toUpperCase();
-                if (!year) {
-                    return next(new appError('Student year is missing', 400));
-                }
-            } else if (["teacher", "company"].includes(req.user.role)) {
-                if (!req.body.year) {
-                    return next(new appError("Year is required for teachers and companies", 400));
-                }
-                year = req.body.year.toUpperCase();
-            } else {
-                return next(new appError("Invalid user role", 400));
+            year = studentData.year?.toUpperCase();
+            if (!year) {
+                return next(new appError('Student year is missing', 400));
             }
 
-            console.log(`Year resolved as: ${year}`);
+        } else if (["teacher", "company"].includes(req.user.role)) {
+            targeted = "teachers";
+        } else {
+            return next(new appError("Invalid user role", 400));
+        }
 
-            
-            const event = await Event.findOne({ where: { name: eventName, year } });
+        console.log(`User role: ${req.user.role}, Targeted: ${targeted}, Year: ${year || "N/A"}`);
 
-            if (!event) {
-                return next(new appError(`SESSION "${eventName}" is not configured yet.`, 403));
-            }
+        let eventQuery = {
+            name: eventName,
+            targeted
+        };
 
-            const now = new Date();
+        if (targeted === "students") {
+            eventQuery.year = year;
+        }
 
-            if (now < event.startTime) {
-                return next(new appError(`SESSION "${eventName}" has not started yet.`, 403));
-            }
+        const event = await Event.findOne({ where: eventQuery });
 
-            if (now > event.endTime) {
-                return next(new appError(`SESSION "${eventName}" has ended.`, 403));
-            }
+        if (!event) {
+            return next(new appError(`SESSION "${eventName}" is not configured yet.`, 403));
+        }
 
-            if (eventName === "TEAM_CREATION") {
-                req.maxnum = event.maxNumber;
-            }
+        const now = new Date();
 
-            next();
-       
+        if (now < event.startTime) {
+            return next(new appError(`SESSION "${eventName}" has not started yet.`, 403));
+        }
+
+        if (now > event.endTime) {
+            return next(new appError(`SESSION "${eventName}" has ended.`, 403));
+        }
+
+        if (eventName === "TEAM_CREATION") {
+            req.maxnum = event.maxNumber;
+        }
+
+        next();
     });
 };
+
 
 export const getAllEvents = catchAsync(async (req, res, next) => {
     const events = await Event.findAll(); 
@@ -210,8 +230,6 @@ export const getAllEvents = catchAsync(async (req, res, next) => {
 
 export{checkEventTime,setEvent};
 
-// module.exports={
-//     checkEventTime,setEvent
-// };
+
 
 
