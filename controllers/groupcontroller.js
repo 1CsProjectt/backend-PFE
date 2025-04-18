@@ -7,8 +7,7 @@ import teacher from '../models/teacherModel.js';
 
 import { catchAsync } from '../utils/catchAsync.js';
 import { Op, Sequelize } from "sequelize";
-import jwt from "jsonwebtoken";
-import app from '../index.js';
+
 
 
 const checkAndDestroyEmptyTeam = async (teamId) => {
@@ -401,7 +400,6 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
 }));
 
  // First delete join_requests referencing this team
-  await JoinRequest.destroy({ where: { team_id: team.id } });
 
   // Then destroy the team
   await team.destroy();
