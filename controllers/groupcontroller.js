@@ -497,7 +497,7 @@ let maxNumber = allTeams[0]?.maxNumber || 5;
       // Overflow to existing or newly created teams
       if (availableTeams.length === 0) {
         const newTeam = await Team.create({
-          name: `Generated Team ${++newTeamCount}`,
+          groupName: `Group ${newTeamCount}`, 
           maxNumber: maxNumber,
         });
         availableTeams.push(newTeam);
