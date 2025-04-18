@@ -391,12 +391,15 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
   for (const team of teams) {
     const members = await Student.findAll({ where: { team_id: team.id } });
     if (members.length < 4) {
-      for (const student of members) {
-        student.team_id = null;
-        student.status = 'available';
-        await student.save();
-      }
-      await team.destroy();
+      await Promise.all(members.map(async (student) => {
+  student.team_id = null;
+  student.status = 'available';
+  await student.save();
+}));
+
+ await JoinRequest.destroy({ where: { team_id: team.id } });
+await team.destroy();
+
     }
   }
 
