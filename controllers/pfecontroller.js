@@ -677,9 +677,68 @@ export const getIsiPfes = async (req, res) => {
   export const getSiwPfes = async (req, res) => {
     return getPfesBySpecialization("SIW", res);
   };  
+ 
+  export const autoAssignPfes =catchAsync(async(req,res)=>{
+    const teamsWitoutPFE=await Team.findAll({
+        where:{
+            pfe_id:null
+        }
+    })
+    if (teamsWitoutPFE.length===0){
+        return next(new appError('all teams have pfes',404))
+    }
+    const usedPfeIds=await Team.findAll({
+        where:{
+            pfe_id:{
+                [Op.ne]:null
+            }
+        },
+        attributes:['pfe_id']
+    })
+    const usedIds=usedPfeIds.map((team)=>team.pfe_id)
+    for(const team of teamsWitoutPFE){
+        const students=await Student.findAll({
+            where:{
+                team_id:team.id
+            }
+        });
+        if (students.length===0) continue;
+        const studentYear=students[0].year;
+        let availablePfes;
+        if (studentYear==="3CS"){
+            availablePfes=await PFE.findAll({
+                where:{
+                    specialization:Student[0].specialite,
+                    id:{
+                        [Op.notIn]:usedIds
+                    }
+
+
+
+
+        }
+    })}
+        else{
+            availablePfes=await PFE.findAll({
+                where:{
+                    year:studentYear,
+                    
+                }
+            })
+        }
+        if (availablePfes.length===0) continue;
+        const randomIndex=Math.floor(Math.random()*availablePfes.length);  
+        const selectedPfe=availablePfes[randomIndex];
+
+        team.pfe_id=selectedPfe.id;
+        await team.save();
+
+        if(studentYear==="3CS"){usedIds.push(selectedPfe.id)}
+
+        res.status(200).json({status:'success',message:`PFE ${selectedPfe.title} assigned to team ${team.id}`})
+    }})
+
   
-
-
  
 export {downloadfile};
 export { deletePFE };
@@ -698,4 +757,4 @@ export { deletePFE };
 //     validatePFE,
 //     displayPFEforstudents,
 //     displayAllPFE
-// };
+// }
