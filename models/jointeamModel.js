@@ -14,7 +14,6 @@ const JoinRequest = sequelize.define("join_request", {
     defaultValue: "pending",
   },
 });
-JoinRequest.belongsTo(Student, { foreignKey: "student_id", as: "student" });
-JoinRequest.belongsTo(Team, { foreignKey: "team_id", as: "team" });
+
 
 export default JoinRequest;
