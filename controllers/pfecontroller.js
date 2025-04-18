@@ -678,7 +678,7 @@ export const getIsiPfes = async (req, res) => {
   export const getSiwPfes = async (req, res) => {
     return getPfesBySpecialization("SIW", res);
   };  
- 
+ // doka nwlilha 
 export const autoAssignPfes = catchAsync(async (req, res, next) => {
   const teamsWithoutPFE = await Team.findAll({
     where: {
