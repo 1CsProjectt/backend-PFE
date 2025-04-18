@@ -404,12 +404,9 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
   });
 
   let allTeams = await Team.findAll();
-  let maxNumber = allTeams[0]?.maxNumber;
 
-  if (!maxNumber) {
-    return next(new appError("No teams found to determine maxNumber", 400));
-  }
-
+  // Set default maxNumber if there are no teams
+  let maxNumber = allTeams.length > 0 ? allTeams[0].maxNumber : 5;
   const overflowThreshold = Math.round(maxNumber / 2) + 1;
 
   if (studentsWithoutATeam.length <= overflowThreshold) {
@@ -430,7 +427,13 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
       } else if (allTeams.length > 0) {
         chosenTeam = allTeams[Math.floor(Math.random() * allTeams.length)];
       } else {
-        return next(new appError("No teams available to overflow students into", 400));
+        // No existing teams — create a new one
+        const newTeam = await Team.create({
+          name: `Generated Team 1`,
+          maxNumber: maxNumber,
+        });
+        allTeams.push(newTeam);
+        chosenTeam = newTeam;
       }
 
       student.team_id = chosenTeam.id;
@@ -444,7 +447,7 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
       }
     }
   } else {
-    // More than (maxNumber/2 + 1) students — create new teams
+    // More than (maxNumber / 2 + 1) students — create new teams
     let newTeamCount = 0;
     let index = 0;
     const newTeams = [];
@@ -491,9 +494,13 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
 
       newTeams.push(newTeam);
     } else {
-      // Safety check
+      // Overflow to existing or newly created teams
       if (availableTeams.length === 0) {
-        return next(new appError("No teams available to overflow remaining students into", 400));
+        const newTeam = await Team.create({
+          name: `Generated Team ${++newTeamCount}`,
+          maxNumber: maxNumber,
+        });
+        availableTeams.push(newTeam);
       }
 
       for (const student of overflowStudents) {
