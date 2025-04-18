@@ -400,6 +400,7 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
 }));
 
  // First delete join_requests referencing this team
+  await JoinRequest.destroy({ where: { team_id: team.id } });
 
   // Then destroy the team
   await team.destroy();
