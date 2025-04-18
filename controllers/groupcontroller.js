@@ -2,6 +2,9 @@ import Team from '../models/groupModel.js';
 import appError from '../utils/appError.js';
 import Student from '../models/studenModel.js';
 import User from '../models/UserModel.js';
+import JoinRequest from '../models/jointeamModel.js'; 
+import teacher from '../models/teacherModel.js';
+
 import { catchAsync } from '../utils/catchAsync.js';
 import { Op, Sequelize } from "sequelize";
 import jwt from "jsonwebtoken";
