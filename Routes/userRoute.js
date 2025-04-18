@@ -94,7 +94,7 @@ const router = express.Router();
  *         description: Forbidden (not an admin)
  */
 
-router.post("/create", createUser);
+router.post("/create",protect, restrictedfor("admin"), createUser);
 
 /**
  * @swagger
