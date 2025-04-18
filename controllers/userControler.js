@@ -323,6 +323,7 @@ export const getAllteachers = catchAsync(async (req, res,next) => {
     
         const teachers = await teacher.findAll({include:{
             model:User,
+            as: 'user',
             attributes:["email"]
         }});
         if(!teachers){
