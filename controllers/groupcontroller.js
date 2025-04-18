@@ -362,7 +362,7 @@ export const destroyTeam = catchAsync(async (req, res, next) => {
 
 
 export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
-  const studentsWithoutATeam = await Student.findAll({
+  let studentsWithoutATeam = await Student.findAll({
     where: {
       team_id: null,
       status: 'available',
@@ -376,116 +376,124 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
     });
   }
 
-  const teams = await Team.findAll({
-    where: {
-      full: false,
-    },
-  });
+  let teams = await Team.findAll({ where: { full: false } });
 
-  if (teams.length === 0) {
-    return res.status(200).json({
-      status: 'success',
-      message: 'No available teams to organize students into',
-    });
-  }
-
-  // Destroy all teams with less than 4 members
+  // Destroy all teams with less than (maxNumber / 2 + 1) members
   for (const team of teams) {
     const members = await Student.findAll({ where: { team_id: team.id } });
     const threshold = Math.round(team.maxNumber / 2) + 1;
+
     if (members.length < threshold) {
-      await Promise.all(members.map(async (student) => {
+      for (const student of members) {
         student.team_id = null;
         student.status = 'available';
         await student.save();
-      }));
+      }
 
-      // First delete join_requests referencing this team
       await JoinRequest.destroy({ where: { team_id: team.id } });
-
-      // Then destroy the team
       await team.destroy();
     }
   }
 
-  const allTeams = await Team.findAll();
+  // Refresh students and teams after cleaning
+  studentsWithoutATeam = await Student.findAll({
+    where: {
+      team_id: null,
+      status: 'available',
+    },
+  });
 
-  if (allTeams.length === 0) {
-    return next(new appError("No teams available", 404));
-  }
+  let allTeams = await Team.findAll();
+  let maxNumber = allTeams[0]?.maxNumber || 5; // fallback if all teams were deleted
 
-  // Randomly assign students to teams
-  if (studentsWithoutATeam.length <= Math.round(teams[0].maxNumber / 2) + 1) {
-    // If there are less than or equal to (maxNumber / 2 + 1) students without teams, overflow into existing teams
+  if (studentsWithoutATeam.length <= Math.round(maxNumber / 2) + 1) {
+    // Overflow into existing teams
     for (const student of studentsWithoutATeam) {
       const teamsWithSpace = [];
 
       for (const team of allTeams) {
-        const currentMembers = await Student.count({ where: { team_id: team.id } });
-
-        if (currentMembers < team.maxNumber) {
+        const count = await Student.count({ where: { team_id: team.id } });
+        if (count < team.maxNumber) {
           teamsWithSpace.push(team);
         }
       }
 
-      // Choose a team
       let chosenTeam;
       if (teamsWithSpace.length > 0) {
-        const randomIndex = Math.floor(Math.random() * teamsWithSpace.length);
-        chosenTeam = teamsWithSpace[randomIndex];
+        chosenTeam = teamsWithSpace[Math.floor(Math.random() * teamsWithSpace.length)];
       } else {
-        // If all teams are full, randomly select one for overflow
-        const randomIndex = Math.floor(Math.random() * allTeams.length);
-        chosenTeam = allTeams[randomIndex];
+        chosenTeam = allTeams[Math.floor(Math.random() * allTeams.length)];
       }
 
-      // Assign student to the chosen team
       student.team_id = chosenTeam.id;
-      student.status = "in a team";
+      student.status = 'in a team';
       await student.save();
 
-      // Optional: mark team as full if max reached
-      const newMemberCount = await Student.count({ where: { team_id: chosenTeam.id } });
-      if (newMemberCount >= chosenTeam.maxNumber && !chosenTeam.full) {
+      const memberCount = await Student.count({ where: { team_id: chosenTeam.id } });
+      if (memberCount >= chosenTeam.maxNumber && !chosenTeam.full) {
         chosenTeam.full = true;
         await chosenTeam.save();
       }
     }
   } else {
-    // If there are more than (maxNumber / 2 + 1) students, create new teams for them
-    let remainingStudents = studentsWithoutATeam.slice();
+    // More than (maxNumber/2 + 1) students — create new teams
     let newTeamCount = 0;
+    let index = 0;
+    const newTeams = [];
 
-    while (remainingStudents.length > 0) {
+    while (studentsWithoutATeam.length - index >= maxNumber) {
       const newTeam = await Team.create({
-        name: `New Team ${++newTeamCount}`,
-        maxNumber: allTeams[0].maxNumber,
+        name: `Generated Team ${++newTeamCount}`,
+        maxNumber: maxNumber,
       });
 
-      const membersToAssign = remainingStudents.splice(0, newTeam.maxNumber);
-      for (const student of membersToAssign) {
+      const group = studentsWithoutATeam.slice(index, index + maxNumber);
+      for (const student of group) {
         student.team_id = newTeam.id;
         student.status = 'in a team';
         await student.save();
       }
 
-      // Check if the new team is full
-      const newTeamMemberCount = await Student.count({ where: { team_id: newTeam.id } });
-      if (newTeamMemberCount >= newTeam.maxNumber) {
+      newTeam.full = true;
+      await newTeam.save();
+
+      newTeams.push(newTeam);
+      index += maxNumber;
+    }
+
+    // Handle overflow (less than maxNumber students left)
+    const overflowThreshold = Math.round(maxNumber / 2) + 1;
+    const overflowStudents = studentsWithoutATeam.slice(index);
+
+    if (overflowStudents.length >= overflowThreshold) {
+      // Create one last team
+      const newTeam = await Team.create({
+        name: `Generated Team ${++newTeamCount}`,
+        maxNumber: maxNumber,
+      });
+
+      for (const student of overflowStudents) {
+        student.team_id = newTeam.id;
+        student.status = 'in a team';
+        await student.save();
+      }
+
+      if (overflowStudents.length === maxNumber) {
         newTeam.full = true;
         await newTeam.save();
       }
-    }
 
-    // Overflow remaining students (if any) into random full teams
-    const overflowStudents = remainingStudents;
-    for (const student of overflowStudents) {
-      const randomIndex = Math.floor(Math.random() * allTeams.length);
-      const chosenTeam = allTeams[randomIndex];
+      newTeams.push(newTeam);
+    } else {
+      // Overflow to existing teams
+      const availableTeams = [...allTeams, ...newTeams];
 
-      student.team_id = chosenTeam.id;
-      student.status = 'in a team';
-      await student.save();
+      for (const student of overflowStudents) {
+        const randomTeam = availableTeams[Math.floor(Math.random() * availableTeams.length)];
+        student.team_id = randomTeam.id;
+        student.status = 'in a team';
+        await student.save();
+      }
     }
   }
 
@@ -494,4 +502,5 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
     message: 'Students have been automatically organized into teams',
   });
 });
+
 
