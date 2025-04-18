@@ -296,28 +296,29 @@ export const getAllUsersfrom_myyear = catchAsync(async (req, res, next) => {
     }
 });
 
-export const getAllUsers = async (req, res) => {
-    try {
+export const getAllUsers =catchAsync( async (req, res) => {
+    
         const users = await User.findAll();
-         
+        if (!users || users.length === 0) {
+            return next(new appError('No students were found', 400));
+        }
         res.json(users);
-    } catch (error) {
-        res.status(500).json({ message: "Error fetching users", error });
-    }
-};
-export const getAllStudents = async (req, res) => {
-    try {
+    
+});
+export const getAllStudents =catchAsync( async (req, res) => {
+    
         const students = await Student.findAll({include:{
             model:User,
             as:"user",
             attributes:["email"]
         }});
+        if (!students || students.length === 0) {
+            return next(new appError('No students were found', 400));
+        }
          
         res.json(students);
-    } catch (error) {
-        res.status(500).json({ message: "Error fetching users", error });
-    }
-};
+    
+});
 
 export const getAllteachers = catchAsync(async (req, res,next) => {
     
@@ -333,19 +334,21 @@ export const getAllteachers = catchAsync(async (req, res,next) => {
     
 });
 
-export const getAllcompanies = async (req, res) => {
-    try {
+export const getAllcompanies =catchAsync( async (req, res) => {
+    
         const companies = await Company.findAll({include:{
             model:User,
             as:"user",
             attributes:["email"]
         }});
+        if (!companies || companies.length === 0) {
+            return next(new appError('No companies were found', 400));
+        }
+        
          
         res.json(companies);
-    } catch (error) {
-        res.status(500).json({ message: "Error fetching users", error });
-    }
-};
+    
+});
 
 
 
