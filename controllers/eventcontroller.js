@@ -42,7 +42,7 @@ const setEvent = catchAsync(async (req, res, next) => {
 
     const now = new Date();
 
-    // === Dependency checks (per year) ===
+    // === Dependency checks for student-targeted events ===
     if (targeted === 'students') {
         const conditions = { targeted, year };
 
@@ -56,8 +56,12 @@ const setEvent = catchAsync(async (req, res, next) => {
                 return next(new appError(`PFE_SUBMISSION and TEAM_CREATION must exist for ${year} before creating PFE_ASSIGNMENT`, 400));
             }
 
-            if (new Date(pfeSubmission.endTime) > now || new Date(teamCreation.endTime) > now) {
-                return next(new appError(`PFE_ASSIGNMENT for ${year} cannot start until both PFE_SUBMISSION and TEAM_CREATION have ended`, 400));
+            if (new Date(pfeSubmission.endTime) > now) {
+                return next(new appError(`PFE_SUBMISSION for ${year} must be finished before starting PFE_ASSIGNMENT`, 400));
+            }
+
+            if (new Date(teamCreation.endTime) > now) {
+                return next(new appError(`TEAM_CREATION for ${year} must be finished before starting PFE_ASSIGNMENT`, 400));
             }
         }
 
@@ -69,12 +73,12 @@ const setEvent = catchAsync(async (req, res, next) => {
             }
 
             if (new Date(assignmentEvent.endTime) > now) {
-                return next(new appError(`WORK_STARTING for ${year} cannot start until PFE_ASSIGNMENT has ended`, 400));
+                return next(new appError(`PFE_ASSIGNMENT for ${year} must be finished before starting WORK_STARTING`, 400));
             }
         }
     }
 
-    // === Check for existing session with same name, target, and (if students) year
+    // === Check if the same event already exists for the same target and year ===
     const existingEvent = await Event.findOne({
         where: {
             name,
@@ -107,6 +111,7 @@ const setEvent = catchAsync(async (req, res, next) => {
         event
     });
 });
+
 
 
 
