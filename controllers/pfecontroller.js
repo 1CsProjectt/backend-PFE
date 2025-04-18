@@ -510,8 +510,8 @@ export const displayPFEforstudents = catchAsync(async (req, res, next) => {
         status: 'VALIDE',
     };
 
-    if (!["2CP", "1CS"].includes(currentStudent.year)&& currentStudent.specialization) {
-        filterConditions.specialization = currentStudent.specialization;
+    if (!["2CP", "1CS"].includes(currentStudent.year)&& currentStudent.specialite) {
+        filterConditions.specialization = currentStudent.specialite;
     }
 
     console.log("Query Filters:", filterConditions);
