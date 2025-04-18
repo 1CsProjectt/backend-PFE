@@ -14,10 +14,16 @@ import { getStudentsByTeam } from '../controllers/studentcontroller.js';
 import { protect, restrictedfor } from "../middlewares/authmiddleware.js";
 
 const router = express.Router();
+/**
+ * @swagger
+ * tags:
+ *   name: TEAM managment
+ *   description: TEAM operations
+ */
 
 /**
  * @swagger
- * /api/team/creategroup:
+ * /api/v1/team/creategroup:
  *   post:
  *     summary: Create a new team
  *     tags: [Team]
@@ -41,7 +47,7 @@ router.post('/autoOrganizeTeams', protect, restrictedfor('admin'), autoOrganizeT
 
 /**
  * @swagger
- * /api/team/{groupId}/students:
+ * /api/v1/team/{groupId}/students:
  *   get:
  *     summary: Get students of a team
  *     tags: [Team]
@@ -59,7 +65,7 @@ router.get('/:groupId/students', getStudentsByTeam);
 
 /**
  * @swagger
- * /api/team/leaveTeam:
+ * /api/v1/team/leaveTeam:
  *   patch:
  *     summary: Leave a team
  *     tags: [Team]
@@ -73,7 +79,7 @@ router.patch('/leaveTeam', protect, leaveTeam);
 
 /**
  * @swagger
- * /api/team/all:
+ * /api/v1/team/all:
  *   get:
  *     summary: List all teams
  *     tags: [Team]
@@ -87,7 +93,7 @@ router.get('/all', protect, listAllTeams);
 
 /**
  * @swagger
- * /api/team/allgroups:
+ * /api/v1/team/allgroups:
  *   get:
  *     summary: List all teams for student's year
  *     tags: [Team]
@@ -101,7 +107,7 @@ router.get('/allgroups', protect, restrictedfor('student'), listAllTeamsforstude
 
 /**
  * @swagger
- * /api/team/myteam:
+ * /api/v1/team/myteam:
  *   get:
  *     summary: Get the current user's team
  *     tags: [Team]
@@ -115,7 +121,7 @@ router.get('/myteam', protect, showMyTeam);
 
 /**
  * @swagger
- * /api/team/delete/{team_id}:
+ * /api/v1/team/delete/{team_id}:
  *   delete:
  *     summary: Delete a team by admin
  *     tags: [Team]
@@ -135,7 +141,7 @@ router.delete('/delete/:team_id', protect, restrictedfor('admin'), destroyTeam);
 
 /**
  * @swagger
- * /api/team/move-student:
+ * /api/v1/team/move-student:
  *   patch:
  *     summary: Move students to another team
  *     tags: [Team]
@@ -162,7 +168,7 @@ router.patch('/move-student', protect, restrictedfor('admin'), moveStudentsToAno
 
 /**
  * @swagger
- * /api/team/admin/create-team:
+ * /api/v1/team/admin/create-team:
  *   post:
  *     summary: Admin creates a new team
  *     tags: [Team]
