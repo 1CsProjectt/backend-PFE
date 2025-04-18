@@ -389,7 +389,8 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
     let studentsWithoutATeam = studentsByYear[year];
     let teams = await Team.findAll({
       where: { full: false },
-      include: [{ model: Student, where: { year }, required: false }],
+          include: [{ model: Student, as: 'members', where: { year }, required: false }],
+
     });
 
     // Destroy weak teams for that year
@@ -419,7 +420,8 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
     });
 
     let allTeams = await Team.findAll({
-      include: [{ model: Student, where: { year }, required: false }],
+        include: [{ model: Student, as: 'members', where: { year }, required: false }],
+
     });
 
     let maxNumber = allTeams[0]?.maxNumber || 5;
