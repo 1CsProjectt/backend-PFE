@@ -37,7 +37,7 @@ const Event = sequelize.define("Event", {
     },
     year:{
         type:DataTypes.ENUM('2CP','1CS','2CS','3CS'),
-         allowNull:false
+         allowNull:true
     },
     maxNumber :{
         type:DataTypes.INTEGER,
