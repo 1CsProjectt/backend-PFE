@@ -500,7 +500,6 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
     } else {
       if (availableTeams.length === 0) {
         const newTeam = await Team.create({
-          name: `Generated Team ${++newTeamCount}`,
           groupName: `Group ${newTeamCount}`,
           maxNumber: maxNumber,
         });
