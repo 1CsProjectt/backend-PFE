@@ -337,6 +337,7 @@ export const getAllcompanies = async (req, res) => {
     try {
         const companies = await Company.findAll({include:{
             model:User,
+            as:"user",
             attributes:["email"]
         }});
          
