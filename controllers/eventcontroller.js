@@ -59,22 +59,24 @@ const setEvent = catchAsync(async (req, res, next) => {
     }
 
     let event;
+    const finalMaxNumber = name === "TEAM_CREATION" && ['2CS', '3CS'].includes(year) ? 2 : maxNumber;
+
     if (existingEvent) {
         existingEvent.name = name;
         existingEvent.startTime = parsedStartTime;
         existingEvent.endTime = parsedEndTime;
-        existingEvent.maxNumber = name === "TEAM_CREATION" ? maxNumber : null;
+        existingEvent.maxNumber = name === "TEAM_CREATION" ? finalMaxNumber : null;
         existingEvent.targeted = targeted;
         await existingEvent.save();
         event = existingEvent;
     } else {
         event = await Event.create({
             name,
-            year: targeted === 'students' ? year : null, 
+            year: targeted === 'students' ? year : null,
             targeted,
             startTime: parsedStartTime,
             endTime: parsedEndTime,
-            maxNumber: name === "TEAM_CREATION" ? maxNumber : null
+            maxNumber: name === "TEAM_CREATION" ? finalMaxNumber : null
         });
     }
 
@@ -84,6 +86,7 @@ const setEvent = catchAsync(async (req, res, next) => {
         event
     });
 });
+
 
 
 
