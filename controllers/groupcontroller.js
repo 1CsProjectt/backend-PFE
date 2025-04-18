@@ -443,6 +443,7 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
           // No existing teams — create a new one
           const newTeam = await Team.create({
             name: `Generated Team 1`,
+            groupName: `Group 1`,  // Add groupName here
             maxNumber: maxNumber,
           });
           allTeams.push(newTeam);
@@ -468,6 +469,7 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
       while (studentsInYear.length - index >= maxNumber) {
         const newTeam = await Team.create({
           name: `Generated Team ${++newTeamCount}`,
+          groupName: `Group ${newTeamCount}`,  // Add groupName here
           maxNumber: maxNumber,
         });
 
@@ -491,6 +493,7 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
       if (overflowStudents.length >= overflowThreshold) {
         const newTeam = await Team.create({
           name: `Generated Team ${++newTeamCount}`,
+          groupName: `Group ${newTeamCount}`,  // Add groupName here
           maxNumber: maxNumber,
         });
 
@@ -511,6 +514,7 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
         if (availableTeams.length === 0) {
           const newTeam = await Team.create({
             name: `Generated Team ${++newTeamCount}`,
+            groupName: `Group ${newTeamCount}`,  // Add groupName here
             maxNumber: maxNumber,
           });
           availableTeams.push(newTeam);
@@ -531,6 +535,7 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
     message: 'Students have been automatically organized into teams',
   });
 });
+
 
 
 
