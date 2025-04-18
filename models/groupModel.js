@@ -21,8 +21,8 @@ const Team = sequelize.define('Team', {
   },
   groupName: {
     type: DataTypes.STRING,
-    allowNull: false,
-    unique: true,
+    allowNull: true,
+    
   },
   supervisorId: {
     type: DataTypes.INTEGER,
