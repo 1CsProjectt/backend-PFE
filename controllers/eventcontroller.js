@@ -53,8 +53,8 @@ const setEvent = catchAsync(async (req, res, next) => {
     let existingEvent = null;
 
     if (targeted === 'students') {
-        existingEvent = await Event.findOne({ where: { year } });
-
+        existingEvent = await Event.findOne({ where: { year, targeted: 'students' } });
+    
         if (existingEvent) {
             const existingEventEndTime = new Date(existingEvent.endTime);
             existingEventEndTime.setUTCHours(0, 0, 0, 0);
@@ -77,7 +77,7 @@ const setEvent = catchAsync(async (req, res, next) => {
     } else {
         event = await Event.create({
             name,
-            year: targeted === 'students' ? year : null, // only set year if targeted is students
+            year: targeted === 'students' ? year : null, 
             targeted,
             startTime: parsedStartTime,
             endTime: parsedEndTime,

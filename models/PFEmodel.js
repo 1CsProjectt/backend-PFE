@@ -32,10 +32,10 @@ const PFE = sequelize.define("PFE", {
         type: DataTypes.STRING,
         allowNull: false,
     },
-    valide: {
-        type: DataTypes.BOOLEAN,
+    status: {
+        type: DataTypes.ENUM('NOT_VALIDE','VALIDE','REJECTED'),
         allowNull: false,
-        defaultValue: false
+        defaultValue: "NOT_VALID"
     },
     createdBy: {  
         type: DataTypes.INTEGER,

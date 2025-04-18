@@ -293,7 +293,7 @@ export const displayPFE = catchAsync(async (req, res, next) => {
 
     const pfeList = await PFE.findAll({
         where: {
-            valide: false,
+            status: 'NOT_VALIDE',
             [Op.and]: [literal(`EXTRACT(YEAR FROM "PFE"."createdAt") = ${currentYear}`)],
         },
         include: [
@@ -386,7 +386,7 @@ export const displayPFE = catchAsync(async (req, res, next) => {
     
         const pfeList = await PFE.findAll({
             where: {
-                valide: true,
+                status: 'VALIDE',
                 [Op.and]: [literal(`EXTRACT(YEAR FROM "PFE"."createdAt") = ${currentYear}`)],
             },
             include: [
@@ -463,11 +463,30 @@ export  const validatePFE = catchAsync(async (req, res, next) => {
         return next(new appError('PFE not found', 404));
     }
 
-    pfe.valide = true;
+    pfe.status = 'VALIDE';
     await pfe.save();
 
     res.status(200).json({
         message: "PFE validated successfully",
+        pfe
+    });
+});
+
+
+export  const rejectPFE = catchAsync(async (req, res, next) => {
+
+    const { id } = req.params; 
+    
+    const pfe = await PFE.findByPk(id);
+    if (!pfe) {
+        return next(new appError('PFE not found', 404));
+    }
+
+    pfe.status = 'REJECTED';
+    await pfe.save();
+
+    res.status(200).json({
+        message: "PFE rejected successfully",
         pfe
     });
 });
@@ -488,7 +507,7 @@ export const displayPFEforstudents = catchAsync(async (req, res, next) => {
 
     let filterConditions = {
         year: currentStudent.year,
-        valide: true,
+        status: 'VALIDE',
     };
 
     if (!["2CP", "1CS"].includes(currentStudent.year)) {
