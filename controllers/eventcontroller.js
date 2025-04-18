@@ -5,13 +5,6 @@ import Student from "../models/studenModel.js";
 
 
 
-// const Event = require("../models/eventModel.js");
-// const appError = require("../utils/appError.js");
-// const { catchAsync } = require("../utils/catchAsync.js");
-// const Student = require("../models/studenModel.js");
-
-
-
 const setEvent = catchAsync(async (req, res, next) => {
     const { name, startTime, endTime, maxNumber, targeted = 'students' } = req.body;
     const year = req.body.year?.toUpperCase();
