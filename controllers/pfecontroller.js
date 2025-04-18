@@ -14,6 +14,7 @@ import Student from "../models/studenModel.js";
 import { Op, fn, col,literal } from "sequelize"; 
 import User from "../models/UserModel.js";
 import Company from "../models/companyModel.js";
+import Team from "../models/groupModel.js";
 
 
 
