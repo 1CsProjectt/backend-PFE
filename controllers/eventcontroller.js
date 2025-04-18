@@ -47,8 +47,8 @@ const setEvent = catchAsync(async (req, res, next) => {
         const conditions = { targeted, year };
 
         if (name === "PFE_ASSIGNMENT") {
-            // Global PFE_SUBMISSION
-            const pfeSubmission = await Event.findOne({ where: { name: "PFE_SUBMISSION", targeted: 'students' } });
+            
+            const pfeSubmission = await Event.findOne({ where: { name: "PFE_SUBMISSION", targeted: 'teachers' } });
             const teamCreation = await Event.findOne({ where: { ...conditions, name: "TEAM_CREATION" } });
 
             if (!pfeSubmission || !teamCreation) {
