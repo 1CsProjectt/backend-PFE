@@ -420,10 +420,13 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
 
       let chosenTeam;
       if (teamsWithSpace.length > 0) {
-        chosenTeam = teamsWithSpace[Math.floor(Math.random() * teamsWithSpace.length)];
-      } else {
-        chosenTeam = allTeams[Math.floor(Math.random() * allTeams.length)];
-      }
+  chosenTeam = teamsWithSpace[Math.floor(Math.random() * teamsWithSpace.length)];
+} else if (allTeams.length > 0) {
+  chosenTeam = allTeams[Math.floor(Math.random() * allTeams.length)];
+} else {
+  return next(new appError("No teams available to overflow students into", 400));
+}
+
 
       student.team_id = chosenTeam.id;
       student.status = 'in a team';
