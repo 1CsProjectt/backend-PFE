@@ -76,7 +76,7 @@ export const sendInvitations = catchAsync(async (req, res, next) => {
         sender: student.name,
         message: "You have received a new team invitation.",
       });
-      results.push({ email, status: "success" });
+      results.push({ email, status: "success"});
 
     } catch (err) {
       results.push({ email, status: "failed", reason: "Unexpected error" });
@@ -88,7 +88,27 @@ export const sendInvitations = catchAsync(async (req, res, next) => {
   });
 });
 
+export const cancelInvitation = catchAsync(async (req,res)=>{
+  const { invitationId } = req.body;
+  if(!req.user || !req.user.id ){
+    return next(new appError("Unauthorized: No user found in request", 401));
+  }
+  const senderId=req.user.id
+  const invitation=await Invitation.findOne({
+    where:{
+      id:invitationId,
+      sender_id:senderId,
+      status:"pending"
+    }
+  });
+  if(!invitation){
+    return next(new appError("no pending invitation found with this ID ",404))
+  }
+  await invitation.destroy();
+  res.status(200).json({message:"invitation has been canceled successfully"})
 
+
+})
  
 
 export const getAllMypendingInvitations = catchAsync(async (req, res, next) => {
