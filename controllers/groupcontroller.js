@@ -362,7 +362,7 @@ export const destroyTeam = catchAsync(async (req, res, next) => {
 
 
 export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
-  const year = req.body; // Assuming you have the user's year in the request
+  const {year} = req.body; // Assuming you have the user's year in the request
   if (!year) { 
     return next(new appError('Year is required', 400));
   }
