@@ -436,10 +436,7 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
       maxNumber: maxNumber,
     });
     allTeams.push(newTeam);
-  }
-
-  // ✅ CASE 1: Overflow into existing teams
-  if (studentsWithoutATeam.length <= overflowThreshold) {
+  }else if (studentsWithoutATeam.length <= overflowThreshold) {
     for (const student of studentsWithoutATeam) {
       const teamsWithSpace = [];
 
