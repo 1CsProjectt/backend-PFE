@@ -1,7 +1,7 @@
 import catchAsync from '../utils/catchAsync.js';
 import appError from '../utils/appError.js';
 import Preflist from '../models/preflistModel.js';
-import Student from '../models/studentModel.js';
+import Student from '../models/studenModel.js';
 
 export const createPreflist = catchAsync(async (req, res, next) => {
   const { pfeIds } = req.body;
