@@ -388,7 +388,7 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
 
   // ✅ Destroy teams with < threshold members
   for (const team of teams) {
-    const members = await Student.findAll({ where: { team_id: team.id } });
+    const members = await Student.findAll({ where: { team_id: team.id,year } });
     const threshold = Math.round(team.maxNumber / 2) + 1;
 
     if (members.length < threshold) {
