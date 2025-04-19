@@ -1,5 +1,5 @@
 import express from 'express';
-import { createPreflist } from '../controllers/PreferenceInvitation.js';
+import { createPreflist } from '../controllers/preflistController.js';
 import protect from '../middlewares/authmiddleware.js'; 
 
 const router = express.Router();
