@@ -15,48 +15,14 @@ import { Op, fn, col,literal } from "sequelize";
 import User from "../models/UserModel.js";
 import Company from "../models/companyModel.js";
 import Team from "../models/groupModel.js";
-
-
-
-
-const deletePFE = catchAsync(async (req, res, next) => {
-    const { id } = req.params;
-
-    const pfe = await PFE.findByPk(id);
-    if (!pfe) {
-        return next(new appError("PFE not found", 404));
-    }
-
-    try {
-        // 🗑️ Delete the associated PDF file from storage
-        if (pfe.pdfFile) {
-            const pdfPath = path.resolve(__dirname, "..", "uploads", pfe.pdfFile);
-            await fs.promises.unlink(pdfPath);
-        }
-
-        // 🖼️ Delete the associated photo from storage
-        if (pfe.photo) {
-            const photoPath = path.resolve(__dirname, "..", "photos", pfe.photo);
-            await fs.promises.unlink(photoPath);
-        }
-    } catch (err) {
-        if (err.code !== "ENOENT") {
-            console.error(`Error deleting file: ${err.message}`);
-        }
-    }
-
-    await pfe.destroy();
-    res.status(200).json({ message: "PFE and associated files deleted successfully" });
-});
-
-
+import { v2 as cloudinary } from 'cloudinary';
 
 
 
 export const createPFE = catchAsync(async (req, res, next) => {
     const { title, specialization, supervisor, description, year } = req.body;
-    const pdfFile = req.files?.pdfFile?.[0]?.filename; 
-    const photo = req.files?.photo?.[0]?.filename; 
+    const pdfFile = req.files?.pdfFile?.[0]?.path; 
+    const photo = req.files?.photo?.[0]?.path; 
     const userId = req.user.id;
     const role = req.user.role;
     const createdBy = req.user.id;
@@ -110,123 +76,47 @@ export const createPFE = catchAsync(async (req, res, next) => {
 });
 
 
+export const deletePFE = catchAsync(async (req, res, next) => {
+    const { id } = req.params;
 
+    const pfe = await PFE.findByPk(id);
+    if (!pfe) {
+        return next(new appError("PFE not found", 404));
+    }
 
+    const deleteCloudinaryFile = async (url) => {
+        if (!url) return;
 
-
-export const getAllPFE = catchAsync(async (req, res, next) => {
-    const pfeList = await PFE.findAll({
-        include: [
-            {
-                model: User,
-                as: "creator",
-                attributes: ["id", "username", "email"],
-            },
-            {
-                model: teacher,
-                as: "supervisors",
-                attributes: ["id", "name"],
-                through: { attributes: [] }, 
-            }
-        ],
-    });
-
-    // Add full URLs for pdfFile and photo
-    const formattedPFEList = pfeList.map((pfe) => ({
-        ...pfe.toJSON(),
-        pdfFile: pfe.pdfFile ? `${req.protocol}://${req.get("host")}/uploads/${pfe.pdfFile}` : null,
-        photo: pfe.photo ? `${req.protocol}://${req.get("host")}/photos/${pfe.photo}` : null,
-    }));
-
-    res.status(200).json({
-        status: "success",
-        count: formattedPFEList.length,
-        pfeList: formattedPFEList,
-    });
-});
-
-
-export const getMyPfe = catchAsync(async (req, res, next) => {
-
-        const userId = req.user?.id;
-
-        if (!userId) {
-            return next(new appError("User not authenticated", 401));
+        try {
+            const parts = url.split('/');
+            const fileWithExtension = parts[parts.length - 1];
+            const publicId = fileWithExtension.split('.')[0];
+            const folder = url.includes('/raw/') ? 'raw' : 'image';
+            await cloudinary.uploader.destroy(`pfe-uploads/${publicId}`, {
+                resource_type: folder,
+            });
+        } catch (err) {
+            console.error(`Error deleting file from Cloudinary: ${err.message}`);
         }
+    };
 
-        const pfes = await PFE.findAll({
-            where: {
-                createdBy: userId
-            },
-            include: [
-                {
-                    model: User,
-                    as: 'creator',
-                    attributes: ['id', 'email'],
-                    include: [
-                        {
-                            model: teacher,
-                            as: 'teacher',
-                            attributes: ['firstname', 'lastname'],
-                            required: false
-                        },
-                        {
-                            model: Company,
-                            as: 'company',  
-                            required: false
-                        }
-                    ]
-                },
-                {
-                    model: teacher,
-                    as: 'supervisors',
-                    required: false,
-                    include: [
-                        {
-                            model: User,
-                            as: 'user',
-                            attributes: ['email'],
-                            required: false
-                        }
-                    ]
-                }
-            ]
-        });
+    await deleteCloudinaryFile(pfe.pdfFile);
+    await deleteCloudinaryFile(pfe.photo);
 
-        if (!pfes || pfes.length === 0) {
-            return next(new appError("You have not created any PFEs.", 404));
-        }
-
-        const formattedPfes = pfes.map((pfe) => ({
-            ...pfe.toJSON(),
-            pdfFile: pfe.pdfFile ? `${req.protocol}://${req.get("host")}/uploads/${pfe.pdfFile}` : null,
-            photo: pfe.photo ? `${req.protocol}://${req.get("host")}/photos/${pfe.photo}` : null,
-            creator: {
-                ...pfe.creator?.toJSON(),
-                firstname: pfe.creator?.teacher?.firstname || null,
-                lastname: pfe.creator?.teacher?.lastname || null
-            }
-        }));
-
-        res.status(200).json({
-            status: "success",
-            data: formattedPfes
-        });
-    
+    await pfe.destroy();
+    res.status(200).json({ message: "PFE and associated files deleted successfully" });
 });
-
-
 
 
 export const deletePFEforcreator = catchAsync(async (req, res, next) => {
     const { id } = req.params;
-    if(!id){
-        return next(new appError('you must provide id',404))
+    if (!id) {
+        return next(new appError('You must provide an ID', 404));
     }
-    console.log(id)
+
     const currentUserId = req.user.id; 
-    if(!currentUserId){
-        return next(new appError('user not found',404))
+    if (!currentUserId) {
+        return next(new appError('User not found', 404));
     }
 
     const pfe = await PFE.findByPk(id);
@@ -238,37 +128,109 @@ export const deletePFEforcreator = catchAsync(async (req, res, next) => {
         return next(new appError("You are not authorized to delete this PFE", 403));
     }
 
-    // 🗑️ Delete the associated PDF file from storage
-    if (pfe.pdfFile) {
-        const pdfPath = path.resolve(__dirname, "..", "uploads", pfe.pdfFile);
-        fs.unlink(pdfPath, (err) => {
-            if (err && err.code !== "ENOENT") {
-                console.error(`Error deleting PDF file: ${err.message}`);
-            }
-        });
-    }
+    const deleteCloudinaryFile = async (url) => {
+        if (!url) return;
 
-    // 🖼️ Delete the associated photo from storage
-    if (pfe.photo) {
-        const photoPath = path.resolve(__dirname, "..", "photos", pfe.photo);
-        fs.unlink(photoPath, (err) => {
-            if (err && err.code !== "ENOENT") {
-                console.error(`Error deleting photo file: ${err.message}`);
-            }
-        });
-    }
-    if (pfe.photo) {
-        const photoPath = path.resolve(__dirname, "..", "photos", pfe.photo);
-        fs.unlink(photoPath, (err) => {
-            if (err && err.code !== "ENOENT") {
-                console.error(`Error deleting photo file: ${err.message}`);
-            }
-        });
-    }
+        try {
+            const parts = url.split('/');
+            const fileWithExtension = parts[parts.length - 1];
+            const publicId = fileWithExtension.split('.')[0];
+            const folder = url.includes('/raw/') ? 'raw' : 'image';
+            await cloudinary.uploader.destroy(`pfe-uploads/${publicId}`, {
+                resource_type: folder,
+            });
+        } catch (err) {
+            console.error(`Error deleting file from Cloudinary: ${err.message}`);
+        }
+    };
+
+    await deleteCloudinaryFile(pfe.pdfFile);
+    await deleteCloudinaryFile(pfe.photo);
 
     await pfe.destroy();
     res.status(200).json({ message: "PFE and associated files deleted successfully" });
 });
+
+
+const formatPFEUrls = (pfeList) => {
+    return pfeList.map((pfe) => ({
+        ...pfe.toJSON(),
+        pdfFile: pfe.pdfFile || null,
+        photo: pfe.photo || null,
+    }));
+};
+
+export const getAllPFE = catchAsync(async (req, res, next) => {
+    const pfeList = await PFE.findAll({
+        include: [
+            { model: User, as: "creator", attributes: ["id", "username", "email"] },
+            { model: teacher, as: "supervisors", attributes: ["id", "name"], through: { attributes: [] } }
+        ],
+    });
+
+    const formattedPFEList = formatPFEUrls(pfeList);
+
+    res.status(200).json({ status: "success", count: formattedPFEList.length, pfeList: formattedPFEList });
+});
+
+
+
+export const getMyPfe = catchAsync(async (req, res, next) => {
+    const userId = req.user?.id;
+    if (!userId) return next(new appError("User not authenticated", 401));
+
+    const pfes = await PFE.findAll({
+        where: { createdBy: userId },
+        include: [
+            {
+                model: User,
+                as: 'creator',
+                attributes: ['id', 'email'],
+                include: [
+                    { model: teacher, as: 'teacher', attributes: ['firstname', 'lastname'], required: false },
+                    { model: Company, as: 'company', required: false }
+                ]
+            },
+            {
+                model: teacher,
+                as: 'supervisors',
+                required: false,
+                include: [
+                    { model: User, as: 'user', attributes: ['email'], required: false }
+                ]
+            }
+        ]
+    });
+
+    if (!pfes || pfes.length === 0) {
+        return next(new appError("You have not created any PFEs.", 404));
+    }
+
+    const formattedPfes = formatPFEUrls(pfes).map((pfe) => ({
+        ...pfe,
+        creator: {
+            ...pfe.creator,
+            firstname: pfe.creator?.teacher?.firstname || null,
+            lastname: pfe.creator?.teacher?.lastname || null
+        }
+    }));
+
+    res.status(200).json({ status: "success", data: formattedPfes });
+});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 const downloadfile=(req, res) => {
@@ -289,56 +251,35 @@ const downloadfile=(req, res) => {
  
 
 
-export const displayPFE = catchAsync(async (req, res, next) => {
-    const currentYear = new Date().getFullYear();
-
-    const pfeList = await PFE.findAll({
-        where: {
-            status: 'NOT_VALIDE',
-            [Op.and]: [literal(`EXTRACT(YEAR FROM "PFE"."createdAt") = ${currentYear}`)],
-        },
-        include: [
-            {
-                model: User,
-                as: "creator",
-                attributes: ["id", "username", "email"],
+    export const displayPFE = catchAsync(async (req, res, next) => {
+        const currentYear = new Date().getFullYear();
+    
+        const pfeList = await PFE.findAll({
+            where: {
+                status: 'NOT_VALIDE',
+                [Op.and]: [literal(`EXTRACT(YEAR FROM "PFE"."createdAt") = ${currentYear}`)],
             },
-            {
-                model: teacher,
-                as: "supervisors",
-                attributes: ["id", "name"],
-                through: { attributes: [] }, 
-            }
-        ],
+            include: [
+                { model: User, as: "creator", attributes: ["id", "username", "email"] },
+                { model: teacher, as: "supervisors", attributes: ["id", "name"], through: { attributes: [] } }
+            ],
+        });
+    
+        const formattedPFEList = formatPFEUrls(pfeList);
+    
+        res.status(200).json({ status: "success", count: formattedPFEList.length, pfeList: formattedPFEList });
     });
-
-    const formattedPFEList = pfeList.map((pfe) => ({
-        ...pfe.toJSON(),
-        pdfFile: pfe.pdfFile ? `${req.protocol}://${req.get("host")}/uploads/${pfe.pdfFile}` : null,
-        photo: pfe.photo ? `${req.protocol}://${req.get("host")}/photos/${pfe.photo}` : null,
-    }));
-
-    res.status(200).json({
-        status: "success",
-        count: formattedPFEList.length,
-        pfeList: formattedPFEList,
-    });
-});
-
-
-
+    
     export const displaythisyearsPFE = catchAsync(async (req, res, next) => {
         if (!req.user || !req.user.id) {
             return next(new appError("Unauthorized: No user found in request", 401));
         }
     
-        // Find the student based on user ID
         const currentStudent = await Student.findByPk(req.user.id);
         if (!currentStudent) {
             return next(new appError("Student not found", 404));
         }
     
-        // Get the student's year
         const year = currentStudent.year;
         if (!year) {
             return next(new appError("Student year is missing", 400));
@@ -346,76 +287,39 @@ export const displayPFE = catchAsync(async (req, res, next) => {
     
         const currentYear = new Date().getFullYear();
     
-        // Fetch PFEs for the student's year and created in the current year
         const pfeList = await PFE.findAll({
             where: {
                 year,
                 [Op.and]: [literal(`EXTRACT(YEAR FROM "createdAt") = ${currentYear}`)]
             },
             include: [
-                {
-                    model: User,
-                    as: "creator",
-                    attributes: ["id", "username", "email"],
-                },
-                {
-                    model: teacher,
-                    as: "supervisors",
-                    attributes: ["id", "name"],
-                    through: { attributes: [] }, // Hide the join table data
-                },
+                { model: User, as: "creator", attributes: ["id", "username", "email"] },
+                { model: teacher, as: "supervisors", attributes: ["id", "name"], through: { attributes: [] } }
             ],
         });
     
-        // Add full URLs for pdfFile and photo
-        const formattedPFEList = pfeList.map((pfe) => ({
-            ...pfe.toJSON(),
-            pdfFile: pfe.pdfFile ? `${req.protocol}://${req.get("host")}/uploads/${pfe.pdfFile}` : null,
-            photo: pfe.photo ? `${req.protocol}://${req.get("host")}/photos/${pfe.photo}` : null,
-        }));
+        const formattedPFEList = formatPFEUrls(pfeList);
     
-        res.status(200).json({
-            status: "success",
-            count: formattedPFEList.length,
-            pfeList: formattedPFEList,
-        });
+        res.status(200).json({ status: "success", count: formattedPFEList.length, pfeList: formattedPFEList });
     });
-
-
+    
     export const displayvalidePFE = catchAsync(async (req, res, next) => {
         const currentYear = new Date().getFullYear();
     
         const pfeList = await PFE.findAll({
             where: {
                 status: 'VALIDE',
-                [Op.and]: [literal(`EXTRACT(YEAR FROM "PFE"."createdAt") = ${currentYear}`)],
+                [Op.and]: [literal(`EXTRACT(YEAR FROM "PFE"."createdAt") = ${currentYear}`)]
             },
             include: [
-                {
-                    model: User,
-                    as: "creator",
-                    attributes: ["id", "username", "email"],
-                },
-                {
-                    model: teacher,
-                    as: "supervisors",
-                    attributes: ["id", "name"],
-                    through: { attributes: [] }, 
-                }
+                { model: User, as: "creator", attributes: ["id", "username", "email"] },
+                { model: teacher, as: "supervisors", attributes: ["id", "name"], through: { attributes: [] } }
             ],
         });
     
-        const formattedPFEList = pfeList.map((pfe) => ({
-            ...pfe.toJSON(),
-            pdfFile: pfe.pdfFile ? `${req.protocol}://${req.get("host")}/uploads/${pfe.pdfFile}` : null,
-            photo: pfe.photo ? `${req.protocol}://${req.get("host")}/photos/${pfe.photo}` : null,
-        }));
+        const formattedPFEList = formatPFEUrls(pfeList);
     
-        res.status(200).json({
-            status: "success",
-            count: formattedPFEList.length,
-            pfeList: formattedPFEList,
-        });
+        res.status(200).json({ status: "success", count: formattedPFEList.length, pfeList: formattedPFEList });
     });
     
     
@@ -498,7 +402,6 @@ export const displayPFEforstudents = catchAsync(async (req, res, next) => {
         return next(new appError("Unauthorized: No user found in request", 401));
     }
 
-    
     const currentStudent = await Student.findByPk(req.user.id);
     if (!currentStudent) {
         return next(new appError("Student not found", 404));
@@ -511,13 +414,10 @@ export const displayPFEforstudents = catchAsync(async (req, res, next) => {
         status: 'VALIDE',
     };
 
-    if (!["2CP", "1CS"].includes(currentStudent.year)&& currentStudent.specialite) {
+    if (!["2CP", "1CS"].includes(currentStudent.year) && currentStudent.specialite) {
         filterConditions.specialization = currentStudent.specialite;
     }
 
-    console.log("Query Filters:", filterConditions);
-
-    
     const pfeList = await PFE.findAll({
         where: {
             ...filterConditions,
@@ -526,20 +426,15 @@ export const displayPFEforstudents = catchAsync(async (req, res, next) => {
         include: [
             {
                 model: teacher,
-                as: "supervisors",  
-                attributes: ["id", "firstname", "lastname"],  
+                as: "supervisors",
+                attributes: ["id", "firstname", "lastname"],
                 include: [
-                    {
-                        model: User,  
-                        as: "user",  
-                        attributes: ["id", "username", "email"],
-                    }
+                    { model: User, as: "user", attributes: ["id", "username", "email"] }
                 ]
             },
         ],
     });
 
-    
     if (pfeList.length === 0) {
         return res.status(200).json({
             status: "success",
@@ -550,7 +445,7 @@ export const displayPFEforstudents = catchAsync(async (req, res, next) => {
     }
 
     const formattedPFEList = pfeList.map((pfe) => {
-        const supervisor = pfe.supervisors[0];  
+        const supervisor = pfe.supervisors[0];
         const createdBy = supervisor ? supervisor.user : null;
 
         return {
@@ -563,31 +458,17 @@ export const displayPFEforstudents = catchAsync(async (req, res, next) => {
                     firstname: supervisor.firstname,
                     lastname: supervisor.lastname,
                 }
-                : "Company or Other Entity",  // Fallback for company or others
-            pdfFile: pfe.pdfFile ? `${req.protocol}://${req.get("host")}/uploads/${pfe.pdfFile}` : null,
-            // photo: pfe.photo ? `${req.protocol}://${req.get("host")}/photos/${pfe.photo}` : null,
-            photo: "https://s3-alpha-sig.figma.com/img/3c09/f76d/8de97470c93e1e24bac8b4d8a1f71e7e?Expires=1745193600&Key-Pair-Id=APKAQ4GOSFWCW27IBOMQ&Signature=rtzL3QzYfNGLbbbFzQ-DLvr~umpe0nCpcF2OvL8G~OqHqeK0bukfumJWE9S-bFNF3b8cyt6SKx3Ij5KbuMfpdZhfXZhb4rBOKnzxOQEn9RHz8062nwzScMphgqBf6PqIoMeN24MClice5rXLnUuCK2jHy7lx6UZk9ekGzaRDiX22lzRheztSLuCsNtcq2uQ8Jf-WEOQiutkPzDsMzfVCAjCd8ao3SkuleQvlRO25EXiefzknwyh5a210rpuUz-N5sO7--q8PAD-fqe4GXP7WjXDALqdLPVvv-Jkrev9K17DNOi2IkJlbO2krEMLEK--g4LbwTIxQe0pdjiq8wVMxEQ__",
+                : "Company or Other Entity",
+            pdfFile: pfe.pdfFile || null,
+            photo: pfe.photo || null,
         };
     });
 
-    res.status(200).json({
-        status: "success",
-        count: formattedPFEList.length,
-        pfeList: formattedPFEList,
-    });
+    res.status(200).json({ status: "success", count: formattedPFEList.length, pfeList: formattedPFEList });
 });
-
-
-
-
-
-
-
 
 export const searchForPfes = catchAsync(async (req, res, next) => {
     const { query } = req.query;
-    console.log(query);
-
     if (!query) {
         return next(new appError("Query parameter is required", 400));
     }
@@ -629,41 +510,27 @@ export const searchForPfes = catchAsync(async (req, res, next) => {
         return next(new appError("No PFEs found matching the search criteria.", 404));
     }
 
-    const formattedPfes = pfes.map((pfe) => ({
-        ...pfe.toJSON(),
-        pdfFile: pfe.pdfFile ? `${req.protocol}://${req.get("host")}/uploads/${pfe.pdfFile}` : null,
-        photo: pfe.photo ? `${req.protocol}://${req.get("host")}/photos/${pfe.photo}` : null,
-    }));
+    const formattedPfes = formatPFEUrls(pfes);
 
     res.status(200).json({ status: "success", data: formattedPfes });
 });
 
-
-
 export const getPfesBySpecialization = catchAsync(async (req, res, next) => {
     const { specialization } = req.params;
 
-    // Validate specialization
     if (!["ISI", "IASD", "SIW"].includes(specialization.toUpperCase())) {
         return next(new appError("Invalid specialization", 400));
     }
 
-    // Fetch PFEs with the given specialization
     const pfes = await PFE.findAll({
         where: { specialization: specialization.toUpperCase() }
     });
 
-    // Check if no PFEs were found
     if (pfes.length === 0) {
         return next(new appError("No PFEs found for this specialization.", 404));
     }
 
-    // Add full URLs for pdfFile and photo
-    const formattedPfes = pfes.map((pfe) => ({
-        ...pfe.toJSON(),
-        pdfFile: pfe.pdfFile ? `${req.protocol}://${req.get("host")}/uploads/${pfe.pdfFile}` : null,
-        photo: pfe.photo ? `${req.protocol}://${req.get("host")}/photos/${pfe.photo}` : null,
-    }));
+    const formattedPfes = formatPFEUrls(pfes);
 
     res.status(200).json({ status: "success", data: formattedPfes });
 });
@@ -678,6 +545,15 @@ export const getIsiPfes = async (req, res) => {
   export const getSiwPfes = async (req, res) => {
     return getPfesBySpecialization("SIW", res);
   };  
+
+
+
+
+
+
+
+
+
  // doka nwlilha 
 export const autoAssignPfes = catchAsync(async (req, res, next) => {
   const teamsWithoutPFE = await Team.findAll({
@@ -767,7 +643,7 @@ export const autoAssignPfes = catchAsync(async (req, res, next) => {
   
  
 export {downloadfile};
-export { deletePFE };
+
 
 
 

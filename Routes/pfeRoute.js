@@ -1,6 +1,7 @@
 import express from 'express';
 import { protect, restrictedfor } from "../middlewares/authmiddleware.js";
 import { uploadFiles } from '../middlewares/file_uploading.js'
+import { upload } from '../utils/cloudinary.js';
 import {
     getAllPFE,
     createPFE,
@@ -82,7 +83,10 @@ router.post(
     '/depositPFE',
     protect,
     restrictedfor('teacher', 'company'),
-    uploadFiles,
+    upload.fields([
+        { name: 'pdfFile', maxCount: 1 },
+        { name: 'photo', maxCount: 1 },
+      ]),
     createPFE
 );
 router.post(
