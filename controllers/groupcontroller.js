@@ -430,7 +430,7 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
   let newTeamCount = 0;
 
   // ✅ If no teams, create one with unique groupName
-  if (allTeams.length === 0) {
+  if (allTeams.length == 0) {
     const newTeam = await Team.create({
       groupName: `Group-${Date.now()}`, // Using current timestamp for uniqueness
       maxNumber: maxNumber,
