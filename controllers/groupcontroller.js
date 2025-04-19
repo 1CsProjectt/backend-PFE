@@ -433,7 +433,7 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
   // ✅ Fix: If no teams, create one with year and name
   if (allTeams.length === 0) {
     const newTeam = await Team.create({
-      groupName: `Group ${newTeamCount}`,
+      groupName: `Group ${newTeamCount++}`,
       maxNumber: maxNumber,
     });
     allTeams.push(newTeam);
@@ -460,7 +460,7 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
         chosenTeam = teamsWithSpace[Math.floor(Math.random() * teamsWithSpace.length)];
       } else {
         const newTeam = await Team.create({
-          groupName: `Group ${newTeamCount}`,
+          groupName: `Group ${newTeamCount++}`,
           maxNumber: maxNumber,
         });
         allTeams.push(newTeam);
@@ -484,8 +484,8 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
 
     while (studentsWithoutATeam.length - index >= maxNumber) {
       const newTeam = await Team.create({
-        name: `Generated Team ${++newTeamCount}`,
-        groupName: `Group ${newTeamCount}`,
+       
+        groupName: `Group ${newTeamCount++}`,
         maxNumber: maxNumber,
       });
 
@@ -508,7 +508,7 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
 
     if (overflowStudents.length >= overflowThreshold) {
       const newTeam = await Team.create({
-        groupName: `Group ${newTeamCount}`,
+        groupName: `Group ${newTeamCount++}`,
         maxNumber: maxNumber,
       });
 
@@ -527,7 +527,7 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
     } else {
       if (availableTeams.length === 0) {
         const newTeam = await Team.create({
-          groupName: `Group ${newTeamCount}`,
+          groupName: `Group ${newTeamCount++}`,
           maxNumber: maxNumber,
         });
         availableTeams.push(newTeam);
