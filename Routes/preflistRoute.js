@@ -1,12 +1,12 @@
 import express from 'express';
-import { createPreflist } from '../controllers/preflistController.js';
-import protect from '../middlewares/protect.js'; // assuming JWT-based auth
+import { createPreflist } from '../controllers/PreferenceInvitation.js';
+import protect from '../middlewares/authmiddleware.js'; 
 
 const router = express.Router();
 
 /**
  * @swagger
- * /api/preflist:
+ * /api/v1/preflist:
  *   post:
  *     summary: Submit a preference list for a team
  *     description: Allows a student to submit a preflist of 5 PFEs for their team. Only one submission per team is allowed.
