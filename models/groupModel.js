@@ -2,6 +2,7 @@
 import { DataTypes } from 'sequelize';
 import sequelize from '../config/database.js';
 import teacher from './teacherModel.js';
+import PFE from './PFEmodel.js';
 
 // const { DataTypes } = require("sequelize");
 // const sequelize = require("../database.js");
@@ -39,6 +40,15 @@ const Team = sequelize.define('Team', {
   full:{
     type:DataTypes.BOOLEAN,
     defaultValue:false
+  },
+  pfe_id:{
+    type:DataTypes.INTEGER,
+    allowNull: true,
+      references: {
+        model: PFE,
+        key: 'id',
+      },
+      onDelete: 'CASCADE',
   }
 },
  {
