@@ -46,7 +46,8 @@ export const createTeam = catchAsync(async (req, res, next) => {
     const newTeam = await Team.create({
         groupName: groupName.trim(),
         supervisorId: null,
-        maxNumber: req.maxnum || 5 
+        maxNumber: req.maxnum || 5 ,
+        year: mystudent.year, 
     });
 
     mystudent.team_id = newTeam.id;
