@@ -1,4 +1,4 @@
-import catchAsync from '../utils/catchAsync.js';
+import {catchAsync} from '../utils/catchAsync.js';
 import appError from '../utils/appError.js';
 import Preflist from '../models/preflistModel.js';
 import Student from '../models/studenModel.js';
