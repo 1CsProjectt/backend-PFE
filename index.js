@@ -83,7 +83,8 @@ const allowedOrigins = [
   "https://backend-pfe-1.onrender.com",
   "https://backend-pfe-1.onrender.com/api/v1",
   "https://6072-105-235-138-57.ngrok-free.app/api/v1" ,
-  "https://9625-105-235-138-133.ngrok-free.app/api/v1"
+  "https://9625-105-235-138-133.ngrok-free.app/api/v1",
+  "https://frontend-k4d0.onrender.com"
 ];
 
 app.use(cors({
