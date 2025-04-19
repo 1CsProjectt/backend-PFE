@@ -413,7 +413,7 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
   });
 
   let allTeams = await Team.findAll({
-    where: { full: false },
+    where: { full: false,year },
     include: [
       {
         model: Student,
