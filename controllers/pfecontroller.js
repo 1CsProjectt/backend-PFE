@@ -643,7 +643,7 @@ export const autoAssignPfes = catchAsync(async (req, res, next) => {
   
  
 export {downloadfile};
-export { deletePFE };
+
 
 
 
