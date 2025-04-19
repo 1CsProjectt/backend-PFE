@@ -427,13 +427,12 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
   let maxNumber = allTeams[0]?.maxNumber || 5;
   const overflowThreshold = Math.round(maxNumber / 2) + 1;
 
-  // ✅ Fix: Declare newTeamCount once at top
   let newTeamCount = 0;
 
-  // ✅ Fix: If no teams, create one with year and name
+  // ✅ If no teams, create one with unique groupName
   if (allTeams.length === 0) {
     const newTeam = await Team.create({
-      groupName: `Group ${newTeamCount++}`,
+      groupName: `Group-${Date.now()}`, // Using current timestamp for uniqueness
       maxNumber: maxNumber,
     });
     allTeams.push(newTeam);
@@ -460,7 +459,7 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
         chosenTeam = teamsWithSpace[Math.floor(Math.random() * teamsWithSpace.length)];
       } else {
         const newTeam = await Team.create({
-          groupName: `Group ${newTeamCount++}`,
+          groupName: `Group-${Date.now()}`, // Using current timestamp for uniqueness
           maxNumber: maxNumber,
         });
         allTeams.push(newTeam);
@@ -484,8 +483,7 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
 
     while (studentsWithoutATeam.length - index >= maxNumber) {
       const newTeam = await Team.create({
-       
-        groupName: `Group ${newTeamCount++}`,
+        groupName: `Group-${Date.now()}`, // Using current timestamp for uniqueness
         maxNumber: maxNumber,
       });
 
@@ -508,7 +506,7 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
 
     if (overflowStudents.length >= overflowThreshold) {
       const newTeam = await Team.create({
-        groupName: `Group ${newTeamCount++}`,
+        groupName: `Group-${Date.now()}`, // Using current timestamp for uniqueness
         maxNumber: maxNumber,
       });
 
@@ -527,7 +525,7 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
     } else {
       if (availableTeams.length === 0) {
         const newTeam = await Team.create({
-          groupName: `Group ${newTeamCount++}`,
+          groupName: `Group-${Date.now()}`, // Using current timestamp for uniqueness
           maxNumber: maxNumber,
         });
         availableTeams.push(newTeam);
