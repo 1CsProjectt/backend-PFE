@@ -5,9 +5,13 @@ import PFE from './PFEmodel.js';
 
 
 const Preflist = sequelize.define('Prefrencelist', {
+  id: {
+    type: DataTypes.INTEGER,
+    autoIncrement: true,
+    primaryKey: true,
+  },
     teamId: {
       type: DataTypes.INTEGER,
-      primaryKey:true,
       allowNull: false,
       references: {
         model: Team,
