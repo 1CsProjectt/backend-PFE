@@ -363,17 +363,17 @@ export const destroyTeam = catchAsync(async (req, res, next) => {
 
 
 export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
-  const { year } = req.body; // Assuming you have the user's year in the request
-  if (!year) { 
+  const { year } = req.body;
+  if (!year) {
     return next(new appError('Year is required', 400));
   }
 
-  // Check if there are any students without a team
+  // Fetch students without a team
   let studentsWithoutATeam = await Student.findAll({
     where: {
       team_id: null,
       status: 'available',
-      year: year, 
+      year,
     },
   });
 
@@ -386,9 +386,9 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
 
   let teams = await Team.findAll({ where: { full: false } });
 
-  // ✅ Destroy teams with < threshold members
+  // Remove weak teams
   for (const team of teams) {
-    const members = await Student.findAll({ where: { team_id: team.id,year } });
+    const members = await Student.findAll({ where: { team_id: team.id, year } });
     const threshold = Math.round(team.maxNumber / 2) + 1;
 
     if (members.length < threshold) {
@@ -403,12 +403,12 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
     }
   }
 
-  // Refresh students and teams after cleaning
+  // Refresh data
   studentsWithoutATeam = await Student.findAll({
     where: {
       team_id: null,
       status: 'available',
-      year: year,
+      year,
     },
   });
 
@@ -423,41 +423,52 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
     ],
   });
 
-  // Set default maxNumber if there are no teams
   let maxNumber = allTeams[0]?.maxNumber || 5;
   const overflowThreshold = Math.round(maxNumber / 2) + 1;
 
-  let newTeamCount = 0;
-
-  // ✅ If no teams, create one with unique groupName
-  if (allTeams.length == 0) {
+  // If no teams at all, create the first one
+  if (allTeams.length === 0) {
     const newTeam = await Team.create({
-      groupName: `Group-${Date.now()}`, // Using current timestamp for uniqueness
-      maxNumber: maxNumber,
+      groupName: `Group-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
+      maxNumber,
     });
     allTeams.push(newTeam);
-  }else if (studentsWithoutATeam.length <= overflowThreshold) {
+  }
+
+  if (studentsWithoutATeam.length <= overflowThreshold) {
     for (const student of studentsWithoutATeam) {
-      const teamsWithSpace = [];
+      let compatibleTeams = [];
 
       for (const team of allTeams) {
         const members = await Student.findAll({ where: { team_id: team.id } });
-
-        // Only consider teams where all members are from the same year
         const isSameYearTeam = members.every(m => m.year === student.year);
+        const hasSpace = members.length < team.maxNumber;
 
-        if (members.length < team.maxNumber && isSameYearTeam) {
-          teamsWithSpace.push(team);
+        if (isSameYearTeam && hasSpace) {
+          compatibleTeams.push(team);
         }
       }
 
+      // If no same-year team found, overflow to any team with space
+      if (compatibleTeams.length === 0) {
+        for (const team of allTeams) {
+          const members = await Student.findAll({ where: { team_id: team.id } });
+          const hasSpace = members.length < team.maxNumber;
+
+          if (hasSpace) {
+            compatibleTeams.push(team);
+          }
+        }
+      }
+
+      // Still none? Create new
       let chosenTeam;
-      if (teamsWithSpace.length > 0) {
-        chosenTeam = teamsWithSpace[Math.floor(Math.random() * teamsWithSpace.length)];
+      if (compatibleTeams.length > 0) {
+        chosenTeam = compatibleTeams[Math.floor(Math.random() * compatibleTeams.length)];
       } else {
         const newTeam = await Team.create({
-          groupName: `Group-${Date.now()}`, // Using current timestamp for uniqueness
-          maxNumber: maxNumber,
+          groupName: `Group-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
+          maxNumber,
         });
         allTeams.push(newTeam);
         chosenTeam = newTeam;
@@ -474,14 +485,14 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
       }
     }
   } else {
-    // ✅ CASE 2: Create new full teams
+    // Case: enough to make full teams
     let index = 0;
     const newTeams = [];
 
     while (studentsWithoutATeam.length - index >= maxNumber) {
       const newTeam = await Team.create({
-        groupName: `Group-${Date.now()}`, // Using current timestamp for uniqueness
-        maxNumber: maxNumber,
+        groupName: `Group-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
+        maxNumber,
       });
 
       const group = studentsWithoutATeam.slice(index, index + maxNumber);
@@ -497,14 +508,14 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
       index += maxNumber;
     }
 
-    // ✅ Handle overflow
+    // Handle overflow students
     const overflowStudents = studentsWithoutATeam.slice(index);
     const availableTeams = [...allTeams, ...newTeams];
 
     if (overflowStudents.length >= overflowThreshold) {
       const newTeam = await Team.create({
-        groupName: `Group-${Date.now()}`, // Using current timestamp for uniqueness
-        maxNumber: maxNumber,
+        groupName: `Group-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
+        maxNumber,
       });
 
       for (const student of overflowStudents) {
@@ -522,8 +533,8 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
     } else {
       if (availableTeams.length === 0) {
         const newTeam = await Team.create({
-          groupName: `Group-${Date.now()}`, // Using current timestamp for uniqueness
-          maxNumber: maxNumber,
+          groupName: `Group-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
+          maxNumber,
         });
         availableTeams.push(newTeam);
       }
@@ -542,6 +553,7 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
     message: 'Students have been automatically organized into teams',
   });
 });
+
 
 
 
