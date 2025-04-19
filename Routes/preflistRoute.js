@@ -6,7 +6,7 @@ const router = express.Router();
 
 /**
  * @swagger
- * /api/v1/preflist:
+ * /api/v1/preflist/create:
  *   post:
  *     summary: Submit a preference list for a team
  *     description: Allows a student to submit a preflist of 5 PFEs for their team. Only one submission per team is allowed.
