@@ -1,6 +1,6 @@
 import express from 'express';
 import { createPreflist } from '../controllers/preflistController.js';
-import {protect} from '../middlewares/authmiddleware.js'; 
+import {protect,restrictedfor} from '../middlewares/authmiddleware.js'; 
 
 const router = express.Router();
 
@@ -62,6 +62,6 @@ const router = express.Router();
  *       403:
  *         description: Unauthorized or user not a student
  */
-router.post('/create', protect, createPreflist);
+router.post('/create', protect,restrictedfor('student'), createPreflist);
 
 export default router;
