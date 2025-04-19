@@ -4,7 +4,7 @@ import Team from './groupModel.js';
 import PFE from './PFEmodel.js';
 
 
-const Preflist = sequelize.define('Prefrencelist', {
+const Preflist = sequelize.define('Preflist', {
   id: {
     type: DataTypes.INTEGER,
     autoIncrement: true,
