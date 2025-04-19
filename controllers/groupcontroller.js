@@ -46,8 +46,8 @@ export const createTeam = catchAsync(async (req, res, next) => {
     const newTeam = await Team.create({
         groupName: groupName.trim(),
         supervisorId: null,
-        maxNumber: req.maxnum || 5 ,
-        year: mystudent.year, 
+        maxNumber: req.maxnum || 5 
+        
     });
 
     mystudent.team_id = newTeam.id;
@@ -363,7 +363,7 @@ export const destroyTeam = catchAsync(async (req, res, next) => {
 
 
 export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
-  const {year} = req.body; // Assuming you have the user's year in the request
+  const { year } = req.body; // Assuming you have the user's year in the request
   if (!year) { 
     return next(new appError('Year is required', 400));
   }
@@ -384,8 +384,8 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
     });
   }
 
-  let teams = await Team.findAll({ where: { full: false, year: year } });
-  
+  let teams = await Team.findAll({ where: { full: false } });
+
   // ✅ Destroy teams with < threshold members
   for (const team of teams) {
     const members = await Student.findAll({ where: { team_id: team.id } });
@@ -413,15 +413,12 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
   });
 
   let allTeams = await Team.findAll({
-    where: {
-      full: false,
-      year: year, 
-    },
+    where: { full: false },
     include: [
       {
         model: Student,
         as: 'members',
-        attributes: ['id'],
+        attributes: ['id', 'year'],
       },
     ],
   });
@@ -436,10 +433,8 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
   // ✅ Fix: If no teams, create one with year and name
   if (allTeams.length === 0) {
     const newTeam = await Team.create({
-      name: `Generated Team ${++newTeamCount}`, // ✅ Added
       groupName: `Group ${newTeamCount}`,
       maxNumber: maxNumber,
-      year: year // ✅ Added
     });
     allTeams.push(newTeam);
   }
@@ -450,8 +445,12 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
       const teamsWithSpace = [];
 
       for (const team of allTeams) {
-        const count = await Student.count({ where: { team_id: team.id, year } });
-        if (count < team.maxNumber) {
+        const members = await Student.findAll({ where: { team_id: team.id } });
+
+        // Only consider teams where all members are from the same year
+        const isSameYearTeam = members.every(m => m.year === student.year);
+
+        if (members.length < team.maxNumber && isSameYearTeam) {
           teamsWithSpace.push(team);
         }
       }
@@ -461,10 +460,8 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
         chosenTeam = teamsWithSpace[Math.floor(Math.random() * teamsWithSpace.length)];
       } else {
         const newTeam = await Team.create({
-          name: `Generated Team ${++newTeamCount}`, // ✅ Added
           groupName: `Group ${newTeamCount}`,
           maxNumber: maxNumber,
-          year: year // ✅ Added
         });
         allTeams.push(newTeam);
         chosenTeam = newTeam;
@@ -487,10 +484,9 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
 
     while (studentsWithoutATeam.length - index >= maxNumber) {
       const newTeam = await Team.create({
-        name: `Generated Team ${++newTeamCount}`, // ✅ Added
+        name: `Generated Team ${++newTeamCount}`,
         groupName: `Group ${newTeamCount}`,
         maxNumber: maxNumber,
-        year: year // ✅ Added
       });
 
       const group = studentsWithoutATeam.slice(index, index + maxNumber);
@@ -514,7 +510,6 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
       const newTeam = await Team.create({
         groupName: `Group ${newTeamCount}`,
         maxNumber: maxNumber,
-        year: year // ✅ Added
       });
 
       for (const student of overflowStudents) {
@@ -534,7 +529,6 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
         const newTeam = await Team.create({
           groupName: `Group ${newTeamCount}`,
           maxNumber: maxNumber,
-          year: year // ✅ Added
         });
         availableTeams.push(newTeam);
       }
@@ -553,5 +547,6 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
     message: 'Students have been automatically organized into teams',
   });
 });
+
 
 

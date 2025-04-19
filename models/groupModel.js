@@ -36,10 +36,6 @@ const Team = sequelize.define('Team', {
     type:DataTypes.INTEGER,
     allowNull:false
   },
-  year:{  
-    type:DataTypes.INTEGER,
-    allowNull:false
-  },
   full:{
     type:DataTypes.BOOLEAN,
     defaultValue:false
