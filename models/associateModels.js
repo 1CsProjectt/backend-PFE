@@ -5,7 +5,7 @@ import PFE from './PFEmodel.js';
 import User from './UserModel.js';
 import JoinRequest from './jointeamModel.js';
 import Preflist from './preflistModel.js';
-import SupervisionRequest from './SupervisionRequestModel .js';
+import SupervisionRequest from './SupervisionRequestModel.js';
 
 // const { DataTypes } = require("sequelize");
 // const sequelize = require("../database.js");

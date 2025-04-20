@@ -3,7 +3,7 @@ import appError from '../utils/appError.js';
 import Preflist from '../models/preflistModel.js';
 import Student from '../models/studenModel.js';
 import PFE from '../models/PFEmodel.js';
-import SupervisionRequest from '../models/SupervisionRequestModel .js';
+import SupervisionRequest from '../models/SupervisionRequestModel.js';
 
 
 
