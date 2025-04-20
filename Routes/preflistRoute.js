@@ -1,6 +1,10 @@
 import express from 'express';
-import { createPreflist } from '../controllers/preflistController.js';
-import {protect,restrictedfor} from '../middlewares/authmiddleware.js'; 
+import {
+  createPreflist,
+  updatePreflist,
+  removeFromPreflist,
+} from '../controllers/preflistController.js';
+import { protect, restrictedfor } from '../middlewares/authmiddleware.js';
 
 const router = express.Router();
 
@@ -62,6 +66,67 @@ const router = express.Router();
  *       403:
  *         description: Unauthorized or user not a student
  */
-router.post('/create', protect,restrictedfor('student'), createPreflist);
+router.post('/create', protect, restrictedfor('student'), createPreflist);
+
+/**
+ * @swagger
+ * /api/v1/preflist/update:
+ *   put:
+ *     summary: Update an existing preflist
+ *     description: Replaces the team's existing preflist with a new list of 5 PFEs.
+ *     tags:
+ *       - Preflist
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - pfeIds
+ *             properties:
+ *               pfeIds:
+ *                 type: array
+ *                 items:
+ *                   type: integer
+ *                 example: [5, 6, 7, 8, 9]
+ *     responses:
+ *       200:
+ *         description: Preflist updated successfully
+ *       400:
+ *         description: Invalid input
+ *       403:
+ *         description: Unauthorized
+ */
+router.put('/update', protect, restrictedfor('student'), updatePreflist);
+
+/**
+ * @swagger
+ * /api/v1/preflist/{pfeId}:
+ *   delete:
+ *     summary: Remove a specific PFE from the preflist
+ *     description: Deletes a specific PFE entry from the student's team preflist.
+ *     tags:
+ *       - Preflist
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: pfeId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: The ID of the PFE to remove
+ *     responses:
+ *       200:
+ *         description: PFE removed successfully
+ *       403:
+ *         description: Unauthorized
+ *       404:
+ *         description: PFE not found in preflist
+ */
+router.delete('/:pfeId', protect, restrictedfor('student'), removeFromPreflist);
 
 export default router;
