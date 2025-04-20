@@ -521,32 +521,30 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
   };
 
   if (studentsWithoutATeam.length < overflowThreshold) {
-    // Overflow students into existing teams
-    for (const student of studentsWithoutATeam) {
-      let compatibleTeams = allTeams.filter(team => {
-        return team.members.length < maxNumber && isCompatible(team, student);
-      });
+  // Overflow students into existing teams
+  for (const student of studentsWithoutATeam) {
+    let compatibleTeams = allTeams.filter(team => {
+      return team.members.length < maxNumber && isCompatible(team, student);
+    });
 
-      if (compatibleTeams.length === 0) {
-        // Try looser rule if no compatible team is found
-        compatibleTeams = allTeams.filter(team => team.members.length < maxNumber);
-      }
-
-      if (compatibleTeams.length > 0) {
-        const chosenTeam = compatibleTeams[Math.floor(Math.random() * compatibleTeams.length)];
-        student.team_id = chosenTeam.id;
-        student.status = 'in a team';
-        await student.save();
-
-        // Update team status if full
-        const count = await Student.count({ where: { team_id: chosenTeam.id } });
-        if (count >= chosenTeam.maxNumber && !chosenTeam.full) {
-          chosenTeam.full = true;
-          await chosenTeam.save();
-        }
-      }
+    if (compatibleTeams.length === 0) {
+      // No compatible team found, skip this student
+      continue;
     }
-  } else {
+
+    const chosenTeam = compatibleTeams[Math.floor(Math.random() * compatibleTeams.length)];
+    student.team_id = chosenTeam.id;
+    student.status = 'in a team';
+    await student.save();
+
+    // Update team status if full
+    const count = await Student.count({ where: { team_id: chosenTeam.id } });
+    if (count >= chosenTeam.maxNumber && !chosenTeam.full) {
+      chosenTeam.full = true;
+      await chosenTeam.save();
+    }
+  }
+}else {
     // Create full teams from scratch
     let index = 0;
     const newTeams = [];
