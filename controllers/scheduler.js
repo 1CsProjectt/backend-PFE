@@ -1,6 +1,6 @@
 import cron from 'node-cron';
-import SupervisionRequest from '../models/SupervisionRequestModel ';
-import Preflist from '../models/preflistModel';
+import SupervisionRequest from '../models/SupervisionRequestModel.js ';
+import Preflist from '../models/preflistModel.js';
 
 cron.schedule('0 * * * *', async () => { 
   const cutoff = new Date(Date.now() - 48 * 60 * 60 * 1000);
