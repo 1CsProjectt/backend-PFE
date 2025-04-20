@@ -242,7 +242,10 @@ export const destroyTeam = catchAsync(async (req, res, next) => {
       return next(new appError("student_ids array and team_id are required", 400));
     }
   
-    const team = await Team.findByPk(team_id);
+    const team = await Team.findByPk(team_id, {
+      include: [{ model: Student, as: 'members', limit: 1 }]
+    });
+  
     if (!team) {
       return next(new appError("Team not found", 404));
     }
@@ -261,6 +264,25 @@ export const destroyTeam = catchAsync(async (req, res, next) => {
     if (students.length !== student_ids.length) {
       return next(new appError("Some students were not found", 404));
     }
+  
+    let targetSpecialite = null;
+  
+    if (team.members.length > 0) {
+      targetSpecialite = team.members[0].specialite;
+    } else {
+      targetSpecialite = students[0].specialite;
+    }
+    for (const student of students) {
+      if (student.specialite !== targetSpecialite) {
+        return next(
+          new appError(
+            `Student ${student.full_name || student.id} has a different specialite (${student.specialite}) than the team (${targetSpecialite})`,
+            400
+          )
+        );
+      }
+    }
+  
     await Promise.all(
       students.map(async (student) => {
         student.team_id = team.id;
@@ -274,12 +296,14 @@ export const destroyTeam = catchAsync(async (req, res, next) => {
       team.full = true;
       await team.save();
     }
+  
     res.status(200).json({
       status: "success",
       message: "Students added to the team successfully",
       added: student_ids.length,
     });
   });
+  
   
 
 
@@ -291,7 +315,10 @@ export const destroyTeam = catchAsync(async (req, res, next) => {
       return next(new appError("Student IDs and new Team ID are required", 400));
     }
   
-    const newTeam = await Team.findByPk(newTeamId);
+    const newTeam = await Team.findByPk(newTeamId, {
+      include: [{ model: Student, as: 'members', limit: 1 }] 
+    });
+  
     if (!newTeam) {
       return next(new appError("Target team not found", 404));
     }
@@ -302,10 +329,31 @@ export const destroyTeam = catchAsync(async (req, res, next) => {
       return next(new appError("Target team does not have enough space", 400));
     }
   
+    let targetSpecialite = null;
+  
+    if (newTeam.members.length > 0) {
+      targetSpecialite = newTeam.members[0].specialite;
+    } else {
+      const refStudent = await Student.findByPk(studentIds[0]);
+      if (!refStudent) {
+        return next(new appError(`Student with ID ${studentIds[0]} not found`, 404));
+      }
+      targetSpecialite = refStudent.specialite;
+    }
+  
     for (const studentId of studentIds) {
       const student = await Student.findByPk(studentId);
       if (!student) {
         return next(new appError(`Student with ID ${studentId} not found`, 404));
+      }
+  
+      if (student.specialite !== targetSpecialite) {
+        return next(
+          new appError(
+            `Student with ID ${studentId} has a different specialite (${student.specialite}) than the target team (${targetSpecialite})`,
+            400
+          )
+        );
       }
   
       const oldTeamId = student.team_id;
@@ -313,13 +361,12 @@ export const destroyTeam = catchAsync(async (req, res, next) => {
       student.team_id = newTeamId;
       student.status = "in a team";
       await student.save();
-
+  
       if (oldTeamId && oldTeamId !== newTeamId) {
         await checkAndDestroyEmptyTeam(oldTeamId);
       }
     }
   
-    
     const updatedMembers = await Student.count({ where: { team_id: newTeamId } });
     if (updatedMembers >= newTeam.maxNumber) {
       newTeam.full = true;
@@ -331,6 +378,7 @@ export const destroyTeam = catchAsync(async (req, res, next) => {
       message: "Students moved to the new team successfully",
     });
   });
+  
   
   
   
