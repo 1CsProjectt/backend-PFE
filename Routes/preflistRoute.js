@@ -71,7 +71,7 @@ router.post('/create', protect, restrictedfor('student'), createPreflist);
 /**
  * @swagger
  * /api/v1/preflist/update:
- *   put:
+ *   patch:
  *     summary: Update an existing preflist
  *     description: Replaces the team's existing preflist with a new list of 5 PFEs.
  *     tags:
