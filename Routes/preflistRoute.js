@@ -3,6 +3,7 @@ import {
   createPreflist,
   updatePreflist,
   removeFromPreflist,
+  respondToRequest
 } from '../controllers/preflistController.js';
 import { protect, restrictedfor } from '../middlewares/authmiddleware.js';
 
@@ -128,5 +129,58 @@ router.put('/update', protect, restrictedfor('student'), updatePreflist);
  *         description: PFE not found in preflist
  */
 router.delete('/:pfeId', protect, restrictedfor('student'), removeFromPreflist);
+
+/**
+ * @swagger
+ * /api/v1/supervision-request/{id}:
+ *   patch:
+ *     summary: Respond to a supervision request
+ *     description: Allows a supervisor to accept or reject a pending supervision request.
+ *     tags:
+ *       - Supervision Requests
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: ID of the supervision request
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - status
+ *             properties:
+ *               status:
+ *                 type: string
+ *                 enum: [ACCEPTED, REJECTED]
+ *                 example: ACCEPTED
+ *     responses:
+ *       200:
+ *         description: Supervision request responded successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 message:
+ *                   type: string
+ *                   example: Request accepted successfully.
+ *       400:
+ *         description: Invalid request or already processed
+ *       404:
+ *         description: Supervision request not found
+ *       401:
+ *         description: Unauthorized
+ */
+router.patch('/:id', protect, restrictedfor('teacher'), respondToRequest);
 
 export default router;

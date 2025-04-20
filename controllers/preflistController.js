@@ -3,6 +3,10 @@ import appError from '../utils/appError.js';
 import Preflist from '../models/preflistModel.js';
 import Student from '../models/studenModel.js';
 import PFE from '../models/PFEmodel.js';
+import SupervisionRequest from '../models/SupervisionRequestModel .js';
+
+
+
 export const createPreflist = catchAsync(async (req, res, next) => {
   const { pfeIds } = req.body;
 
@@ -61,6 +65,14 @@ export const createPreflist = catchAsync(async (req, res, next) => {
 
   const created = await Preflist.bulkCreate(preflistEntries);
 
+  await SupervisionRequest.create({
+    teamId,
+    pfeId: pfeIds[0], 
+    status: 'PENDING',
+    sentAt: new Date()
+  });
+  
+
   res.status(201).json({
     status: 'success',
     message: `Preflist created for team ${teamId}`,
@@ -101,7 +113,7 @@ export const updatePreflist = catchAsync(async (req, res, next) => {
   
   await Preflist.destroy({ where: { teamId } });
 
-  
+
   const pfes = await PFE.findAll({ where: { id: pfeIds } });
   if (pfes.length !== 5) {
     return next(new appError('One or more selected PFEs do not exist.', 400));
@@ -173,3 +185,45 @@ export const removeFromPreflist = catchAsync(async (req, res, next) => {
   });
 });
 
+
+
+export const respondToRequest = catchAsync(async (req, res, next) => {
+  const { status } = req.body; // 'ACCEPTED' or 'REJECTED'
+  const { id } = req.params;
+
+  const request = await SupervisionRequest.findByPk(id);
+
+  if (!request) {
+    return next(new appError('Request not found', 404));
+  }
+
+  if (request.status !== 'PENDING') {
+    return next(new appError('This request has already been processed', 400));
+  }
+
+  if (!['ACCEPTED', 'REJECTED'].includes(status)) {
+    return next(new appError('Invalid status', 400));
+  }
+
+  request.status = status;
+  await request.save();
+
+  // Optional: if accepted, cancel future requests for this team
+  if (status === 'ACCEPTED') {
+    await SupervisionRequest.update(
+      { status: 'REJECTED' },
+      {
+        where: {
+          teamId: request.teamId,
+          status: 'PENDING',
+          id: { [Op.ne]: id }
+        }
+      }
+    );
+  }
+
+  res.status(200).json({
+    status: 'success',
+    message: `Request ${status.toLowerCase()} successfully.`
+  });
+});

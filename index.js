@@ -287,6 +287,8 @@ process.on("unhandledRejection", (err) => {
 });
 
 
+import './controllers/scheduler.js'
+
 export default app;
 
 //module.exports = app;
