@@ -101,6 +101,24 @@ export const updatePreflist = catchAsync(async (req, res, next) => {
   
   await Preflist.destroy({ where: { teamId } });
 
+  
+  const pfes = await PFE.findAll({ where: { id: pfeIds } });
+  if (pfes.length !== 5) {
+    return next(new appError('One or more selected PFEs do not exist.', 400));
+  }
+
+  const { year: studentYear, specialite: studentSpec } = mystudent;
+  for (const pfe of pfes) {
+    if (pfe.year !== studentYear || pfe.specialite !== studentSpec) {
+      return next(
+        new appError(
+          `PFE ${pfe.id} does not match the student's year or specialite.`,
+          400
+        )
+      );
+    }
+  }
+
  
   const preflistEntries = pfeIds.map((pfeId, index) => ({
     teamId,
