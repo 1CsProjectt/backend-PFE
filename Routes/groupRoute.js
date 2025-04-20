@@ -8,7 +8,8 @@ import {
   addStudentsToTeam,
   destroyTeam,
   moveStudentsToAnotherTeam,
-  createTeamByAdmin,autoOrganizeTeams
+  createTeamByAdmin,autoOrganizeTeams,
+  getAllTeams
 } from '../controllers/groupcontroller.js';
 import { getStudentsByTeam } from '../controllers/studentcontroller.js';
 import { protect, restrictedfor } from "../middlewares/authmiddleware.js";
