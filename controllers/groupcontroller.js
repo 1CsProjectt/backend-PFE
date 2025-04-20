@@ -550,12 +550,11 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
     const newTeams = [];
 
     // Create new teams as long as there are enough students
-    let groupNameIndex = 1;
     while (studentsWithoutATeam.length - index >= maxNumber) {
       const group = studentsWithoutATeam.slice(index, index + maxNumber);
        
       const newTeam = await Team.create({
-        groupName: `Group-${ groupNameIndex++}`,
+        groupName: `Group-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
         maxNumber,
       });
 
@@ -577,7 +576,7 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
 
     if (overflowStudents.length >= overflowThreshold) {
       const newTeam = await Team.create({
-        groupName: `Group-${ groupNameIndex++}`,
+        groupName: `Group-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
         maxNumber,
       });
 
@@ -597,7 +596,7 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
       // Overflow into existing teams if not enough students
       if (availableTeams.length === 0) {
         const newTeam = await Team.create({
-        groupName: `Group-${ groupNameIndex++}`,
+          groupName: `Group-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
           maxNumber,
         });
         availableTeams.push(newTeam);
