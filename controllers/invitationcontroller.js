@@ -24,7 +24,19 @@ export const sendInvitations = catchAsync(async (req, res, next) => {
   if (!student.team_id) {
     return next(new appError("You must be in a team to send invitations", 403));
   }
-
+  const team = await Team.findByPk(teamId);
+  if (!team) {
+    await Student.update(
+      { team_id: null, status: 'available' },
+      { where: { id: student.team_id } }
+    );
+    return next(
+      new appError(
+        'Team not found. All students previously assigned to this team have been made available.',
+        404
+      )
+    );
+  }
   const teamMembers = await Student.count({ where: { team_id: student.team_id } });
   const remainingSlots = 6 - teamMembers;
 
