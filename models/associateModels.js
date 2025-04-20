@@ -5,7 +5,7 @@ import PFE from './PFEmodel.js';
 import User from './UserModel.js';
 import JoinRequest from './jointeamModel.js';
 import Preflist from './preflistModel.js';
-
+import SupervisionRequest from './SupervisionRequestModel .js';
 
 // const { DataTypes } = require("sequelize");
 // const sequelize = require("../database.js");
@@ -58,6 +58,34 @@ Preflist.belongsTo(PFE, { foreignKey: 'pfeId' });
 
 Team.belongsTo(PFE, {foreignKey: 'pfe_id',as: 'assignedPFE'});
 PFE.hasMany(Team, {foreignKey: 'pfe_id',as: 'teams'});
+
+
+
+Team.hasMany(SupervisionRequest, {
+  foreignKey: 'teamId',
+  as: 'supervisionRequests',
+  onDelete: 'CASCADE',
+  hooks: true,
+});
+
+SupervisionRequest.belongsTo(Team, {
+  foreignKey: 'teamId',
+  as: 'team',
+  onDelete: 'CASCADE',
+});
+
+PFE.hasMany(SupervisionRequest, {
+  foreignKey: 'pfeId',
+  as: 'supervisionRequests',
+  onDelete: 'CASCADE',
+  hooks: true,
+});
+
+SupervisionRequest.belongsTo(PFE, {
+  foreignKey: 'pfeId',
+  as: 'pfe',
+  onDelete: 'CASCADE',
+});
 
 
 
