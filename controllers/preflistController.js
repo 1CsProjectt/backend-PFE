@@ -227,3 +227,51 @@ export const respondToRequest = catchAsync(async (req, res, next) => {
     message: `Request ${status.toLowerCase()} successfully.`
   });
 });
+
+
+
+export const acceptRandomRequestsForMultiplePFEs = catchAsync(async (req, res, next) => {
+  const { pfeIds, numberToAccept } = req.body;
+
+  if (!Array.isArray(pfeIds) || pfeIds.length === 0 || !numberToAccept || isNaN(numberToAccept)) {
+    return next(new appError('Invalid input: provide pfeIds (array) and numberToAccept (number)', 400));
+  }
+
+  const results = [];
+
+  for (const pfeId of pfeIds) {
+    const pendingRequests = await SupervisionRequest.findAll({
+      where: {
+        pfeId,
+        status: 'PENDING',
+      },
+      order: sequelize.random(),
+    });
+
+    const toAccept = pendingRequests.slice(0, numberToAccept);
+    const toReject = pendingRequests.slice(numberToAccept);
+
+    await Promise.all(toAccept.map(req => {
+      req.status = 'ACCEPTED';
+      return req.save();
+    }));
+
+    await Promise.all(toReject.map(req => {
+      req.status = 'REJECTED';
+      return req.save();
+    }));
+
+    results.push({
+      pfeId,
+      accepted: toAccept.map(r => r.id),
+      rejected: toReject.map(r => r.id),
+    });
+  }
+
+  res.status(200).json({
+    status: 'success',
+    message: 'Requests processed successfully for all PFEs',
+    results,
+  });
+});
+

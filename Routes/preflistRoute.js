@@ -3,7 +3,8 @@ import {
   createPreflist,
   updatePreflist,
   removeFromPreflist,
-  respondToRequest
+  respondToRequest,
+  acceptRandomRequestsForMultiplePFEs
 } from '../controllers/preflistController.js';
 import { protect, restrictedfor } from '../middlewares/authmiddleware.js';
 
@@ -182,5 +183,79 @@ router.delete('/:pfeId', protect, restrictedfor('student'), removeFromPreflist);
  *         description: Unauthorized
  */
 router.patch('/supervision-request/:id', protect, restrictedfor('teacher'), respondToRequest);
+
+
+/**
+ * @swagger
+ * /api/v1/supervision-request/accept-random:
+ *   post:
+ *     summary: Accept random supervision requests for multiple PFEs
+ *     description: For each provided PFE ID, accepts a number of random pending supervision requests and rejects the rest for that PFE.
+ *     tags:
+ *       - Supervision Requests
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - pfeIds
+ *               - numberToAccept
+ *             properties:
+ *               pfeIds:
+ *                 type: array
+ *                 description: List of PFE IDs to process
+ *                 items:
+ *                   type: integer
+ *                 example: [3, 7, 12]
+ *               numberToAccept:
+ *                 type: integer
+ *                 description: Number of requests to accept per PFE
+ *                 example: 2
+ *     responses:
+ *       200:
+ *         description: Requests processed successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 message:
+ *                   type: string
+ *                   example: Requests processed successfully for all PFEs
+ *                 results:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       pfeId:
+ *                         type: integer
+ *                         example: 3
+ *                       accepted:
+ *                         type: array
+ *                         items:
+ *                           type: integer
+ *                         example: [10, 12]
+ *                       rejected:
+ *                         type: array
+ *                         items:
+ *                           type: integer
+ *                         example: [11]
+ *       400:
+ *         description: Invalid input
+ */
+router.post(
+    '/accept-random',
+    protect,
+    restrictedfor('teacher'),
+    acceptRandomRequestsForMultiplePFEs
+  );
+  
 
 export default router;
