@@ -132,7 +132,7 @@ router.delete('/:pfeId', protect, restrictedfor('student'), removeFromPreflist);
 
 /**
  * @swagger
- * /api/v1/supervision-request/{id}:
+ * /api/v1/preflist/supervision-request/{id}:
  *   patch:
  *     summary: Respond to a supervision request
  *     description: Allows a supervisor to accept or reject a pending supervision request.
