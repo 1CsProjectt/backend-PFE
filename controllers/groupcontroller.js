@@ -550,13 +550,14 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
     // Create full teams from scratch
     let index = 0;
     const newTeams = [];
+    let groupNameIndex = 1;
 
     // Create new teams as long as there are enough students
     while (studentsWithoutATeam.length - index >= maxNumber) {
       const group = studentsWithoutATeam.slice(index, index + maxNumber);
 
       const newTeam = await Team.create({
-        groupName: `Group-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
+        groupName: `Group-${groupNameIndex++}`,
         maxNumber,
       });
 
@@ -620,4 +621,3 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
     message: 'Students have been automatically organized into teams',
   });
 });
-
