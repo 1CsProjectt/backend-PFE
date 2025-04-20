@@ -4,7 +4,7 @@ import teacher from './teacherModel.js';
 import PFE from './PFEmodel.js';
 import User from './UserModel.js';
 import JoinRequest from './jointeamModel.js';
-
+import Preflist from './preflistModel.js';
 
 
 // const { DataTypes } = require("sequelize");
@@ -45,6 +45,19 @@ JoinRequest.belongsTo(Student, {
   as: "student",
   onDelete: "CASCADE"
 });
+
+Team.hasMany(Preflist, { foreignKey: 'teamId' });
+Preflist.belongsTo(Team, { foreignKey: 'teamId' });
+
+PFE.hasMany(Preflist, { foreignKey: 'pfeId' });
+Preflist.belongsTo(PFE, { foreignKey: 'pfeId' });
+
+
+
+
+
+Team.belongsTo(PFE, {foreignKey: 'pfe_id',as: 'assignedPFE'});
+PFE.hasMany(Team, {foreignKey: 'pfe_id',as: 'teams'});
 
 
 

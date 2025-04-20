@@ -8,7 +8,8 @@ import {
   addStudentsToTeam,
   destroyTeam,
   moveStudentsToAnotherTeam,
-  createTeamByAdmin,autoOrganizeTeams
+  createTeamByAdmin,autoOrganizeTeams,
+  getAllTeams
 } from '../controllers/groupcontroller.js';
 import { getStudentsByTeam } from '../controllers/studentcontroller.js';
 import { protect, restrictedfor } from "../middlewares/authmiddleware.js";
@@ -192,5 +193,20 @@ router.patch('/move-student', protect, restrictedfor('admin'), moveStudentsToAno
  *         description: Team created by admin
  */
 router.post('/admin/create-team', protect, restrictedfor('admin'), createTeamByAdmin);
+
+/**
+ * @swagger
+ * /api/v1/teams/all-teams:
+ *   get:
+ *     summary: Get all teams with their members
+ *     tags:
+ *       - Team
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of all teams
+ */
+router.get('/all-teams', protect, restrictedfor('admin', 'teacher'), getAllTeams);
 
 export default router;

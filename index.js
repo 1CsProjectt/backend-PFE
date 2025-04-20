@@ -39,6 +39,7 @@ import Company from "./models/companyModel.js";
 import Admin from "./models/adminModel.js";
 import JoinRequest from "./models/jointeamModel.js";
 import invitation from "./models/invitationModel.js";
+import preflistroute from './Routes/preflistRoute.js'
 
 
 
@@ -83,7 +84,8 @@ const allowedOrigins = [
   "https://backend-pfe-1.onrender.com",
   "https://backend-pfe-1.onrender.com/api/v1",
   "https://6072-105-235-138-57.ngrok-free.app/api/v1" ,
-  "https://9625-105-235-138-133.ngrok-free.app/api/v1"
+  "https://9625-105-235-138-133.ngrok-free.app/api/v1",
+  "https://frontend-k4d0.onrender.com"
 ];
 
 app.use(cors({
@@ -164,6 +166,7 @@ app.use("/api/v1/student", studentroute);
 app.use("/api/v1/teams", groupRoutes);
 app.use("/api/v1/invitation",invitationRoutes);
 app.use("/api/v1/jointeam",jointeamRoutes);
+app.use("/api/v1/preflist",preflistroute);
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
