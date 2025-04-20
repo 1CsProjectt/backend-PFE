@@ -1,5 +1,5 @@
 import cron from 'node-cron';
-import SupervisionRequest from '../models/SupervisionRequestModel.js ';
+import SupervisionRequest from '../models/SupervisionRequestModel.js';
 import Preflist from '../models/preflistModel.js';
 
 cron.schedule('0 * * * *', async () => { 
