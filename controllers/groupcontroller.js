@@ -4,7 +4,7 @@ import Student from '../models/studenModel.js';
 import User from '../models/UserModel.js';
 import JoinRequest from '../models/jointeamModel.js'; 
 import teacher from '../models/teacherModel.js';
-import invitation from '../models/invitationModel.js';
+
 import { catchAsync } from '../utils/catchAsync.js';
 import { Op, Sequelize } from "sequelize";
 
@@ -211,67 +211,55 @@ export const getAllTeams = catchAsync(async (req, res, next) => {
 
 
 export const leaveTeam = catchAsync(async (req, res, next) => {
-  const user = req.user;
-  if (!user) {
-      return next(new appError('User not found', 400));
-  }
+    
+        const user = req.user;
+        if(!user){
+            return next(new appError('user not found',400));
+        }
+        const student = await Student.findOne({ where: { id: user.id } });
 
-  const student = await Student.findOne({ where: { id: user.id } });
-  if (!student) {
-      return next(new appError('Student not found', 404));
-  }
+        if (!student) {
+            return next(new appError("Student not found", 404));
+        }
+        const teamId = student.team_id;
+        student.team_id = null;
+        student.status="available"
+        await student.save();
 
-  const teamId = student.team_id;
-  
+        const remainingMembers = await Student.count({ where: { team_id: teamId } });
 
-  student.team_id = null;
-  student.status = 'available';
-  await student.save();
+    if (remainingMembers === 0 && teamId) {
+        
+        await Team.destroy({ where: { id: teamId } });
+    }
 
-  
-  await invitation.destroy({ where: { sender_id: student.id } });
-
-  
-  const remainingMembers = await Student.count({ where: { team_id: teamId } });
-  if (teamId && remainingMembers === 0) {
-      await Team.destroy({ where: { id: teamId } });
-  }
-
-  res.status(200).json({ message: 'You have left the team successfully' });
+        res.status(200).json({ message: "You have left the team successfully" });
+    
 });
 
 
 export const destroyTeam = catchAsync(async (req, res, next) => {
-  const { team_id } = req.params;
 
-  if (!team_id) {
-    return next(new appError('Team ID is required', 400));
-  }
-
-  const team = await Team.findByPk(team_id);
-  if (!team) {
-    return next(new appError('Team not found', 404));
-  }
-
-  const members = await Student.findAll({ where: { team_id } });
-  const memberIds = members.map(member => member.id);
-
-  await Student.update(
-    { team_id: null, status: 'available' },
-    { where: { team_id } }
-  );
-
-  if (memberIds.length > 0) {
-    await invitation.destroy({ where: { sender_id: memberIds } });
-  }
-
-  await team.destroy();
-
-  res.status(200).json({
-    status: 'success',
-    message: 'Team deleted, members updated, and related invitations removed successfully',
+    const { team_id } = req.params;
+  
+    if (!team_id) {
+      return next(new appError("Team ID is required", 400));
+    }
+  
+    const team = await Team.findByPk(team_id);
+    if (!team) {
+      return next(new appError("Team not found", 404));
+    }
+    await Student.update(
+      { team_id: null, status: 'available' },
+      { where: { team_id } }
+    );
+    await team.destroy();
+    res.status(200).json({
+      status: 'success',
+      message: 'Team deleted and members updated successfully',
+    });
   });
-});
 
 
   export const addStudentsToTeam = catchAsync(async (req, res, next) => {
@@ -533,42 +521,41 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
   };
 
   if (studentsWithoutATeam.length < overflowThreshold) {
-    // Overflow students into existing teams
-    for (const student of studentsWithoutATeam) {
-      let compatibleTeams = allTeams.filter(team => {
-        return team.members.length < maxNumber && isCompatible(team, student);
-      });
+  // Overflow students into existing teams
+  for (const student of studentsWithoutATeam) {
+    let compatibleTeams = allTeams.filter(team => {
+      return team.members.length < maxNumber && isCompatible(team, student);
+    });
 
-      if (compatibleTeams.length === 0) {
-        // Try looser rule if no compatible team is found
-        compatibleTeams = allTeams.filter(team => team.members.length < maxNumber);
-      }
-
-      if (compatibleTeams.length > 0) {
-        const chosenTeam = compatibleTeams[Math.floor(Math.random() * compatibleTeams.length)];
-        student.team_id = chosenTeam.id;
-        student.status = 'in a team';
-        await student.save();
-
-        // Update team status if full
-        const count = await Student.count({ where: { team_id: chosenTeam.id } });
-        if (count >= chosenTeam.maxNumber && !chosenTeam.full) {
-          chosenTeam.full = true;
-          await chosenTeam.save();
-        }
-      }
+    if (compatibleTeams.length === 0) {
+      // No compatible team found, skip this student
+      continue;
     }
-  } else {
+
+    const chosenTeam = compatibleTeams[Math.floor(Math.random() * compatibleTeams.length)];
+    student.team_id = chosenTeam.id;
+    student.status = 'in a team';
+    await student.save();
+
+    // Update team status if full
+    const count = await Student.count({ where: { team_id: chosenTeam.id } });
+    if (count >= chosenTeam.maxNumber && !chosenTeam.full) {
+      chosenTeam.full = true;
+      await chosenTeam.save();
+    }
+  }
+}else {
     // Create full teams from scratch
     let index = 0;
     const newTeams = [];
 
     // Create new teams as long as there are enough students
+    let groupNameIndex = 1;
     while (studentsWithoutATeam.length - index >= maxNumber) {
       const group = studentsWithoutATeam.slice(index, index + maxNumber);
-
+       
       const newTeam = await Team.create({
-        groupName: `Group-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
+        groupName: `Group-${ groupNameIndex++}`,
         maxNumber,
       });
 
