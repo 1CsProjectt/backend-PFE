@@ -1,43 +1,52 @@
 import { DataTypes } from "sequelize";
 import sequelize from "../config/database.js";
 import User from "./UserModel.js";
+import PFE from "./PFEmodel.js";
+import Team from "./groupModel.js";
 
 
 
 
 
 
-
-
-const Request = sequelize.define("Request", {
-    id:{ 
-        type: DataTypes.INTEGER, 
-        primaryKey: true, 
-        allowNull: false,
-        autoIncrement: true,
-        onDelete: 'CASCADE' 
+const SupervisionRequest = sequelize.define('SupervisionRequest', {
+    id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true,
     },
-    team_id:{
-        type: DataTypes.INTEGER,
-        allowNull: false,
-        onDelete: 'CASCADE' 
+    teamId: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: { model: Team, key: 'id' },
+      onDelete: 'CASCADE',
     },
-    grade:{
-        type: DataTypes.STRING,
-        allowNull: false,
-        onDelete: 'CASCADE' 
+    pfeId: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: { model: PFE, key: 'id' },
+      onDelete: 'CASCADE',
     },
-    pfe_title:{
-        type: DataTypes.STRING,
-        allowNull: false,
-        onDelete: 'CASCADE' 
-    }
-});
+    status: {
+      type: DataTypes.ENUM('pending', 'accepted', 'rejected'),
+      allowNull: false,
+      defaultValue: 'pending',
+    },
+    requestedAt: {
+      type: DataTypes.DATE,
+      allowNull: false,
+      defaultValue: DataTypes.NOW,
+    },
+    respondedAt: DataTypes.DATE,
+  }, {
+    tableName: 'supervision_requests',
+    timestamps: false,
+  });
 
 
 
 
 
 
-export default Request;
+export default SupervisionRequest;
 

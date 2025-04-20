@@ -4,7 +4,7 @@ import Student from '../models/studenModel.js';
 import User from '../models/UserModel.js';
 import JoinRequest from '../models/jointeamModel.js'; 
 import teacher from '../models/teacherModel.js';
-
+import invitation from '../models/invitationModel.js';
 import { catchAsync } from '../utils/catchAsync.js';
 import { Op, Sequelize } from "sequelize";
 
@@ -211,55 +211,67 @@ export const getAllTeams = catchAsync(async (req, res, next) => {
 
 
 export const leaveTeam = catchAsync(async (req, res, next) => {
-    
-        const user = req.user;
-        if(!user){
-            return next(new appError('user not found',400));
-        }
-        const student = await Student.findOne({ where: { id: user.id } });
+  const user = req.user;
+  if (!user) {
+      return next(new appError('User not found', 400));
+  }
 
-        if (!student) {
-            return next(new appError("Student not found", 404));
-        }
-        const teamId = student.team_id;
-        student.team_id = null;
-        student.status="available"
-        await student.save();
+  const student = await Student.findOne({ where: { id: user.id } });
+  if (!student) {
+      return next(new appError('Student not found', 404));
+  }
 
-        const remainingMembers = await Student.count({ where: { team_id: teamId } });
+  const teamId = student.team_id;
+  
 
-    if (remainingMembers === 0 && teamId) {
-        
-        await Team.destroy({ where: { id: teamId } });
-    }
+  student.team_id = null;
+  student.status = 'available';
+  await student.save();
 
-        res.status(200).json({ message: "You have left the team successfully" });
-    
+  
+  await invitation.destroy({ where: { sender_id: student.id } });
+
+  
+  const remainingMembers = await Student.count({ where: { team_id: teamId } });
+  if (teamId && remainingMembers === 0) {
+      await Team.destroy({ where: { id: teamId } });
+  }
+
+  res.status(200).json({ message: 'You have left the team successfully' });
 });
 
 
 export const destroyTeam = catchAsync(async (req, res, next) => {
+  const { team_id } = req.params;
 
-    const { team_id } = req.params;
-  
-    if (!team_id) {
-      return next(new appError("Team ID is required", 400));
-    }
-  
-    const team = await Team.findByPk(team_id);
-    if (!team) {
-      return next(new appError("Team not found", 404));
-    }
-    await Student.update(
-      { team_id: null, status: 'available' },
-      { where: { team_id } }
-    );
-    await team.destroy();
-    res.status(200).json({
-      status: 'success',
-      message: 'Team deleted and members updated successfully',
-    });
+  if (!team_id) {
+    return next(new appError('Team ID is required', 400));
+  }
+
+  const team = await Team.findByPk(team_id);
+  if (!team) {
+    return next(new appError('Team not found', 404));
+  }
+
+  const members = await Student.findAll({ where: { team_id } });
+  const memberIds = members.map(member => member.id);
+
+  await Student.update(
+    { team_id: null, status: 'available' },
+    { where: { team_id } }
+  );
+
+  if (memberIds.length > 0) {
+    await invitation.destroy({ where: { sender_id: memberIds } });
+  }
+
+  await team.destroy();
+
+  res.status(200).json({
+    status: 'success',
+    message: 'Team deleted, members updated, and related invitations removed successfully',
   });
+});
 
 
   export const addStudentsToTeam = catchAsync(async (req, res, next) => {
