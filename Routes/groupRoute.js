@@ -196,7 +196,7 @@ router.post('/admin/create-team', protect, restrictedfor('admin'), createTeamByA
 
 /**
  * @swagger
- * /api/v1/teams:
+ * /api/v1/teams/all-teams:
  *   get:
  *     summary: Get all teams with their members
  *     tags:
@@ -207,6 +207,6 @@ router.post('/admin/create-team', protect, restrictedfor('admin'), createTeamByA
  *       200:
  *         description: List of all teams
  */
-router.get('/', protect, restrictedfor('admin', 'teacher'), getAllTeams);
+router.get('/all-teams', protect, restrictedfor('admin', 'teacher'), getAllTeams);
 
 export default router;
