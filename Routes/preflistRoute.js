@@ -187,7 +187,7 @@ router.patch('/supervision-request/:id', protect, restrictedfor('teacher'), resp
 
 /**
  * @swagger
- * /api/v1/supervision-request/accept-random:
+ * /api/v1/preflist/supervision-request/accept-random:
  *   post:
  *     summary: Accept random supervision requests for multiple PFEs
  *     description: For each provided PFE ID, accepts a number of random pending supervision requests and rejects the rest for that PFE.
@@ -251,7 +251,7 @@ router.patch('/supervision-request/:id', protect, restrictedfor('teacher'), resp
  *         description: Invalid input
  */
 router.post(
-    '/accept-random',
+    '/supervision-request/accept-random',
     protect,
     restrictedfor('teacher'),
     acceptRandomRequestsForMultiplePFEs
