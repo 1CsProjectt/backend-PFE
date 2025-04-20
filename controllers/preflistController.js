@@ -46,6 +46,8 @@ export const createPreflist = catchAsync(async (req, res, next) => {
   }
 
   const { year: studentYear, specialite: studentSpec } = mystudent;
+  console.log(year);
+  console.log(specialite);
   for (const pfe of pfes) {
     if (pfe.year !== studentYear || pfe.specialite !== studentSpec) {
       return next(
