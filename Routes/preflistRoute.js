@@ -181,6 +181,6 @@ router.delete('/:pfeId', protect, restrictedfor('student'), removeFromPreflist);
  *       401:
  *         description: Unauthorized
  */
-router.patch('/:id', protect, restrictedfor('teacher'), respondToRequest);
+router.patch('/supervision-request/:id', protect, restrictedfor('teacher'), respondToRequest);
 
 export default router;
