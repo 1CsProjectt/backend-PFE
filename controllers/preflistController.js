@@ -2,7 +2,7 @@ import {catchAsync} from '../utils/catchAsync.js';
 import appError from '../utils/appError.js';
 import Preflist from '../models/preflistModel.js';
 import Student from '../models/studenModel.js';
-
+import PFE from '../models/PFEmodel.js';
 export const createPreflist = catchAsync(async (req, res, next) => {
   const { pfeIds } = req.body;
 
@@ -35,6 +35,22 @@ export const createPreflist = catchAsync(async (req, res, next) => {
   const existing = await Preflist.findOne({ where: { teamId } });
   if (existing) {
     return next(new appError('This team has already submitted a preflist.', 400));
+  }
+  const pfes = await PFE.findAll({ where: { id: pfeIds } });
+  if (pfes.length !== 5) {
+    return next(new appError('One or more selected PFEs do not exist.', 400));
+  }
+
+  const { year: studentYear, specialite: studentSpec } = mystudent;
+  for (const pfe of pfes) {
+    if (pfe.year !== studentYear || pfe.specialite !== studentSpec) {
+      return next(
+        new appError(
+          `PFE ${pfe.id} does not match the student's year or specialite.`,
+          400
+        )
+      );
+    }
   }
 
   const preflistEntries = pfeIds.map((pfeId, index) => ({

@@ -58,7 +58,7 @@ const Student = sequelize.define('Student', {
         onDelete: 'SET NULL'
     },
     roleINproject:{
-        type:DataTypes.ENUM("front_end", "back_end","design","member"),
+        type:DataTypes.ENUM("front_end", "back_end","design","member","conception"),
         defaultValue:"member"
       }
 }, {
