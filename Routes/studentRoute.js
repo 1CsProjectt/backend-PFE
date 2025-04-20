@@ -76,7 +76,7 @@ router.get('/:team_id/students', protect, getStudentsByTeam);
  *             properties:
  *               role:
  *                 type: string
- *                 example: leader
+ *                 example: front-end
  *     responses:
  *       200:
  *         description: Role set successfully
