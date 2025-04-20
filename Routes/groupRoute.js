@@ -193,4 +193,19 @@ router.patch('/move-student', protect, restrictedfor('admin'), moveStudentsToAno
  */
 router.post('/admin/create-team', protect, restrictedfor('admin'), createTeamByAdmin);
 
+/**
+ * @swagger
+ * /api/v1/teams:
+ *   get:
+ *     summary: Get all teams with their members
+ *     tags:
+ *       - Team
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of all teams
+ */
+router.get('/', protect, restrictedfor('admin', 'teacher'), getAllTeams);
+
 export default router;

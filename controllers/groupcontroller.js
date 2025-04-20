@@ -181,6 +181,33 @@ export const showMyTeam = catchAsync(async (req, res, next) => {
     });
 });
 
+export const getAllTeams = catchAsync(async (req, res, next) => {
+  const teams = await Team.findAll({
+    include: [
+      {
+        model: Student,
+        as: 'members',
+        attributes: ['id', 'firstname', 'lastname'],
+        include: [
+          {
+            model: User,
+            as: 'user',
+            attributes: ['email'],
+          }
+        ]
+      }
+    ],
+    attributes: ['id', 'groupName', 'supervisorId', 'maxNumber', 'createdAt']
+  });
+
+  return res.status(200).json({
+    status: 'success',
+    total: teams.length,
+    teams,
+  });
+});
+
+
 
 
 export const leaveTeam = catchAsync(async (req, res, next) => {
