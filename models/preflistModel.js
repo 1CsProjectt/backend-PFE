@@ -35,9 +35,6 @@ const Preflist = sequelize.define('Preflist', {
         min: 1,
         max: 5,
       },
-    },status:{
-      type:DataTypes.ENUM('pending','accepted','rejected'),
-      defaultValue:'pending'
     }
   }, {
     tableName: 'preflists',
