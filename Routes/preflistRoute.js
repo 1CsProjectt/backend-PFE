@@ -7,6 +7,7 @@ import {
   acceptRandomRequestsForMultiplePFEs
 } from '../controllers/preflistController.js';
 import { protect, restrictedfor } from '../middlewares/authmiddleware.js';
+import { upload } from '../utils/cloudinary.js';
 
 const router = express.Router();
 
@@ -68,7 +69,7 @@ const router = express.Router();
  *       403:
  *         description: Unauthorized or user not a student
  */
-router.post('/create', protect, restrictedfor('student'), createPreflist);
+router.post('/create', protect, restrictedfor('student'),upload('ML'), createPreflist);
 
 /**
  * @swagger
