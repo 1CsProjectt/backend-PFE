@@ -35,6 +35,10 @@ const Preflist = sequelize.define('Preflist', {
         min: 1,
         max: 5,
       },
+    },
+    ML:{
+      type:DataTypes.STRING,
+      allowNull:true
     }
   }, {
     tableName: 'preflists',
