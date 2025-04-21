@@ -569,18 +569,14 @@ export const autoAssignPfesToTeamsWithoutPfe = catchAsync(async (req, res, next)
     return next(new appError('Specialite is required for 2CS and 3CS', 400));
   }
 
-  // Get all teams without a PFE
   const teamsWithoutPFE = await Team.findAll({
-    where: {
-      pfe_id: null,
-    },
+    where: { pfe_id: null },
   });
 
   if (teamsWithoutPFE.length === 0) {
     return next(new appError('All teams already have assigned PFEs', 404));
   }
 
-  // Get already used PFE IDs
   const usedPfeIds = await Team.findAll({
     where: {
       pfe_id: {
@@ -601,36 +597,25 @@ export const autoAssignPfesToTeamsWithoutPfe = catchAsync(async (req, res, next)
     if (students.length === 0) continue;
 
     const studentYear = students[0].year.toUpperCase();
-    const studentSpecialite = students[0].specialite?.toUpperCase();
+    const studentSpecialite = students[0].specialite?.toUpperCase() ?? null;
 
-    // Skip if year doesn't match
     if (studentYear !== upperYear) continue;
-
-    // Skip if specialite is required and doesn't match
     if ((upperYear === '2CS' || upperYear === '3CS') && studentSpecialite !== upperSpecialite) continue;
 
-    let availablePfes;
+    const pfeWhere = {
+      year: studentYear,
+    };
+
+    // Include specialization only if it's not null
+    if (studentSpecialite) {
+      pfeWhere.specialization = studentSpecialite;
+    }
 
     if (studentYear === '3CS') {
-      // For 3CS: each PFE should only be assigned once
-      availablePfes = await PFE.findAll({
-        where: {
-          year: '3CS',
-          specialization: studentSpecialite,
-          id: {
-            [Op.notIn]: Array.from(usedIds),
-          },
-        },
-      });
-    } else {
-      // For other years: reuse PFEs
-      availablePfes = await PFE.findAll({
-        where: {
-          year: studentYear,
-          specialization: studentSpecialite,
-        },
-      });
+      pfeWhere.id = { [Op.notIn]: Array.from(usedIds) };
     }
+
+    const availablePfes = await PFE.findAll({ where: pfeWhere });
 
     if (availablePfes.length === 0) continue;
 
@@ -657,6 +642,7 @@ export const autoAssignPfesToTeamsWithoutPfe = catchAsync(async (req, res, next)
     assigned: assignmentLog,
   });
 });
+
 
 
 
