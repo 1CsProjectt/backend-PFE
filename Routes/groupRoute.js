@@ -44,6 +44,43 @@ const router = express.Router();
  *         description: Team created successfully
  */
 router.post('/creategroup', protect, restrictedfor('student'), createTeam);
+
+
+
+/**
+ * @swagger
+ * /api/v1/team/autoOrganizeTeams:
+ *   post:
+ *     summary: Automatically organize students into teams
+ *     tags: [Team]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - year
+ *             properties:
+ *               year:
+ *                 type: string
+ *                 description: The academic year (e.g., 1CS, 2CS)
+ *               specialite:
+ *                 type: string
+ *                 description: The specialization (required for 2CS only)
+ *     responses:
+ *       200:
+ *         description: Students have been automatically organized into teams
+ *       400:
+ *         description: Missing required parameters or invalid input
+ *       401:
+ *         description: Unauthorized - Bearer token is missing or invalid
+ *       403:
+ *         description: Forbidden - User does not have permission
+ */
+
 router.post('/autoOrganizeTeams', protect, restrictedfor('admin'), autoOrganizeTeams);
 
 /**
