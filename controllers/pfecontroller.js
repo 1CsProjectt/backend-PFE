@@ -390,6 +390,11 @@ export const rejectPFE = catchAsync(async (req, res, next) => {
 
     pfe.status = 'REJECTED';
     pfe.reason = reason || null;
+    
+    if (req.file) {
+        // Assume you're storing the filename
+        pfe.resonfile = req.file.filename;
+    }
 
     await pfe.save();
 
