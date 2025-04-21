@@ -567,7 +567,7 @@ router.post(
  *         description: Invalid input
  */
 
-router.patch('/pfe/:id/reject', protect, restrictedfor('admin', 'teacher'), upload.fields([{ name: 'resonfile', maxCount: 1 }]),rejectPFE);
+router.patch('/:id/reject', protect, restrictedfor('admin', 'teacher'), upload.fields([{ name: 'resonfile', maxCount: 1 }]),rejectPFE);
 
 
 // import express from 'express';
