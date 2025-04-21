@@ -471,6 +471,38 @@ router.get('/getSiwPfes', getSiwPfes);
 export default router;
 
 
+/**
+ * @swagger
+ * /api/v1/pfe/changePfeForTeam:
+ *   post:
+ *     summary: Change the PFE assigned to a team (admin only)
+ *     tags: [PFE]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - teamId
+ *               - newPfeId
+ *             properties:
+ *               teamId:
+ *                 type: integer
+ *                 description: ID of the team
+ *               newPfeId:
+ *                 type: integer
+ *                 description: ID of the new PFE to assign
+ *     responses:
+ *       200:
+ *         description: PFE successfully changed for the team
+ *       400:
+ *         description: Missing input or mismatched year between team and PFE
+ *       404:
+ *         description: Team, PFE, or students not found
+ */
 
 
 router.post(
