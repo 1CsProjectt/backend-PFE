@@ -19,7 +19,7 @@ import {
     getIasdPfes,
     getSiwPfes,
     getMyPfe,
-    displayvalidePFE,autoAssignPfes
+    displayvalidePFE,autoAssignPfesToTeamsWithoutPfe
 } from "../controllers/pfecontroller.js";
 
 const router = express.Router();
@@ -90,11 +90,11 @@ router.post(
     createPFE
 );
 router.post(
-    '/autoAssignPfes',
+    '/autoAssignPfesToTeamsWithoutPfe',
     protect,
     restrictedfor('admin'),
     
-    autoAssignPfes
+    autoAssignPfesToTeamsWithoutPfe
 );
 /**
  * @swagger

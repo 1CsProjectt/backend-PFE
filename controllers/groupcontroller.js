@@ -444,6 +444,7 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
   if (!year) {
     return next(new appError('Year is required', 400));
   }
+  year = year.toUpperCase(); 
 
   let whereClause = {
     team_id: null,

@@ -555,17 +555,29 @@ export const getIsiPfes = async (req, res) => {
 
 
  // doka nwlilha 
-export const autoAssignPfes = catchAsync(async (req, res, next) => {
-  const teamsWithoutPFE = await Team.findAll({
-    where: {
-      pfe_id: null,
-    },
-  });
+  export const autoAssignPfesToTeamsWithoutPfe = catchAsync(async (req, res, next) => {
+  let { year, specialite } = req.body;
 
-  if (teamsWithoutPFE.length === 0) {
-    return next(new appError('All teams have PFEs assigned', 404));
+  if (!year) {
+    return next(new appError('Year is required', 400));
   }
 
+  const upperYear = year.toUpperCase();
+  const upperSpecialite = specialite ? specialite.toUpperCase() : null;
+
+  const whereClause = {
+    year: upperYear,
+    ...(upperSpecialite && { specialization: upperSpecialite }),
+    pfe_id: null
+  };
+
+  const teamsWithoutPFE = await Team.findAll({ where: whereClause });
+
+  if (teamsWithoutPFE.length === 0) {
+    return next(new appError('All teams already have assigned PFEs', 404));
+  }
+
+  // Get IDs of PFEs already used
   const usedPfeIds = await Team.findAll({
     where: {
       pfe_id: {
@@ -575,17 +587,11 @@ export const autoAssignPfes = catchAsync(async (req, res, next) => {
     attributes: ['pfe_id'],
   });
 
-  const usedIds = usedPfeIds.map((team) => team.pfe_id);
-
+  const usedIds = new Set(usedPfeIds.map(team => team.pfe_id));
   const assignmentLog = [];
 
   for (const team of teamsWithoutPFE) {
-    const students = await Student.findAll({
-      where: {
-        team_id: team.id,
-      },
-    });
-
+    const students = await Student.findAll({ where: { team_id: team.id } });
     if (students.length === 0) continue;
 
     const studentYear = students[0].year;
@@ -593,35 +599,41 @@ export const autoAssignPfes = catchAsync(async (req, res, next) => {
 
     let availablePfes;
 
+    const specializationCondition = {
+      [Op.like]: `%${studentSpecialite}%`
+    };
+
     if (studentYear === '3CS') {
+      // For 3CS: each PFE must only be assigned once
       availablePfes = await PFE.findAll({
         where: {
           year: '3CS',
-          specialization: studentSpecialite,
+          specialization: specializationCondition,
           id: {
-            [Op.notIn]: usedIds,
+            [Op.notIn]: Array.from(usedIds),
           },
         },
       });
     } else {
+      // For other years: same year and specialization, allow reuse
       availablePfes = await PFE.findAll({
         where: {
           year: studentYear,
-          specialization: studentSpecialite,
+          specialization: specializationCondition,
         },
       });
     }
 
     if (availablePfes.length === 0) continue;
 
-    const randomIndex = Math.floor(Math.random() * availablePfes.length);
-    const selectedPfe = availablePfes[randomIndex];
+    const selectedPfe = availablePfes[Math.floor(Math.random() * availablePfes.length)];
 
     team.pfe_id = selectedPfe.id;
     await team.save();
 
     if (studentYear === '3CS') {
-      usedIds.push(selectedPfe.id); }
+      usedIds.add(selectedPfe.id); // Prevent reuse for 3CS
+    }
 
     assignmentLog.push({
       teamId: team.id,
@@ -646,7 +658,7 @@ export {downloadfile};
 
 
 
-
+x
 // module.exports = {
 //     deletePFE,
 //     uploadfile,
