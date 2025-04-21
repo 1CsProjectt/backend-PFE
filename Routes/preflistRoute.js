@@ -71,7 +71,7 @@ const router = express.Router();
  *       403:
  *         description: Unauthorized or user not a student
  */
-router.post('/create', protect, restrictedfor('student'),upload('ML'), createPreflist);
+router.post('/create', protect, restrictedfor('student'),upload.fields([{ name: 'ML', maxCount: 1 },]), createPreflist);
 
 /**
  * @swagger
