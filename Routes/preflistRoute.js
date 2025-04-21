@@ -24,18 +24,20 @@ const router = express.Router();
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
  *             type: object
  *             required:
  *               - pfeIds
  *             properties:
  *               pfeIds:
- *                 type: array
- *                 description: An ordered array of 5 PFE IDs.
- *                 items:
- *                   type: integer
- *                 example: [3, 7, 12, 21, 34]
+ *                 type: string
+ *                 description: A JSON stringified ordered array of 5 PFE IDs.
+ *                 example: "[3, 7, 12, 21, 34]"
+ *               ML:
+ *                 type: string
+ *                 format: binary
+ *                 description: Optional file upload field (e.g., a machine learning model or report).
  *     responses:
  *       201:
  *         description: Preflist successfully created
