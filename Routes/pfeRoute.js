@@ -521,7 +521,7 @@ router.post(
  * /api/v1/pfe/{id}/reject:
  *   patch:
  *     summary: Reject a PFE
- *     description: Updates the status of a PFE to 'REJECTED' using its ID. Typically used by an admin or supervisor to decline a submitted PFE.
+ *     description: Updates the status of a PFE to 'REJECTED', with an optional rejection reason and file (PDF).
  *     tags:
  *       - PFE
  *     security:
@@ -532,7 +532,22 @@ router.post(
  *         required: true
  *         schema:
  *           type: integer
- *         description: The ID of the PFE to reject
+ *         description: ID of the PFE to reject
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               reason:
+ *                 type: string
+ *                 description: Reason for rejecting the PFE
+ *                 example: "The subject is not suitable for this year"
+ *               resonfile:
+ *                 type: string
+ *                 format: binary
+ *                 description: Optional PDF file explaining the rejection
  *     responses:
  *       200:
  *         description: PFE rejected successfully
@@ -546,34 +561,12 @@ router.post(
  *                   example: PFE rejected successfully
  *                 pfe:
  *                   type: object
- *                   properties:
- *                     id:
- *                       type: integer
- *                       example: 1
- *                     status:
- *                       type: string
- *                       example: REJECTED
- *                     titre:
- *                       type: string
- *                     description:
- *                       type: string
- *                     createdAt:
- *                       type: string
- *                       format: date-time
- *                     updatedAt:
- *                       type: string
- *                       format: date-time
  *       404:
  *         description: PFE not found
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 message:
- *                   type: string
- *                   example: PFE not found
+ *       400:
+ *         description: Invalid input
  */
+
 router.patch('/pfe/:id/reject', protect, restrictedfor('admin', 'teacher'), upload.fields([{ name: 'resonfile', maxCount: 1 }]),rejectPFE);
 
 
