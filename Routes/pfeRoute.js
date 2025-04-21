@@ -20,7 +20,8 @@ import {
     getSiwPfes,
     getMyPfe,
     displayvalidePFE,autoAssignPfesToTeamsWithoutPfe
-    ,changePfeForTeam
+    ,changePfeForTeam,
+    rejectPFE
 } from "../controllers/pfecontroller.js";
 
 const router = express.Router();
@@ -512,6 +513,68 @@ router.post(
     
     changePfeForTeam
 );
+
+
+
+/**
+ * @swagger
+ * /api/v1/pfe/{id}/reject:
+ *   patch:
+ *     summary: Reject a PFE
+ *     description: Updates the status of a PFE to 'REJECTED' using its ID. Typically used by an admin or supervisor to decline a submitted PFE.
+ *     tags:
+ *       - PFE
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: The ID of the PFE to reject
+ *     responses:
+ *       200:
+ *         description: PFE rejected successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: PFE rejected successfully
+ *                 pfe:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: integer
+ *                       example: 1
+ *                     status:
+ *                       type: string
+ *                       example: REJECTED
+ *                     titre:
+ *                       type: string
+ *                     description:
+ *                       type: string
+ *                     createdAt:
+ *                       type: string
+ *                       format: date-time
+ *                     updatedAt:
+ *                       type: string
+ *                       format: date-time
+ *       404:
+ *         description: PFE not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: PFE not found
+ */
+router.patch('/pfe/:id/reject', protect, restrictedfor('admin', 'teacher'), upload.fields([{ name: 'resonfile', maxCount: 1 }]),rejectPFE);
 
 
 // import express from 'express';

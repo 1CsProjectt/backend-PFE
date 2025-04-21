@@ -37,6 +37,14 @@ const PFE = sequelize.define("PFE", {
         allowNull: false,
         defaultValue: "NOT_VALIDE"
     },
+    reason:{
+        type:DataTypes.STRING,
+        allowNull:true
+    },
+    resonfile:{
+        type:DataTypes.STRING,
+        allowNull:true
+    },
     createdBy: {  
         type: DataTypes.INTEGER,
         allowNull: false,
