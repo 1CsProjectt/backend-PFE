@@ -28,9 +28,9 @@ const SupervisionRequest = sequelize.define('SupervisionRequest', {
       onDelete: 'CASCADE',
     },
     status: {
-      type: DataTypes.ENUM('pending', 'accepted', 'rejected'),
+      type: DataTypes.ENUM('PENDING', 'ACCEPTED', 'REJECTED'),
       allowNull: false,
-      defaultValue: 'pending',
+      defaultValue: 'PENDING',
     },
     requestedAt: {
       type: DataTypes.DATE,
