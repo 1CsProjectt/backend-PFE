@@ -563,8 +563,11 @@ export const autoAssignPfesToTeamsWithoutPfe = catchAsync(async (req, res, next)
   }
 
   const upperYear = year.toUpperCase();
-  const upperSpecialite = specialite ? specialite.toUpperCase() : null;
+if ((year === '2CS' || year === '3CS') && !specialite) {
+  return next(new appError('Specialite is required for 2CS and 3CS', 400));
+}
 
+const upperSpecialite = specialite ? specialite.toUpperCase() : null;
   // Get all teams without a PFE
   const teamsWithoutPFE = await Team.findAll({
     where: {
