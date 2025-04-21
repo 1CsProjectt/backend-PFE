@@ -521,18 +521,18 @@ router.post(
  * /api/v1/pfe/{id}/reject:
  *   patch:
  *     summary: Reject a PFE
- *     description: Updates the status of a PFE to 'REJECTED', with an optional rejection reason and file (PDF).
+ *     description: Rejects a PFE by ID. Admin or teacher can provide a rejection reason and optionally upload a supporting PDF file.
  *     tags:
  *       - PFE
  *     security:
  *       - bearerAuth: []
  *     parameters:
- *       - in: path
- *         name: id
+ *       - name: id
+ *         in: path
  *         required: true
  *         schema:
  *           type: integer
- *         description: ID of the PFE to reject
+ *         description: The ID of the PFE to reject
  *     requestBody:
  *       required: true
  *       content:
@@ -542,8 +542,7 @@ router.post(
  *             properties:
  *               reason:
  *                 type: string
- *                 description: Reason for rejecting the PFE
- *                 example: "The subject is not suitable for this year"
+ *                 example: "This topic is not suitable for this academic year."
  *               resonfile:
  *                 type: string
  *                 format: binary
@@ -563,9 +562,8 @@ router.post(
  *                   type: object
  *       404:
  *         description: PFE not found
- *       400:
- *         description: Invalid input
  */
+
 
 router.patch('/:id/reject', protect, restrictedfor('admin', 'teacher'), upload.fields([{ name: 'resonfile', maxCount: 1 }]),rejectPFE);
 
