@@ -20,6 +20,7 @@ import {
     getSiwPfes,
     getMyPfe,
     displayvalidePFE,autoAssignPfesToTeamsWithoutPfe
+    ,changePfeForTeam
 } from "../controllers/pfecontroller.js";
 
 const router = express.Router();
@@ -472,7 +473,13 @@ export default router;
 
 
 
-
+router.post(
+    '/changePfeForTeam',
+    protect,
+    restrictedfor('admin'),
+    
+    changePfeForTeam
+);
 
 
 // import express from 'express';

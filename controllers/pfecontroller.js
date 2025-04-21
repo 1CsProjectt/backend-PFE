@@ -643,6 +643,34 @@ export const autoAssignPfesToTeamsWithoutPfe = catchAsync(async (req, res, next)
   });
 });
 
+export const changePfeForTeam=catchAsync(async (req, res, next) => {
+    const { teamId, newPfeId } = req.body; 
+
+    if (!teamId || !newPfeId) {
+        return next(new appError('Team ID and new PFE ID are required', 400));
+    }
+
+    const team = await Team.findByPk(teamId);
+    if (!team) {
+        return next(new appError('Team not found', 404));
+    }
+
+    const newPfe = await PFE.findByPk(newPfeId);
+    if (!newPfe) {
+        return next(new appError('New PFE not found', 404));
+    }
+
+    team.pfe_id = newPfe.id;
+    await team.save();
+
+    res.status(200).json({
+        status: 'success',
+        message: 'PFE successfully changed for the team',
+        team,
+    });
+
+})
+
 
 
 
