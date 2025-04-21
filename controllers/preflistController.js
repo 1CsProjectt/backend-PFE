@@ -2,6 +2,10 @@ import {catchAsync} from '../utils/catchAsync.js';
 import appError from '../utils/appError.js';
 import Preflist from '../models/preflistModel.js';
 import Student from '../models/studenModel.js';
+import PFE from '../models/PFEmodel.js';
+import SupervisionRequest from '../models/SupervisionRequestModel.js';
+
+
 
 export const createPreflist = catchAsync(async (req, res, next) => {
   const { pfeIds } = req.body;
@@ -36,6 +40,34 @@ export const createPreflist = catchAsync(async (req, res, next) => {
   if (existing) {
     return next(new appError('This team has already submitted a preflist.', 400));
   }
+  const pfes = await PFE.findAll({ where: { id: pfeIds } });
+  if (pfes.length !== 5) {
+    return next(new appError('One or more selected PFEs do not exist.', 400));
+  }
+
+  const { year: studentYear, specialite: studentSpec } = mystudent;
+  console.log('Student year:', studentYear);
+  console.log('Student specialite:', studentSpec);
+
+  for (const pfe of pfes) {
+    if (pfe.year !== studentYear) {
+      return next(
+        new appError(
+          `PFE ${pfe.id} year (${pfe.year}) does not match student's year (${studentYear}).`,
+          400
+        )
+      );
+    }
+    
+    if (studentSpec && pfe.specialite !== studentSpec) {
+      return next(
+        new appError(
+          `PFE ${pfe.id} specialite (${pfe.specialite}) does not match student's specialite (${studentSpec}).`,
+          400
+        )
+      );
+    }
+  }
 
   const preflistEntries = pfeIds.map((pfeId, index) => ({
     teamId,
@@ -44,6 +76,14 @@ export const createPreflist = catchAsync(async (req, res, next) => {
   }));
 
   const created = await Preflist.bulkCreate(preflistEntries);
+
+  await SupervisionRequest.create({
+    teamId,
+    pfeId: pfeIds[0], 
+    status: 'PENDING',
+    sentAt: new Date()
+  });
+  
 
   res.status(201).json({
     status: 'success',
@@ -84,6 +124,24 @@ export const updatePreflist = catchAsync(async (req, res, next) => {
 
   
   await Preflist.destroy({ where: { teamId } });
+
+
+  const pfes = await PFE.findAll({ where: { id: pfeIds } });
+  if (pfes.length !== 5) {
+    return next(new appError('One or more selected PFEs do not exist.', 400));
+  }
+
+  const { year: studentYear, specialite: studentSpec } = mystudent;
+  for (const pfe of pfes) {
+    if (pfe.year !== studentYear || pfe.specialite !== studentSpec) {
+      return next(
+        new appError(
+          `PFE ${pfe.id} does not match the student's year or specialite.`,
+          400
+        )
+      );
+    }
+  }
 
  
   const preflistEntries = pfeIds.map((pfeId, index) => ({
@@ -136,6 +194,96 @@ export const removeFromPreflist = catchAsync(async (req, res, next) => {
   res.status(200).json({
     status: 'success',
     message: `PFE ${pfeId} removed from preflist.`,
+  });
+});
+
+
+
+export const respondToRequest = catchAsync(async (req, res, next) => {
+  const { status } = req.body; // 'ACCEPTED' or 'REJECTED'
+  const { id } = req.params;
+
+  const request = await SupervisionRequest.findByPk(id);
+
+  if (!request) {
+    return next(new appError('Request not found', 404));
+  }
+
+  if (request.status !== 'PENDING') {
+    return next(new appError('This request has already been processed', 400));
+  }
+
+  if (!['ACCEPTED', 'REJECTED'].includes(status)) {
+    return next(new appError('Invalid status', 400));
+  }
+
+  request.status = status;
+  await request.save();
+
+  // Optional: if accepted, cancel future requests for this team
+  if (status === 'ACCEPTED') {
+    await SupervisionRequest.update(
+      { status: 'REJECTED' },
+      {
+        where: {
+          teamId: request.teamId,
+          status: 'PENDING',
+          id: { [Op.ne]: id }
+        }
+      }
+    );
+  }
+
+  res.status(200).json({
+    status: 'success',
+    message: `Request ${status.toLowerCase()} successfully.`
+  });
+});
+
+
+
+export const acceptRandomRequestsForMultiplePFEs = catchAsync(async (req, res, next) => {
+  const { pfeIds, numberToAccept } = req.body;
+
+  if (!Array.isArray(pfeIds) || pfeIds.length === 0 || !numberToAccept || isNaN(numberToAccept)) {
+    return next(new appError('Invalid input: provide pfeIds (array) and numberToAccept (number)', 400));
+  }
+
+  const results = [];
+
+  for (const pfeId of pfeIds) {
+    const pendingRequests = await SupervisionRequest.findAll({
+      where: {
+        pfeId,
+        status: 'PENDING',
+      },
+      order: sequelize.random(),
+    });
+
+    const toAccept = pendingRequests.slice(0, numberToAccept);
+    const toReject = pendingRequests.slice(numberToAccept);
+
+    await Promise.all(toAccept.map(req => {
+      req.status = 'ACCEPTED';
+      return req.save();
+    }));
+
+    await Promise.all(toReject.map(req => {
+      req.status = 'REJECTED';
+      return req.save();
+    }));
+
+    results.push({
+      pfeId,
+      accepted: toAccept.map(r => r.id),
+      rejected: toReject.map(r => r.id),
+    });
+  }
+
+  res.status(200).json({
+    status: 'success',
+    message: 'Requests processed successfully for all PFEs',
+    results,
   });
 });
 
