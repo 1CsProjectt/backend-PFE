@@ -17,13 +17,6 @@ import { protect, restrictedfor } from "../middlewares/authmiddleware.js";
 const router = express.Router();
 /**
  * @swagger
- * tags:
- *   name: TEAM managment
- *   description: TEAM operations
- */
-
-/**
- * @swagger
  * /api/v1/team/creategroup:
  *   post:
  *     summary: Create a new team
