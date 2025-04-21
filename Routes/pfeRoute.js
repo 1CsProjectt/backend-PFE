@@ -89,6 +89,74 @@ router.post(
       ]),
     createPFE
 );
+
+/**
+ * @swagger
+ * /api/v1/pfes/autoAssignPfesToTeamsWithoutPfe:
+ *   post:
+ *     summary: Automatically assign PFEs to teams without PFEs
+ *     tags: [PFE]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - year
+ *             properties:
+ *               year:
+ *                 type: string
+ *                 enum: [2CP, 1CS, 2CS, 3CS]
+ *                 example: 2CS
+ *               specialite:
+ *                 type: string
+ *                 enum: [ISI, SIW, IASD]
+ *                 example: ISI
+ *                 description: Required only for 2CS and 3CS
+ *     responses:
+ *       200:
+ *         description: PFEs successfully assigned to teams
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 message:
+ *                   type: string
+ *                   example: PFEs successfully assigned to teams
+ *                 assigned:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       teamId:
+ *                         type: integer
+ *                         example: 12
+ *                       pfeTitle:
+ *                         type: string
+ *                         example: "AI-based Optimization System"
+ *                       specialization:
+ *                         type: string
+ *                         example: ISI
+ *                       year:
+ *                         type: string
+ *                         example: 2CS
+ *       400:
+ *         description: Year or specialization missing
+ *       404:
+ *         description: All teams already have assigned PFEs
+ *       401:
+ *         description: Unauthorized - token missing or invalid
+ *       403:
+ *         description: Forbidden - only admin can access
+ */
+
 router.post(
     '/autoAssignPfesToTeamsWithoutPfe',
     protect,
