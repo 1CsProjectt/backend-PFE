@@ -382,26 +382,27 @@ export  const validatePFE = catchAsync(async (req, res, next) => {
 export const rejectPFE = catchAsync(async (req, res, next) => {
     const { id } = req.params;
     const { reason } = req.body;
-
+  
     const pfe = await PFE.findByPk(id);
     if (!pfe) {
-        return next(new appError('PFE not found', 404));
+      return next(new appError('PFE not found', 404));
     }
-
+  
     pfe.status = 'REJECTED';
     pfe.reason = reason || null;
-
-    if (req.file) {
-        pfe.resonfile = req.file.filename;
+  
+    if (req.files?.resonfile?.[0]) {
+      pfe.resonfile = req.files.resonfile[0].path; 
     }
-
+  
     await pfe.save();
-
+  
     res.status(200).json({
-        message: 'PFE rejected successfully',
-        pfe,
+      message: 'PFE rejected successfully',
+      pfe,
     });
-});
+  });
+  
 
 
   
