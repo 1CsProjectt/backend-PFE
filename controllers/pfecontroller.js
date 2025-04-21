@@ -563,12 +563,15 @@ export const autoAssignPfesToTeamsWithoutPfe = catchAsync(async (req, res, next)
   }
 
   const upperYear = year.toUpperCase();
-if ((year === '2CS' || year === '3CS') && !specialite) {
-  return next(new appError('Specialite is required for 2CS and 3CS', 400));
-}
 
-const upperSpecialite = specialite ? specialite.toUpperCase() : null;
-  // Get all teams without a PFE
+  // For 2CS and 3CS, specialite is required
+  if ((upperYear === '2CS' || upperYear === '3CS') && !specialite) {
+    return next(new appError('Specialite is required for 2CS and 3CS', 400));
+  }
+
+  const upperSpecialite = specialite ? specialite.toUpperCase() : null;
+
+  // Get all teams that don't have a PFE assigned
   const teamsWithoutPFE = await Team.findAll({
     where: {
       pfe_id: null,
@@ -579,7 +582,7 @@ const upperSpecialite = specialite ? specialite.toUpperCase() : null;
     return next(new appError('All teams already have assigned PFEs', 404));
   }
 
-  // Get used PFE IDs
+  // Get already used PFE IDs
   const usedPfeIds = await Team.findAll({
     where: {
       pfe_id: {
@@ -599,12 +602,18 @@ const upperSpecialite = specialite ? specialite.toUpperCase() : null;
 
     if (students.length === 0) continue;
 
-    const studentYear = students[0].year.toUpperCase();
-    const studentSpecialite = students[0].specialite.toUpperCase();
+    const studentYear = students[0].year?.toUpperCase();
+    const studentSpecialite = students[0].specialite
+      ? students[0].specialite.toUpperCase()
+      : null;
 
-    // Skip if the team doesn't match the year or specialite (if provided)
+    // Skip if year doesn't match
     if (studentYear !== upperYear) continue;
-    if (upperSpecialite && studentSpecialite !== upperSpecialite) continue;
+
+    // Skip if specialite is required and doesn't match
+    if ((upperSpecialite && !studentSpecialite) || (upperSpecialite && studentSpecialite !== upperSpecialite)) {
+      continue;
+    }
 
     const specializationCondition = {
       [Op.like]: `%${studentSpecialite}%`,
@@ -613,6 +622,7 @@ const upperSpecialite = specialite ? specialite.toUpperCase() : null;
     let availablePfes;
 
     if (studentYear === '3CS') {
+      // 3CS: PFEs must not be reused
       availablePfes = await PFE.findAll({
         where: {
           year: '3CS',
@@ -623,6 +633,7 @@ const upperSpecialite = specialite ? specialite.toUpperCase() : null;
         },
       });
     } else {
+      // Other years: PFEs can be reused
       availablePfes = await PFE.findAll({
         where: {
           year: studentYear,
@@ -639,7 +650,7 @@ const upperSpecialite = specialite ? specialite.toUpperCase() : null;
     await team.save();
 
     if (studentYear === '3CS') {
-      usedIds.add(selectedPfe.id);
+      usedIds.add(selectedPfe.id); // Prevent reuse
     }
 
     assignmentLog.push({
