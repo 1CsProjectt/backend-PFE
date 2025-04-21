@@ -38,6 +38,10 @@ const SupervisionRequest = sequelize.define('SupervisionRequest', {
       defaultValue: DataTypes.NOW,
     },
     respondedAt: DataTypes.DATE,
+    ML:{
+      type:DataTypes.STRING,
+      allowNull:true
+    }
   }, {
     tableName: 'supervision_requests',
     timestamps: false,

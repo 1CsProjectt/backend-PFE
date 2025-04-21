@@ -73,6 +73,7 @@ export const createPreflist = catchAsync(async (req, res, next) => {
     teamId,
     pfeId,
     order: index + 1,
+    ML: req.files?.ML?.[0]?.path || null
   }));
 
   const created = await Preflist.bulkCreate(preflistEntries);
@@ -81,7 +82,8 @@ export const createPreflist = catchAsync(async (req, res, next) => {
     teamId,
     pfeId: pfeIds[0], 
     status: 'PENDING',
-    sentAt: new Date()
+    sentAt: new Date(),
+    ML: req.files?.ML?.[0]?.path || null
   });
   
 
