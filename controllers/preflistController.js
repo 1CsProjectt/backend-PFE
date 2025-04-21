@@ -46,13 +46,23 @@ export const createPreflist = catchAsync(async (req, res, next) => {
   }
 
   const { year: studentYear, specialite: studentSpec } = mystudent;
-  console.log(studentYear);
-  console.log(studentSpec);
+  console.log('Student year:', studentYear);
+  console.log('Student specialite:', studentSpec);
+
   for (const pfe of pfes) {
-    if (pfe.year !== studentYear || pfe.specialite !== studentSpec) {
+    if (pfe.year !== studentYear) {
       return next(
         new appError(
-          `PFE ${pfe.id} does not match the student's year or specialite.`,
+          `PFE ${pfe.id} year (${pfe.year}) does not match student's year (${studentYear}).`,
+          400
+        )
+      );
+    }
+    
+    if (studentSpec && pfe.specialite !== studentSpec) {
+      return next(
+        new appError(
+          `PFE ${pfe.id} specialite (${pfe.specialite}) does not match student's specialite (${studentSpec}).`,
           400
         )
       );
