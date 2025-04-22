@@ -112,6 +112,26 @@ const setEvent = catchAsync(async (req, res, next) => {
 });
 
 
+export const deleteEvent = catchAsync(async (req, res, next) => {
+    const { id } = req.params;
+  
+    // 1) Find the event by its primary key
+    const event = await Event.findByPk(id);
+    if (!event) {
+      return next(new appError('No event found with that ID', 404));
+    }
+  
+    // 2) Remove it from the database
+    await event.destroy();
+  
+    // 3) Send a 204 No Content response
+    res.status(204).json({
+      status: 'success',
+      data: null
+    });
+  });
+
+
 
 
 

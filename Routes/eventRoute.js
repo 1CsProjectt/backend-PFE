@@ -4,6 +4,7 @@ import {
   checkEventTime,
   updateEvent,
   getAllEvents,
+  deleteEvent
 } from "../controllers/eventcontroller.js";
 import {
   protect,
@@ -134,5 +135,7 @@ router.patch("/update", protect, restrictedfor("admin"), updateEvent);
  *         description: No events found
  */
 router.get("/allevents", getAllEvents);
+
+router.delete("/:id",protect, restrictedfor('admin'), deleteEvent)
 
 export default router;
