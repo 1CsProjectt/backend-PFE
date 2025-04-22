@@ -166,7 +166,7 @@ app.use("/api/v1/student", studentroute);
 app.use("/api/v1/teams", groupRoutes);
 app.use("/api/v1/invitation",invitationRoutes);
 app.use("/api/v1/jointeam",jointeamRoutes);
-app.use("/api/v1/ ",preflistroute);
+app.use("/api/v1/preflist",preflistroute);
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
