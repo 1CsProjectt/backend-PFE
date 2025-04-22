@@ -7,7 +7,6 @@ import {
   acceptRandomRequestsForMultiplePFEs,
   getMyPreflist,
   approvePreflist,
-  filterRequestsByGrade,
   getAllrequests
 } from '../controllers/preflistController.js';
 import { protect, restrictedfor } from '../middlewares/authmiddleware.js';
@@ -273,6 +272,210 @@ router.post(
   );
 
 
+
+
+
+
+/**
+ * @swagger
+ * /api/v1/preflist/getAllrequests:
+ *   get:
+ *     summary: Get all supervision requests (teacher only)
+ *     tags:
+ *       - Supervision Requests
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of all supervision requests
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: integer
+ *                       teamId:
+ *                         type: integer
+ *                       pfeId:
+ *                         type: integer
+ *                       status:
+ *                         type: string
+ *                         example: PENDING
+ *                       sentAt:
+ *                         type: string
+ *                         format: date-time
+ *                       ML:
+ *                         type: string
+ *                         description: URL or path to motivation letter
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Access denied
+ */
+
+
+
+
+
+router.get(
+  '/getAllrequests',
+  protect,
+  restrictedfor('teacher'),
+  getAllrequests
+);
+
+
+
+
+
+
+
+
+
+
+
+/**
+* @swagger
+* /api/v1/preflist/filterRequestsByGrade/{grade}:
+*   get:
+*     summary: Filter supervision requests by grade (teacher only)
+*     tags:
+*       - Supervision Requests
+*     security:
+*       - bearerAuth: []
+*     parameters:
+*       - in: path
+*         name: grade
+*         required: true
+*         schema:
+*           type: string
+*           example: 3CS
+*         description: The academic grade to filter by (e.g., 2CP, 1CS, 3CS)
+*     responses:
+*       200:
+*         description: List of supervision requests filtered by grade
+*         content:
+*           application/json:
+*             schema:
+*               type: object
+*               properties:
+*                 status:
+*                   type: string
+*                   example: success
+*                 data:
+*                   type: array
+*                   items:
+*                     type: object
+*                     properties:
+*                       id:
+*                         type: integer
+*                       teamId:
+*                         type: integer
+*                       pfeId:
+*                         type: integer
+*                       status:
+*                         type: string
+*                         example: PENDING
+*                       sentAt:
+*                         type: string
+*                         format: date-time
+*       400:
+*         description: Invalid grade provided
+*       401:
+*         description: Unauthorized
+*       403:
+*         description: Access denied
+*/
+
+
+
+
+
+
+ router.get(
+  '/filterRequestsByGrade/:grade',
+  protect,
+  restrictedfor('teacher'),
+  filterRequestsByGrade
+);
+
+
+
+
+
+
+
+
+
+
+/**
+ * @swagger
+ * /api/supervision/filterRequestsByGrade/{grade}:
+ *   get:
+ *     summary: Filter supervision requests by grade (teacher only)
+ *     tags:
+ *       - Supervision Requests
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: grade
+ *         required: true
+ *         schema:
+ *           type: string
+ *           example: 3CS
+ *         description: The academic grade to filter by (e.g., 2CP, 1CS, 3CS)
+ *     responses:
+ *       200:
+ *         description: List of supervision requests filtered by grade
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: integer
+ *                       teamId:
+ *                         type: integer
+ *                       pfeId:
+ *                         type: integer
+ *                       status:
+ *                         type: string
+ *                         example: PENDING
+ *                       sentAt:
+ *                         type: string
+ *                         format: date-time
+ *       400:
+ *         description: Invalid grade provided
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Access denied
+ */
+
+
+
+
+
+
+   
   /**
  * @swagger
  * /api/v1/preflist/my:
