@@ -3,6 +3,7 @@ import appError from "../utils/appError.js";
 import { catchAsync } from "../utils/catchAsync.js";
 import Student from "../models/studenModel.js";
 import app from "../index.js";
+import { Op } from "sequelize";
 
 
 
