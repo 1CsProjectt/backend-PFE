@@ -142,21 +142,34 @@ export const deletePFEforcreator = catchAsync(async (req, res, next) => {
         return next(new appError("You are not authorized to delete this PFE", 403));
     }
 
-    const deleteCloudinaryFile = async (url) => {
+    const deleteCloudinaryFile =async (url) => {
         if (!url) return;
-
         try {
-            const parts = url.split('/');
-            const fileWithExtension = parts[parts.length - 1];
-            const publicId = fileWithExtension.split('.')[0];
-            const folder = url.includes('/raw/') ? 'raw' : 'image';
-            await cloudinary.uploader.destroy(`pfe-uploads/${publicId}`, {
-                resource_type: folder,
-            });
+          const uploadIndex = url.indexOf('/upload/');
+          if (uploadIndex === -1) {
+            console.error('Invalid Cloudinary URL format');
+            return;
+          }
+      
+          const pathAfterUpload = url.substring(uploadIndex + 8); 
+      
+          const parts = pathAfterUpload.split('/');
+          if (parts[0].startsWith('v')) {
+            parts.shift(); 
+          }
+          const fileWithExtension = parts.pop();
+          const fileName = fileWithExtension.split('.')[0];
+          parts.push(fileName);
+          const publicId = parts.join('/');
+      
+          const resourceType = url.includes('/raw/') ? 'raw' : 'image';
+      
+          await cloudinary.uploader.destroy(publicId, { resource_type: resourceType });
         } catch (err) {
-            console.error(`Error deleting file from Cloudinary: ${err.message}`);
+          console.error(`Error deleting file from Cloudinary: ${err.message}`);
         }
-    };
+      };
+      
 
     await deleteCloudinaryFile(pfe.pdfFile);
     await deleteCloudinaryFile(pfe.photo);
