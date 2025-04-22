@@ -443,7 +443,7 @@ export const acceptRandomRequestsForMultiplePFEs = catchAsync(async (req, res, n
 });
 
 
-export const getAllRequests = catchAsync(async (req, res, next) => {
+export const getAllrequests = catchAsync(async (req, res, next) => {
   const userId = req.user.id;
   const role = req.user.role;
 
