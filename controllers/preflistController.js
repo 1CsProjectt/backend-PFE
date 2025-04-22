@@ -643,7 +643,7 @@ export const filterRequestsBySpecialization = catchAsync(async (req, res, next) 
             model: Student,
             as: 'members',
             required: true,
-            where: { specialization: specialization.toUpperCase() } // Filter by specialization
+            where: { specialite: specialization.toUpperCase() } // Filter by specialization
           }
         ]
       }
