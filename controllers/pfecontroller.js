@@ -178,7 +178,7 @@ export const getAllPFE = catchAsync(async (req, res, next) => {
     const pfeList = await PFE.findAll({
         include: [
             { model: User, as: "creator", attributes: ["id", "username", "email"] },
-            { model: teacher, as: "supervisors", attributes: ["id", "name"], through: { attributes: [] } }
+            { model: teacher, as: "supervisors", attributes: ["id", "firstname","lastname"], through: { attributes: [] } }
         ],
     });
 
