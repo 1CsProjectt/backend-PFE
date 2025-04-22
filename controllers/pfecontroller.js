@@ -205,16 +205,7 @@ export const getAllPFE = catchAsync(async (req, res, next) => {
         ],
     });
 
-    const formattedPFEList = formatPFEUrls(pfeList).map(pfe => ({
-        ...pfe,
-        creator: {
-            ...pfe.creator,
-            firstname: pfe.creator?.teacher?.firstname || null,
-            lastname: pfe.creator?.teacher?.lastname || null,
-            companyName: pfe.creator?.company?.name || null,
-            companySector: pfe.creator?.company?.sector || null
-        }
-    }));
+    const formattedPFEList = formatPFEUrls(pfeList)
 
     res.status(200).json({
         status: "success",
