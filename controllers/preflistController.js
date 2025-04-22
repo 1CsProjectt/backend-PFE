@@ -522,9 +522,9 @@ export const getAllrequests = catchAsync(async (req, res, next) => {
 
 
 export const filterRequestsByGrade = catchAsync(async (req, res, next) => {
-const { grade } = req.params;
+  const { grade } = req.params;
   if (!grade) {
-    return next(new appError('Grade is required.', 400)); 
+    return next(new appError('Grade is required.', 400));
   }
 
   if (!req.user) {
@@ -551,7 +551,6 @@ const { grade } = req.params;
               {
                 model: PFE,
                 required: true,
-                
                 include: [
                   {
                     model: Teacher,
@@ -568,7 +567,7 @@ const { grade } = req.params;
             model: Student,
             as: 'members',
             required: true,
-            where: { year: grade.toUpperCase() }
+            where: { year: grade.toUpperCase() } // Filter by grade
           }
         ]
       }
@@ -579,6 +578,16 @@ const { grade } = req.params;
     return next(new appError('No requests found for this grade.', 404));
   }
 
+  // Add 'grade', 'specialization', and 'pfeTitle' to each request in the data array
+  requests.forEach(request => {
+    const team = request.team;
+    const grade = team.members[0].year || null; // Ensures grade exists
+    const specialization = team.Preflist.PFE.specialization || null;
+    request.dataValues.grade = grade;
+    request.dataValues.specialization = specialization;
+    request.dataValues.pfeTitle = team.Preflist.PFE.title;
+  });
+
   res.status(200).json({
     status: 'success',
     results: requests.length,
@@ -588,9 +597,81 @@ const { grade } = req.params;
 
 
 
-const filterRequestsBySpecialization = catchAsync(async (req, res, next) => {
+export const filterRequestsBySpecialization = catchAsync(async (req, res, next) => {
+  const { specialization } = req.params;
+  if (!specialization) {
+    return next(new appError('Specialization is required.', 400));
+  }
 
-})
+  if (!req.user) {
+    return next(new appError('User not authenticated.', 401));
+  }
+
+  const user = req.user;
+  const teacher = await Teacher.findByPk(user.id);
+  if (!teacher) {
+    return next(new appError('Teacher not found.', 404));
+  }
+
+  const requests = await SupervisionRequest.findAll({
+    include: [
+      {
+        model: Team,
+        as: 'team',
+        required: true,
+        include: [
+          {
+            model: Preflist,
+            required: true,
+            include: [
+              {
+                model: PFE,
+                required: true,
+                include: [
+                  {
+                    model: Teacher,
+                    as: 'supervisors',
+                    where: { id: teacher.id }, // Only PFEs where the teacher is a supervisor
+                    required: true,
+                    through: { attributes: [] } // omit join table
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            model: Student,
+            as: 'members',
+            required: true,
+            where: { specialization: specialization.toUpperCase() } // Filter by specialization
+          }
+        ]
+      }
+    ]
+  });
+
+  if (!requests || requests.length === 0) {
+    return next(new appError('No requests found for this specialization.', 404));
+  }
+
+  // Add 'specialization', 'grade', and 'pfeTitle' to each request in the data array
+  requests.forEach(request => {
+    const team = request.team;
+    const specialization = team.Preflist.PFE.specialization || null;  // Ensure specialty is handled correctly
+    const grade = team.members[0].year; // Assuming all members have the same year
+    request.dataValues.specialization = specialization;
+    request.dataValues.grade = grade;
+    request.dataValues.pfeTitle = team.Preflist.PFE.title;
+  });
+
+  res.status(200).json({
+    status: 'success',
+    results: requests.length,
+    data: requests,
+  });
+});
+
+
 
 export const getMyPreflist = catchAsync(async (req, res, next) => {
   if (!req.user) {
