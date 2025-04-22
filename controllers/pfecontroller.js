@@ -151,18 +151,24 @@ export const deletePFEforcreator = catchAsync(async (req, res, next) => {
           const pathAfterUpload = url.substring(uploadIndex + 8);
           const parts = pathAfterUpload.split('/');
       
+          // Remove version if present
           if (parts[0].startsWith('v')) {
             parts.shift();
           }
       
           const fileWithExtension = parts.pop();
-          
-          
-          const fileNameWithoutExtension = fileWithExtension.replace(/\.jpg$/, '');
+          let fileNameWithoutExtension = fileWithExtension;
+      
+          // Remove .jpg or .pdf extension if present
+          if (fileWithExtension.endsWith('.jpg')) {
+            fileNameWithoutExtension = fileWithExtension.slice(0, -4);
+          } else if (fileWithExtension.endsWith('.pdf')) {
+            fileNameWithoutExtension = fileWithExtension.slice(0, -4);
+          }
+      
           parts.push(fileNameWithoutExtension);
-          
           const publicId = parts.join('/');
-          console.log(publicId);
+          console.log(`Public ID: ${publicId}`);
       
           const resourceType = url.includes('/raw/') ? 'raw' : 'image';
       
@@ -176,6 +182,7 @@ export const deletePFEforcreator = catchAsync(async (req, res, next) => {
           console.error(`Error deleting file from Cloudinary: ${err.message}`);
         }
       };
+      
       
       
       
