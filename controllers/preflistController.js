@@ -443,34 +443,70 @@ export const acceptRandomRequestsForMultiplePFEs = catchAsync(async (req, res, n
 });
 
 
-export const getAllrequests = catchAsync(async (req, res, next) => {
-  const teacherId = req.user.id; 
+export const getAllRequests = catchAsync(async (req, res, next) => {
+  const userId = req.user.id;
+  const role = req.user.role;
 
-  const requests = await SupervisionRequest.findAll({
-    include: [
-      {
-        model: PFE,
-        as: 'pfe',
-        where: { createdBy: teacherId }, 
-        attributes: [
-          'id',
-          'title',
-          'specialization',
-          'year',
-          'description',
-          'pdfFile',
-          'status',
-          'reason',
-          'resonfile',
-          'createdBy',
-          'photo'
-        ]
-      }
-    ]
-  });
+  let requests;
+
+  if (role === 'teacher') {
+    requests = await SupervisionRequest.findAll({
+      include: [
+        {
+          model: PFE,
+          as: 'pfe',
+          where: { createdBy: userId },
+          attributes: [
+            'id',
+            'title',
+            'specialization',
+            'year',
+            'description',
+            'pdfFile',
+            'status',
+            'reason',
+            'resonfile',
+            'createdBy',
+            'photo'
+          ]
+        }
+      ]
+    });
+  } else if (role === 'student') {
+    const student = await Student.findOne({ where: { userId } });
+
+    if (!student || !student.team_id) {
+      return next(new appError('Student or team not found', 404));
+    }
+
+    requests = await SupervisionRequest.findAll({
+      include: [
+        {
+          model: PFE,
+          as: 'pfe',
+          where: { team_id: student.team_id },
+          attributes: [
+            'id',
+            'title',
+            'specialization',
+            'year',
+            'description',
+            'pdfFile',
+            'status',
+            'reason',
+            'resonfile',
+            'createdBy',
+            'photo'
+          ]
+        }
+      ]
+    });
+  } else {
+    return next(new appError('Unauthorized role', 403));
+  }
 
   if (!requests || requests.length === 0) {
-    return next(new appError('No requests found for your PFEs', 404));
+    return next(new appError('No requests found', 404));
   }
 
   res.status(200).json({
@@ -479,6 +515,7 @@ export const getAllrequests = catchAsync(async (req, res, next) => {
     data: requests,
   });
 });
+
 
 
 
