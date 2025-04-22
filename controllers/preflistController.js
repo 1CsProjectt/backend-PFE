@@ -5,7 +5,7 @@ import Student from '../models/studenModel.js';
 import PFE from '../models/PFEmodel.js';
 import SupervisionRequest from '../models/SupervisionRequestModel.js';
 
-
+import Teacher from '../models/teacherModel.js';
 
 export const createPreflist = catchAsync(async (req, res, next) => {
   const { pfeIds } = req.body;
@@ -347,6 +347,76 @@ export const getAllrequests = catchAsync(async (req, res, next) => {
   });
 })
 
+
+
+
+export const filterRequestsByGrade = catchAsync(async (req, res, next) => {
+  const { grade } = req.params;
+
+  if (!req.user) {
+    return next(new appError('User not authenticated.', 401));
+  }
+
+  const user = req.user;
+  const teacher = await Teacher.findByPk(user.id);
+  if (!teacher) {
+    return next(new appError('Teacher not found.', 404));
+  }
+
+  const requests = await SupervisionRequest.findAll({
+    include: [
+      {
+        model: Team,
+        as: 'team',
+        required: true,
+        include: [
+          {
+            model: Preflist,
+            required: true,
+            include: [
+              {
+                model: PFE,
+                required: true,
+                as: 'pfe',
+                include: [
+                  {
+                    model: teacher,
+                    as: 'supervisors',
+                    where: { id: teacher.id }, // Only PFEs where the teacher is a supervisor
+                    required: true,
+                    through: { attributes: [] } // omit join table
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            model: Student,
+            as: 'members',
+            required: true,
+            where: { year: grade.toUpperCase() }
+          }
+        ]
+      }
+    ]
+  });
+
+  if (!requests || requests.length === 0) {
+    return next(new appError('No requests found for this grade.', 404));
+  }
+
+  res.status(200).json({
+    status: 'success',
+    results: requests.length,
+    data: requests,
+  });
+});
+
+
+
+const filterRequestsBySpecialization = catchAsync(async (req, res, next) => {
+
+})
 
 export const getMyPreflist = catchAsync(async (req, res, next) => {
   if (!req.user) {

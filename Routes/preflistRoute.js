@@ -7,6 +7,7 @@ import {
   acceptRandomRequestsForMultiplePFEs,
   getMyPreflist,
   approvePreflist,
+  filterRequestsByGrade,
 
   getAllrequests
 } from '../controllers/preflistController.js';
@@ -282,6 +283,29 @@ router.post(
     protect,
     restrictedfor('teacher'),
     getAllrequests
+  );
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+   router.get(
+    '/filterRequestsByGrade',
+    protect,
+    restrictedfor('teacher'),
+    filterRequestsByGrade
   );
   /**
  * @swagger
