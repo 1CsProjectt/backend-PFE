@@ -335,13 +335,6 @@ const alreadyApproved = await Preflist.findOne({
 });
 
 
-
-import { Op } from 'sequelize';
-import SupervisionRequest from '../models/SupervisionRequestModel.js';
-import Preflist from '../models/preflistModel.js';
-import catchAsync from '../utils/catchAsync';
-import appError from '../utils/appError';
-
 export const respondToRequest = catchAsync(async (req, res, next) => {
   const { status } = req.body; // 'ACCEPTED' or 'REJECTED'
   const { id } = req.params;
