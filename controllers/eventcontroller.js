@@ -2,6 +2,8 @@ import Event from "../models/eventModel.js";
 import appError from "../utils/appError.js";
 import { catchAsync } from "../utils/catchAsync.js";
 import Student from "../models/studenModel.js";
+import app from "../index.js";
+import { Op } from "sequelize";
 
 
 
@@ -287,6 +289,52 @@ export const getAllEvents = catchAsync(async (req, res, next) => {
       },
     });
   });
+
+
+
+export const getCurrentSession = catchAsync(async (req, res, next) => {
+  const userId=req.user.id;
+  const rolee=req.user.role;       
+  let targeted = null;
+  let year = null;
+
+  if (rolee === 'teacher' || 'company') {
+    targeted = 'teachers';
+  } else if (rolee === 'student') {
+    targeted = 'students';
+
+    const student = await Student.findOne({ where: { id:userId } });
+    if (!student) {
+      return next(new appError('Student profile not found', 404));
+    }
+    year = student.year;    
+  } else if(rolee='admin')
+     {
+        res.locals.currentSessions='NORMAL_SESSION'
+  }else{
+    return next(new appError('Unrecognized user role', 400));
+  }
+
+  const now = new Date();
+  const where = {
+    targeted,
+    startTime: { [Op.lte]: now },
+    endTime:   { [Op.gte]: now }
+  };
+  if (targeted === 'students') {
+    where.year = year;
+  }
+
+  const currentEvents = await Event.findAll({ where });
+
+  if (!currentEvents.length) {
+    res.locals.currentSessions='NORMAL_SESSION'
+  }else{
+  res.locals.currentSessions = currentEvents;
+  }
+  next();
+});
+
 
 export{checkEventTime,setEvent};
 

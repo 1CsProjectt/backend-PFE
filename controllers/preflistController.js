@@ -369,7 +369,6 @@ export const respondToRequest = catchAsync(async (req, res, next) => {
       }
     );
   }
-
   if (status === 'REJECTED') {
     const preflist = await Preflist.findAll({
       where: { teamId: request.teamId },

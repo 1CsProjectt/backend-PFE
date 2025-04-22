@@ -23,7 +23,6 @@ const Event = sequelize.define("Event", {
         type: DataTypes.ENUM('PFE_SUBMISSION', 'PFE_VALIDATION', 'TEAM_CREATION','PFE_ASSIGNMENT','WORK_STARTING'),
         allowNull: false,
     },
-    
     startTime: {
         type: DataTypes.DATE,
         allowNull: false
