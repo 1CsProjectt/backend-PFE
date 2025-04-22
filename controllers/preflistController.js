@@ -515,7 +515,7 @@ const { grade } = req.params;
               {
                 model: PFE,
                 required: true,
-                as: 'pfe',
+                
                 include: [
                   {
                     model: teacher,
