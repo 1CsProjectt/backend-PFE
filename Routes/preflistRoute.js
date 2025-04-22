@@ -4,7 +4,10 @@ import {
   updatePreflist,
   removeFromPreflist,
   respondToRequest,
-  acceptRandomRequestsForMultiplePFEs
+  acceptRandomRequestsForMultiplePFEsm,
+  getAllrequests
+
+  
 } from '../controllers/preflistController.js';
 import { protect, restrictedfor } from '../middlewares/authmiddleware.js';
 import { upload } from '../utils/cloudinary.js';
@@ -258,6 +261,17 @@ router.post(
     protect,
     restrictedfor('teacher'),
     acceptRandomRequestsForMultiplePFEs
+  );
+
+
+
+
+
+  router.get(
+    '/supervision-request/getAllrequests',
+    protect,
+    restrictedfor('teacher'),
+    getAllrequests
   );
   
 

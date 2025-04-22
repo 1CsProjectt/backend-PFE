@@ -563,7 +563,6 @@ export const getIsiPfes = async (req, res) => {
 
 
 
- // doka nwlilha 
 export const autoAssignPfesToTeamsWithoutPfe = catchAsync(async (req, res, next) => {
   const { year, specialite } = req.body;
 

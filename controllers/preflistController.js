@@ -289,3 +289,16 @@ export const acceptRandomRequestsForMultiplePFEs = catchAsync(async (req, res, n
   });
 });
 
+
+export const getAllrequests = catchAsync(async (req, res, next) => {
+  const requests=await SupervisionRequest.findAll({});
+  if (!requests) {
+    return next(new appError('No requests found', 404));
+  }
+  res.status(200).json({
+    status: 'success',
+    message: 'All requests retrieved successfully',
+    data: requests,
+  });
+})
+
