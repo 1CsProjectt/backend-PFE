@@ -321,13 +321,7 @@ router.post(
 
 
 
-  router.get(
-    '/getAllrequests',
-    protect,
-    restrictedfor('teacher'),
-    getAllrequests
-  );
-
+router.get('/getAllrequests', protect, restrictedfor('teacher'), getAllrequests);
 
 
 
