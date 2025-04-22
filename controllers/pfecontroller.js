@@ -39,11 +39,22 @@ export const createPFE = catchAsync(async (req, res, next) => {
         if (!myteacher) {
             return next(new appError('Teacher not found', 404));
         }
-        supervisorsArray.push(myteacher.id);
-         specialite=specialization
+        supervisorsArray = [myteacher.id];
+        
+        if (Array.isArray(supervisor)) {
+            supervisor.forEach(id => {
+                if (!supervisorsArray.includes(id)) {
+                    supervisorsArray.push(id);
+                }
+            });
+        }
+        specialite = specialization;
     } else if (role === 'company') {
-        specialite=null
-    } else {
+        if (!Array.isArray(supervisor) || supervisor.length === 0) {
+            return next(new appError("Supervisors are required", 400));
+        }
+        specialite = null;
+    }else {
         return next(new appError('Invalid role', 403));
     }
 
@@ -177,7 +188,7 @@ export const getMyPfe = catchAsync(async (req, res, next) => {
             {
                 model: teacher,
                 as: 'supervisors',
-                where: { id: myTeacher.id },
+                where: { id: req.user.id },
                 through: { attributes: [] }, 
                 required: true,
                 include: [
