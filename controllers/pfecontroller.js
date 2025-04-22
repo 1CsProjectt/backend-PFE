@@ -138,33 +138,39 @@ export const deletePFEforcreator = catchAsync(async (req, res, next) => {
         return next(new appError("You are not authorized to delete this PFE", 403));
     }
 
-    const deleteCloudinaryFile =async (url) => {
+    const deleteCloudinaryFile = async (url) => {
         if (!url) return;
+      
         try {
-          const uploadIndex = url.indexOf('/upload/');
+          const urlObj = new URL(url);
+          const pathname = urlObj.pathname; 
+          const pathSegments = pathname.split('/');
+          const uploadIndex = pathSegments.indexOf('upload');
           if (uploadIndex === -1) {
             console.error('Invalid Cloudinary URL format');
             return;
           }
       
-          const pathAfterUpload = url.substring(uploadIndex + 8); 
-      
-          const parts = pathAfterUpload.split('/');
-          if (parts[0].startsWith('v')) {
-            parts.shift(); 
+          let publicIdSegments = pathSegments.slice(uploadIndex + 1);
+          if (publicIdSegments[0].startsWith('v')) {
+            publicIdSegments = publicIdSegments.slice(1);
           }
-          const fileWithExtension = parts.pop();
-          const fileName = fileWithExtension.split('.')[0];
-          parts.push(fileName);
-          const publicId = parts.join('/');
       
-          const resourceType = url.includes('/raw/') ? 'raw' : 'image';
+          const publicId = decodeURIComponent(publicIdSegments.join('/'));
+      
+          const extension = publicId.split('.').pop().toLowerCase();
+          let resourceType = 'image';
+          if (['pdf', 'doc', 'docx', 'txt'].includes(extension)) {
+            resourceType = 'raw';
+          }
       
           await cloudinary.uploader.destroy(publicId, { resource_type: resourceType });
+          console.log(`Deleted ${resourceType} from Cloudinary: ${publicId}`);
         } catch (err) {
           console.error(`Error deleting file from Cloudinary: ${err.message}`);
         }
       };
+      
       
 
     await deleteCloudinaryFile(pfe.pdfFile);
