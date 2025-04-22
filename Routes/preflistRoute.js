@@ -374,12 +374,195 @@ router.get(
 *         description: Access denied
 */
 
+
+
+
+/**
+ * @swagger
+ * /filterRequestsByGrade/{grade}:
+ *   get:
+ *     summary: Filters supervision requests by student grade.
+ *     description: Fetches all supervision requests for a specific grade.
+ *     tags: [Supervision Requests]
+ *     parameters:
+ *       - in: path
+ *         name: grade
+ *         required: true
+ *         description: The grade of the students (e.g., '2CS', '3CS', etc.)
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved supervision requests for the given grade.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 results:
+ *                   type: integer
+ *                   example: 5
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       teamId:
+ *                         type: integer
+ *                         example: 1
+ *                       specialization:
+ *                         type: string
+ *                         example: ISI
+ *                       pfeTitle:
+ *                         type: string
+ *                         example: "Machine Learning in ISI"
+ *                       grade:
+ *                         type: string
+ *                         example: '2CS'
+ *                       status:
+ *                         type: string
+ *                         example: PENDING
+ *       400:
+ *         description: Grade parameter is required.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: error
+ *                 message:
+ *                   type: string
+ *                   example: Grade is required.
+ *       401:
+ *         description: User is not authenticated.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: error
+ *                 message:
+ *                   type: string
+ *                   example: User not authenticated.
+ *       404:
+ *         description: No requests found for the specified grade.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: error
+ *                 message:
+ *                   type: string
+ *                   example: No requests found for this grade.
+ */
+
 router.get(
   '/filterRequestsByGrade/:grade',
   protect,
   restrictedfor('teacher'),
   filterRequestsByGrade
 );
+
+
+
+/**
+ * @swagger
+ * /filterRequestsBySpecialization/{specialization}:
+ *   get:
+ *     summary: Filters supervision requests by student specialization.
+ *     description: Fetches all supervision requests for a specific specialization.
+ *     tags: [Supervision Requests]
+ *     parameters:
+ *       - in: path
+ *         name: specialization
+ *         required: true
+ *         description: The specialization of the students (e.g., 'ISI', 'SIW', etc.)
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved supervision requests for the given specialization.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 results:
+ *                   type: integer
+ *                   example: 3
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       teamId:
+ *                         type: integer
+ *                         example: 2
+ *                       specialization:
+ *                         type: string
+ *                         example: ISI
+ *                       pfeTitle:
+ *                         type: string
+ *                         example: "Data Analysis in ISI"
+ *                       grade:
+ *                         type: string
+ *                         example: '3CS'
+ *                       status:
+ *                         type: string
+ *                         example: ACCEPTED
+ *       400:
+ *         description: Specialization parameter is required.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: error
+ *                 message:
+ *                   type: string
+ *                   example: Specialization is required.
+ *       401:
+ *         description: User is not authenticated.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: error
+ *                 message:
+ *                   type: string
+ *                   example: User not authenticated.
+ *       404:
+ *         description: No requests found for the specified specialization.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: error
+ *                 message:
+ *                   type: string
+ *                   example: No requests found for this specialization.
+ */
 
 router.get(
   '/filterRequestsBySpecialization/:specialization',
