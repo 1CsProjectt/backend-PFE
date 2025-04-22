@@ -169,31 +169,49 @@ export const getMyPfe = catchAsync(async (req, res, next) => {
     const userId = req.user?.id;
     if (!userId) return next(new appError("User not authenticated", 401));
 
+    const myTeacher = await teacher.findOne({ where: { id: userId } });
+    if (!myTeacher) return next(new appError("User is not a teacher", 403));
+
     const pfes = await PFE.findAll({
-        where: { createdBy: userId },
         include: [
+            {
+                model: teacher,
+                as: 'supervisors',
+                where: { id: myTeacher.id },
+                through: { attributes: [] }, 
+                required: true,
+                include: [
+                    {
+                        model: User,
+                        as: 'user',
+                        attributes: ['email'],
+                        required: false
+                    }
+                ]
+            },
             {
                 model: User,
                 as: 'creator',
                 attributes: ['id', 'email'],
                 include: [
-                    { model: teacher, as: 'teacher', attributes: ['firstname', 'lastname'], required: false },
-                    { model: Company, as: 'company', required: false }
-                ]
-            },
-            {
-                model: teacher,
-                as: 'supervisors',
-                required: false,
-                include: [
-                    { model: User, as: 'user', attributes: ['email'], required: false }
+                    {
+                        model: teacher,
+                        as: 'teacher',
+                        attributes: ['firstname', 'lastname'],
+                        required: false
+                    },
+                    {
+                        model: Company,
+                        as: 'company',
+                        required: false
+                    }
                 ]
             }
         ]
     });
 
     if (!pfes || pfes.length === 0) {
-        return next(new appError("You have not created any PFEs.", 404));
+        return next(new appError("You are not supervising any PFEs.", 404));
     }
 
     const formattedPfes = formatPFEUrls(pfes).map((pfe) => ({
@@ -207,6 +225,7 @@ export const getMyPfe = catchAsync(async (req, res, next) => {
 
     res.status(200).json({ status: "success", data: formattedPfes });
 });
+
 
 
 
