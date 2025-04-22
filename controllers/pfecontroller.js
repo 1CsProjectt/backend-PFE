@@ -142,7 +142,7 @@ export const deletePFEforcreator = catchAsync(async (req, res, next) => {
         return next(new appError("You are not authorized to delete this PFE", 403));
     }
 
-    const deleteCloudinaryFile =ca async (url) => {
+    const deleteCloudinaryFile =async (url) => {
         if (!url) return;
         try {
           const uploadIndex = url.indexOf('/upload/');
