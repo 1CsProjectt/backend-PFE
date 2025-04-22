@@ -257,6 +257,14 @@ router.patch('/supervision-request/:id', protect, restrictedfor('teacher'), resp
  *       400:
  *         description: Invalid input
  */
+
+
+
+
+
+
+
+
 router.post(
     '/supervision-request/accept-random',
     protect,
@@ -269,7 +277,7 @@ router.post(
 
 
   router.get(
-    '/supervision-request/getAllrequests',
+    '/getAllrequests',
     protect,
     restrictedfor('teacher'),
     getAllrequests
