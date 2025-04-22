@@ -298,7 +298,7 @@ export const getCurrentSession = catchAsync(async (req, res, next) => {
   let targeted = null;
   let year = null;
 
-  if (rolee === 'teacher') {
+  if (rolee === 'teacher' || 'company') {
     targeted = 'teachers';
   } else if (rolee === 'student') {
     targeted = 'students';
@@ -308,7 +308,10 @@ export const getCurrentSession = catchAsync(async (req, res, next) => {
       return next(new appError('Student profile not found', 404));
     }
     year = student.year;    
-  } else {
+  } else if(rolee='admin')
+     {
+        res.locals.currentSessions='NORMAL_SESSION'
+  }else{
     return next(new appError('Unrecognized user role', 400));
   }
 
