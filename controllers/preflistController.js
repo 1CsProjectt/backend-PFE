@@ -312,8 +312,7 @@ export const getMyPreflist = catchAsync(async (req, res, next) => {
     order: [['order', 'ASC']],
     include: [
       {
-        model: PFE,
-        as: 'pfe', 
+        model: PFE, 
         attributes: ['id', 'title', 'description', 'year', 'specialite'],
       },
     ],
