@@ -324,7 +324,7 @@ export const getCurrentSession = catchAsync(async (req, res, next) => {
   const currentEvents = await Event.findAll({ where });
 
   if (!currentEvents.length) {
-    return next(new appError(`No active session for you (${targeted}${year ? ' – ' + year : ''}).`,404))
+    req.currentSessions='NORMAL_SESSION'
   }
   req.currentSessions = currentEvents;
   next();
