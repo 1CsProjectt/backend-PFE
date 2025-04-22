@@ -8,7 +8,8 @@ import {
   getMyPreflist,
   approvePreflist,
   getAllrequests,
-  filterRequestsByGrade
+  filterRequestsByGrade,
+  filterRequestsBySpecialization
 } from '../controllers/preflistController.js';
 import { protect, restrictedfor } from '../middlewares/authmiddleware.js';
 import { upload } from '../utils/cloudinary.js';
@@ -378,6 +379,13 @@ router.get(
   protect,
   restrictedfor('teacher'),
   filterRequestsByGrade
+);
+
+router.get(
+  '/filterRequestsBySpecialization/:specialization',
+  protect,
+  restrictedfor('teacher'),
+  filterRequestsBySpecialization
 );
    
   /**
