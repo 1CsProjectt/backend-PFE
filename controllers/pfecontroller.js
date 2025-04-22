@@ -34,33 +34,46 @@ export const createPFE = catchAsync(async (req, res, next) => {
     let supervisorsArray = [];
     let specialite;
 
+    let supervisorList = supervisor;
+    if (typeof supervisor === 'string') {
+        try {
+            supervisorList = JSON.parse(supervisor);
+        } catch (err) {
+            supervisorList = [supervisor]; 
+        }
+    }
+
     if (role === 'teacher') {
         const myteacher = await teacher.findByPk(userId);
         if (!myteacher) {
             return next(new appError('Teacher not found', 404));
         }
+
         supervisorsArray = [myteacher.id];
-        
-        if (Array.isArray(supervisor)) {
-            supervisor.forEach(id => {
+
+        if (Array.isArray(supervisorList)) {
+            supervisorList.forEach(id => {
                 if (!supervisorsArray.includes(id)) {
                     supervisorsArray.push(id);
                 }
             });
         }
+
         specialite = specialization;
     } else if (role === 'company') {
-        if (!Array.isArray(supervisor) || supervisor.length === 0) {
+        if (!Array.isArray(supervisorList) || supervisorList.length === 0) {
             return next(new appError("Supervisors are required", 400));
         }
+
+        supervisorsArray = supervisorList;
         specialite = null;
-    }else {
+    } else {
         return next(new appError('Invalid role', 403));
     }
 
     const pfe = await PFE.create({
         title,
-        specialization:specialite,
+        specialization: specialite,
         description,
         year: year.toUpperCase(),
         pdfFile,
