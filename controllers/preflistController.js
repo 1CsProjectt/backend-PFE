@@ -554,7 +554,7 @@ const { grade } = req.params;
                 
                 include: [
                   {
-                    model: teacher,
+                    model: Teacher,
                     as: 'supervisors',
                     where: { id: teacher.id }, // Only PFEs where the teacher is a supervisor
                     required: true,
