@@ -2,6 +2,7 @@ import Event from "../models/eventModel.js";
 import appError from "../utils/appError.js";
 import { catchAsync } from "../utils/catchAsync.js";
 import Student from "../models/studenModel.js";
+import app from "../index.js";
 
 
 
@@ -287,6 +288,47 @@ export const getAllEvents = catchAsync(async (req, res, next) => {
       },
     });
   });
+
+
+
+export const getCurrentSession = catchAsync(async (req, res, next) => {
+  const { id, role } = req.user;           
+  let targeted = null;
+  let year = null;
+
+  if (role === 'teacher') {
+    targeted = 'teachers';
+  } else if (role === 'student') {
+    targeted = 'students';
+
+    const student = await Student.findOne({ where: { userId } });
+    if (!student) {
+      return next(new appError('Student profile not found', 404));
+    }
+    year = student.year;    
+  } else {
+    return next(new appError('Unrecognized user role', 400));
+  }
+
+  const now = new Date();
+  const where = {
+    targeted,
+    startTime: { [Op.lte]: now },
+    endTime:   { [Op.gte]: now }
+  };
+  if (targeted === 'students') {
+    where.year = year;
+  }
+
+  const currentEvents = await Event.findAll({ where });
+
+  if (!currentEvents.length) {
+    return next(new appError(`No active session for you (${targeted}${year ? ' – ' + year : ''}).`,404))
+  }
+  req.currentSessions = currentEvents;
+  next();
+});
+
 
 export{checkEventTime,setEvent};
 

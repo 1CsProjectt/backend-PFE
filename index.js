@@ -40,7 +40,7 @@ import Admin from "./models/adminModel.js";
 import JoinRequest from "./models/jointeamModel.js";
 import invitation from "./models/invitationModel.js";
 import preflistroute from './Routes/preflistRoute.js'
-
+import { getCurrentSession } from "./controllers/eventcontroller.js";
 
 
 
@@ -158,6 +158,7 @@ app.use(session({
   
 
 // Routes
+app.use(getCurrentSession);
 app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/pfe', pfeRoutes);
