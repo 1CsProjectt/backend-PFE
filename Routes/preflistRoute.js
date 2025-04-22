@@ -373,7 +373,7 @@ router.get(
 *         description: Access denied
 */
 
- router.get(
+router.get(
   '/filterRequestsByGrade/:grade',
   protect,
   restrictedfor('teacher'),

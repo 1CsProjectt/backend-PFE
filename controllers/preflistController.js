@@ -485,7 +485,7 @@ export const getAllrequests = catchAsync(async (req, res, next) => {
 
 
 export const filterRequestsByGrade = catchAsync(async (req, res, next) => {
-const { grade } = req.query;
+const { grade } = req.params;
   if (!grade) {
     return next(new appError('Grade is required.', 400)); 
   }
@@ -514,7 +514,7 @@ const { grade } = req.query;
               {
                 model: PFE,
                 required: true,
-                as: 'pfe',
+                
                 include: [
                   {
                     model: teacher,
