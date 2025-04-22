@@ -61,11 +61,7 @@ export const createPFE = catchAsync(async (req, res, next) => {
 
         specialite = specialization;
     } else if (role === 'company') {
-        if (!Array.isArray(supervisorList) || supervisorList.length === 0) {
-            return next(new appError("Supervisors are required", 400));
-        }
-
-        supervisorsArray = supervisorList;
+        supervisorsArray = [];
         specialite = null;
     } else {
         return next(new appError('Invalid role', 403));
