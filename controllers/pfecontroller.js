@@ -147,7 +147,8 @@ export const deletePFEforcreator = catchAsync(async (req, res, next) => {
             console.error('Invalid Cloudinary URL format');
             return;
           }
-          const pathAfterUpload = url.substring(uploadIndex + 8); 
+      
+          const pathAfterUpload = url.substring(uploadIndex + 8);
           const parts = pathAfterUpload.split('/');
       
           if (parts[0].startsWith('v')) {
@@ -165,11 +166,13 @@ export const deletePFEforcreator = catchAsync(async (req, res, next) => {
             resource_type: resourceType,
             invalidate: true, 
           });
+      
           console.log(`Deleted ${resourceType} from Cloudinary: ${publicId}`);
         } catch (err) {
           console.error(`Error deleting file from Cloudinary: ${err.message}`);
         }
       };
+      
       
       
       
