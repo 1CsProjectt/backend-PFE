@@ -324,9 +324,9 @@ export const getCurrentSession = catchAsync(async (req, res, next) => {
   const currentEvents = await Event.findAll({ where });
 
   if (!currentEvents.length) {
-    req.currentSessions='NORMAL_SESSION'
+    res.locals.currentSessions='NORMAL_SESSION'
   }
-  req.currentSessions = currentEvents;
+  res.locals.currentSessions = currentEvents;
   next();
 });
 
