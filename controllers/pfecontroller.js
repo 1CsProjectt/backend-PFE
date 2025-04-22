@@ -271,8 +271,8 @@ export const getMyPfe = catchAsync(async (req, res, next) => {
         ]
     }); }else{
         const mycompany = await Company.findOne({ where: { id: userId } });
-        if (!mycompany) return next(new appError("User is not a teacher", 403));
-        const pfes = await PFE.findAll({
+        if (!mycompany) return next(new appError("User is not a Company", 403));
+         pfes = await PFE.findAll({
             where: { createdBy: req.user.id },
             include: [
               {
