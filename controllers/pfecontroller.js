@@ -159,13 +159,14 @@ export const deletePFEforcreator = catchAsync(async (req, res, next) => {
           const fileName = fileWithExtension.split('.')[0];
           parts.push(fileName);
           const publicId = parts.join('/');
-      
+          console.log(publicId)
           const resourceType = url.includes('/raw/') ? 'raw' : 'image';
       
           await cloudinary.uploader.destroy(publicId, {
             resource_type: resourceType,
             invalidate: true, 
           });
+          
       
           console.log(`Deleted ${resourceType} from Cloudinary: ${publicId}`);
         } catch (err) {
