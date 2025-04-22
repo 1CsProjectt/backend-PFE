@@ -4,18 +4,9 @@ import {
   updatePreflist,
   removeFromPreflist,
   respondToRequest,
-<<<<<<< HEAD
   acceptRandomRequestsForMultiplePFEs,
   getMyPreflist,
   approvePreflist
-=======
-  acceptRandomRequestsForMultiplePFEsm,
-  getAllrequests
-
-  
-  ,
-  getMyPreflist
->>>>>>> ed2d2c45ce7860ce1c5c5a78c041cc13ea1c82b6
 } from '../controllers/preflistController.js';
 import { protect, restrictedfor } from '../middlewares/authmiddleware.js';
 import { upload } from '../utils/cloudinary.js';
