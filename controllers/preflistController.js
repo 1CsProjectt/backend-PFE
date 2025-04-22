@@ -352,7 +352,7 @@ export const getAllrequests = catchAsync(async (req, res, next) => {
 
 
 export const filterRequestsByGrade = catchAsync(async (req, res, next) => {
-  const { grade } = req.body;
+const { grade } = req.query;
   if (!grade) {
     return next(new appError('Grade is required.', 400)); 
   }
