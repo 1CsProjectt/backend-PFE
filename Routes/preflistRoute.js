@@ -7,7 +7,7 @@ import {
   acceptRandomRequestsForMultiplePFEs,
   getMyPreflist,
   approvePreflist,
-  getMyPreflist,
+
   getAllrequests
 } from '../controllers/preflistController.js';
 import { protect, restrictedfor } from '../middlewares/authmiddleware.js';
@@ -273,7 +273,7 @@ router.post(
   );
 
 
-  
+
 
 
 
