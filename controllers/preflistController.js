@@ -426,16 +426,38 @@ export const acceptRandomRequestsForMultiplePFEs = catchAsync(async (req, res, n
 
 
 export const getAllrequests = catchAsync(async (req, res, next) => {
-  const requests=await SupervisionRequest.findAll({});
-  if (!requests) {
+  const requests = await SupervisionRequest.findAll({
+    include: [
+      {
+        model: PFE,
+        attributes: [
+          'id',
+          'title',
+          'specialization',
+          'year',
+          'description',
+          'pdfFile',
+          'status',
+          'reason',
+          'resonfile',
+          'createdBy',
+          'photo'
+        ]
+      }
+    ]
+  });
+
+  if (!requests || requests.length === 0) {
     return next(new appError('No requests found', 404));
   }
+
   res.status(200).json({
     status: 'success',
     message: 'All requests retrieved successfully',
     data: requests,
   });
-})
+});
+
 
 
 
