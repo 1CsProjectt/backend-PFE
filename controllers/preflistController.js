@@ -80,7 +80,7 @@ export const createPreflist = catchAsync(async (req, res, next) => {
   }));
 
   const created = await Preflist.bulkCreate(preflistEntries);
-
+  console.log('Creating SupervisionRequest...');
   await SupervisionRequest.create({
     teamId,
     pfeId: pfeIds[0], 
@@ -88,8 +88,7 @@ export const createPreflist = catchAsync(async (req, res, next) => {
     sentAt: new Date(),
     ML: req.files?.ML?.[0]?.path || null
   });
-  
-
+  console.log('SupervisionRequest...Created');
   res.status(201).json({
     status: 'success',
     message: `Preflist created for team ${teamId}`,
