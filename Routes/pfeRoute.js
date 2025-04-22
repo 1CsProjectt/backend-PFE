@@ -385,7 +385,7 @@ router.patch("/:id/validate", protect, restrictedfor("admin"), validatePFE);
  *       404:
  *         description: You have not created any PFEs.
  */
-router.get("/my-pfes", protect, getMyPfe);
+router.get("/my-pfes", protect,restrictedfor('teacher','admin'), getMyPfe);
 
 /**
  * @swagger

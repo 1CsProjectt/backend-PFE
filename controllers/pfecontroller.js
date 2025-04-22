@@ -228,17 +228,12 @@ export const getAllPFE = catchAsync(async (req, res, next) => {
 
 export const getMyPfe = catchAsync(async (req, res, next) => {
     const userId = req.user?.id;
+    let pfes;
     if (!userId) return next(new appError("User not authenticated", 401));
  if (req.user?.role =='teacher'){
     const myTeacher = await teacher.findOne({ where: { id: userId } });
     if (!myTeacher) return next(new appError("User is not a teacher", 403));
- }else{
-    const mycompany = await Company.findOne({ where: { id: userId } });
-    if (!mycompany) return next(new appError("User is not a teacher", 403));
- }
-    
-
-    const pfes = await PFE.findAll({
+     pfes = await PFE.findAll({
         include: [
             {
                 model: teacher,
@@ -274,7 +269,43 @@ export const getMyPfe = catchAsync(async (req, res, next) => {
                 ]
             }
         ]
-    });
+    }); }else{
+        const mycompany = await Company.findOne({ where: { id: userId } });
+        if (!mycompany) return next(new appError("User is not a teacher", 403));
+        const pfes = await PFE.findAll({
+            where: { createdBy: req.user.id },
+            include: [
+              {
+                model: teacher,
+                as: 'supervisors',
+                through: { attributes: [] },
+                include: [
+                  {
+                    model: User,
+                    as: 'user',
+                    attributes: ['email'],
+                  },
+                ],
+              },
+              {
+                model: User,
+                as: 'creator',
+                attributes: ['id', 'email'],
+                include: [
+                  {
+                    model: teacher,
+                    as: 'teacher',
+                    attributes: ['firstname', 'lastname'],
+                  },
+                  {
+                    model: Company,
+                    as: 'company',
+                  },
+                ],
+              },
+            ],
+          });
+     }
 
     if (!pfes || pfes.length === 0) {
         return next(new appError("You are not supervising any PFEs.", 404));
