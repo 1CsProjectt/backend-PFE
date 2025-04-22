@@ -293,16 +293,17 @@ export const getAllEvents = catchAsync(async (req, res, next) => {
 
 
 export const getCurrentSession = catchAsync(async (req, res, next) => {
-  const { id, role } = req.user;           
+  const userId=req.user.id;
+  const rolee=req.user.role;       
   let targeted = null;
   let year = null;
 
-  if (role === 'teacher') {
+  if (rolee === 'teacher') {
     targeted = 'teachers';
-  } else if (role === 'student') {
+  } else if (rolee === 'student') {
     targeted = 'students';
 
-    const student = await Student.findOne({ where: { userId } });
+    const student = await Student.findOne({ where: { id:userId } });
     if (!student) {
       return next(new appError('Student profile not found', 404));
     }
