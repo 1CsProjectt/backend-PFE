@@ -352,7 +352,10 @@ export const getAllrequests = catchAsync(async (req, res, next) => {
 
 
 export const filterRequestsByGrade = catchAsync(async (req, res, next) => {
-  const { grade } = req.params;
+  const { grade } = req.body;
+  if (!grade) {
+    return next(new appError('Grade is required.', 400)); 
+  }
 
   if (!req.user) {
     return next(new appError('User not authenticated.', 401));
