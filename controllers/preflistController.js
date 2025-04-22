@@ -339,6 +339,7 @@ const alreadyApproved = await Preflist.findOne({
 export const respondToRequest = catchAsync(async (req, res, next) => {
   const { status } = req.body; // 'ACCEPTED' or 'REJECTED'
   const { id } = req.params;
+  console.log(id)
 
   const request = await SupervisionRequest.findByPk(id);
 
@@ -357,7 +358,6 @@ export const respondToRequest = catchAsync(async (req, res, next) => {
   request.status = status;
   await request.save();
 
-  // Optional: if accepted, cancel future requests for this team
   if (status === 'ACCEPTED') {
     await SupervisionRequest.update(
       { status: 'REJECTED' },
