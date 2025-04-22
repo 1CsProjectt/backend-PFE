@@ -189,7 +189,7 @@ router.post(
  *       404:
  *         description: PFE not found
  */
-router.delete("/delete/:id", protect, restrictedfor('teacher'), deletePFEforcreator);
+router.delete("/delete/:id", protect, restrictedfor('teacher','company'), deletePFEforcreator);
 
 /**
  * @swagger
