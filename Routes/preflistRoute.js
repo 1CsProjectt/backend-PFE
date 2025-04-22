@@ -6,7 +6,7 @@ import {
   respondToRequest,
   acceptRandomRequestsForMultiplePFEs,
   getMyPreflist,
-  approvePreflist
+  approvePreflist,
 } from '../controllers/preflistController.js';
 import { protect, restrictedfor } from '../middlewares/authmiddleware.js';
 import { upload } from '../utils/cloudinary.js';
@@ -255,6 +255,14 @@ router.patch('/supervision-request/:id', protect, restrictedfor('teacher'), resp
  *       400:
  *         description: Invalid input
  */
+
+
+
+
+
+
+
+
 router.post(
     '/supervision-request/accept-random',
     protect,
@@ -266,8 +274,9 @@ router.post(
 
 
 
+
   router.get(
-    '/supervision-request/getAllrequests',
+    '/getAllrequests',
     protect,
     restrictedfor('teacher'),
     getAllrequests
