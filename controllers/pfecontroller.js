@@ -49,8 +49,8 @@ export const createPFE = catchAsync(async (req, res, next) => {
 
     const pfe = await PFE.create({
         title,
-        specialization,
-        description:specialite,
+        specialization:specialite,
+        description,
         year: year.toUpperCase(),
         pdfFile,
         photo,
