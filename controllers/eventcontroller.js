@@ -325,8 +325,9 @@ export const getCurrentSession = catchAsync(async (req, res, next) => {
 
   if (!currentEvents.length) {
     res.locals.currentSessions='NORMAL_SESSION'
-  }
+  }else{
   res.locals.currentSessions = currentEvents;
+  }
   next();
 });
 
