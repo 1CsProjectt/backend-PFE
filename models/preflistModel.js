@@ -36,6 +36,11 @@ const Preflist = sequelize.define('Preflist', {
         max: 5,
       },
     },
+    approved: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false
+    },
     ML:{
       type:DataTypes.STRING,
       allowNull:true

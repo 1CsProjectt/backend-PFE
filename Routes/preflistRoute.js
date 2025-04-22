@@ -5,7 +5,8 @@ import {
   removeFromPreflist,
   respondToRequest,
   acceptRandomRequestsForMultiplePFEs,
-  getMyPreflist
+  getMyPreflist,
+  approvePreflist
 } from '../controllers/preflistController.js';
 import { protect, restrictedfor } from '../middlewares/authmiddleware.js';
 import { upload } from '../utils/cloudinary.js';
@@ -319,6 +320,37 @@ router.post(
  *         description: No preflist found or student not found
  */
 router.get('/my', protect, getMyPreflist);
+
+/**
+ * @swagger
+ * /api/v1/preflist/{teamId}/approve:
+ *   post:
+ *     summary: Approve a team's preflist and send the first supervision request
+ *     tags:
+ *       - Preflist
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: teamId
+ *         schema:
+ *           type: integer
+ *         required: true
+ *         description: ID of the team whose preflist you’re approving
+ *     responses:
+ *       200:
+ *         description: Preflist approved and first supervision request sent
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: Preflist not found
+ */
+router.post(
+  '/:teamId/approve',
+  protect,
+  restrictedfor('teacher', 'admin'),
+  approvePreflist
+);
   
 
 export default router;

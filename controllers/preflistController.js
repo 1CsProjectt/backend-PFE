@@ -78,14 +78,6 @@ export const createPreflist = catchAsync(async (req, res, next) => {
 
   const created = await Preflist.bulkCreate(preflistEntries);
 
-  await SupervisionRequest.create({
-    teamId,
-    pfeId: pfeIds[0], 
-    status: 'PENDING',
-    sentAt: new Date(),
-    ML: req.files?.ML?.[0]?.path || null
-  });
-  
 
   res.status(201).json({
     status: 'success',
@@ -93,6 +85,38 @@ export const createPreflist = catchAsync(async (req, res, next) => {
     data: created,
   });
 });
+
+export const approvePreflist = catchAsync(async (req, res, next) => {
+
+  const { teamId } = req.params;
+  const entries = await Preflist.findAll({
+    where: { teamId },
+    order: [['order', 'ASC']]
+  });
+  if (!entries.length) {
+    return next(new appError('No preflist found to approve', 404));
+  }
+
+  await Preflist.update(
+    { approved: true },
+    { where: { teamId } }
+  );
+
+  const firstPfeId = entries[0].pfeId;
+  await SupervisionRequest.create({
+    teamId,
+    pfeId: firstPfeId,
+    status: 'PENDING',
+    sentAt: new Date(),
+    ML: entries[0].ML 
+  });
+
+  res.status(200).json({
+    status: 'success',
+    message: `Preflist for team ${teamId} approved. Supervision request sent for PFE ${firstPfeId}.`
+  });
+});
+
 
 
 export const updatePreflist = catchAsync(async (req, res, next) => {
@@ -108,7 +132,7 @@ export const updatePreflist = catchAsync(async (req, res, next) => {
   if (!mystudent) {
     return next(new appError('Student not found', 403));
   }
-
+  
   if (!Array.isArray(pfeIds) || pfeIds.length !== 5) {
     return next(new appError('You must provide exactly 5 PFE IDs.', 400));
   }
@@ -122,6 +146,18 @@ export const updatePreflist = catchAsync(async (req, res, next) => {
 
   if (!teamId) {
     return next(new appError('Student is not in a team', 403));
+  }
+  const alreadyApproved = await Preflist.findOne({
+    where: { teamId, approved: true }
+  });
+
+  if (alreadyApproved) {
+    return next(
+      new appError(
+        'Preflist has already been approved; you cannot update it now.',
+        400
+      )
+    );
   }
 
   
@@ -144,12 +180,11 @@ export const updatePreflist = catchAsync(async (req, res, next) => {
       );
     }
   }
-
- 
   const preflistEntries = pfeIds.map((pfeId, index) => ({
     teamId,
     pfeId,
     order: index + 1,
+    ML: req.files?.ML?.[0]?.path || null
   }));
 
   const created = await Preflist.bulkCreate(preflistEntries);
@@ -181,7 +216,17 @@ export const removeFromPreflist = catchAsync(async (req, res, next) => {
   if (!teamId) {
     return next(new appError('Student is not in a team', 403));
   }
-
+const alreadyApproved = await Preflist.findOne({
+    where: { teamId, approved: true }
+  });
+  if (alreadyApproved) {
+    return next(
+      new appError(
+        'Preflist has already been approved; you cannot update it now.',
+        400
+      )
+    );
+  }
   const deleted = await Preflist.destroy({
     where: {
       teamId,
