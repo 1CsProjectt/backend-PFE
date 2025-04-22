@@ -14,7 +14,7 @@ import { protect, restrictedfor } from '../middlewares/authmiddleware.js';
 import { upload } from '../utils/cloudinary.js';
 
 const router = express.Router();
-x
+
 /**
  * @swagger
  * /api/v1/preflist/create:
