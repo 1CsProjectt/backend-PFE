@@ -279,7 +279,7 @@ router.post(
 
 
   router.get(
-    '/filterRequestsByGrade/:grade',
+    '/getAllrequests',
     protect,
     restrictedfor('teacher'),
     getAllrequests
@@ -302,7 +302,7 @@ router.post(
 
 
    router.get(
-    '/filterRequestsByGrade',
+    '/filterRequestsByGrade/:grade',
     protect,
     restrictedfor('teacher'),
     filterRequestsByGrade
