@@ -432,6 +432,7 @@ export const getAllrequests = catchAsync(async (req, res, next) => {
     include: [
       {
         model: PFE,
+        as: 'pfe',
         where: { createdBy: teacherId }, 
         attributes: [
           'id',
