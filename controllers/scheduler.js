@@ -10,7 +10,7 @@ cron.schedule('0 * * * *', async () => {
     const expiredRequests = await SupervisionRequest.findAll({
       where: {
         status: 'PENDING',
-        sentAt: { [Op.lt]: cutoff }
+        requestedAt: { [Op.lt]: cutoff }
       }
     });
 

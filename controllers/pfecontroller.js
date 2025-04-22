@@ -32,24 +32,49 @@ export const createPFE = catchAsync(async (req, res, next) => {
     }
 
     let supervisorsArray = [];
+    let specialite;
+
+    let supervisorList = supervisor;
+    if (typeof supervisor === 'string') {
+        try {
+            supervisorList = JSON.parse(supervisor);
+        } catch (err) {
+            supervisorList = [supervisor]; 
+        }
+    }
 
     if (role === 'teacher') {
         const myteacher = await teacher.findByPk(userId);
         if (!myteacher) {
             return next(new appError('Teacher not found', 404));
         }
-        supervisorsArray.push(myteacher.id);
-        const specialite=specialization
+
+        supervisorsArray = [myteacher.id];
+
+        if (Array.isArray(supervisorList)) {
+            supervisorList.forEach(id => {
+                if (!supervisorsArray.includes(id)) {
+                    supervisorsArray.push(id);
+                }
+            });
+        }
+
+        specialite = specialization;
     } else if (role === 'company') {
-       const specialite=null
+        if (!Array.isArray(supervisorList) || supervisorList.length === 0) {
+            return next(new appError("Supervisors are required", 400));
+        }
+
+        supervisorsArray = supervisorList;
+        specialite = null;
     } else {
         return next(new appError('Invalid role', 403));
     }
 
     const pfe = await PFE.create({
         title,
-        specialization,
-        description:specialite,
+        specialization: specialite,
+        description,
         year: year.toUpperCase(),
         pdfFile,
         photo,
@@ -152,15 +177,43 @@ const formatPFEUrls = (pfeList) => {
 export const getAllPFE = catchAsync(async (req, res, next) => {
     const pfeList = await PFE.findAll({
         include: [
-            { model: User, as: "creator", attributes: ["id", "username", "email"] },
-            { model: teacher, as: "supervisors", attributes: ["id", "name"], through: { attributes: [] } }
+            {
+                model: User,
+                as: "creator",
+                attributes: ["id", "username", "email"],
+                include: [
+                    {
+                        model: teacher,
+                        as: "teacher",
+                        attributes: ["firstname", "lastname"],
+                        required: false
+                    },
+                    {
+                        model: Company,
+                        as: "company",
+                        attributes: ["name"],
+                        required: false
+                    }
+                ]
+            },
+            {
+                model: teacher,
+                as: "supervisors",
+                attributes: ["id", "firstname", "lastname"],
+                through: { attributes: [] }
+            }
         ],
     });
 
-    const formattedPFEList = formatPFEUrls(pfeList);
+    const formattedPFEList = formatPFEUrls(pfeList)
 
-    res.status(200).json({ status: "success", count: formattedPFEList.length, pfeList: formattedPFEList });
+    res.status(200).json({
+        status: "success",
+        count: formattedPFEList.length,
+        pfeList: formattedPFEList
+    });
 });
+
 
 
 
@@ -168,31 +221,49 @@ export const getMyPfe = catchAsync(async (req, res, next) => {
     const userId = req.user?.id;
     if (!userId) return next(new appError("User not authenticated", 401));
 
+    const myTeacher = await teacher.findOne({ where: { id: userId } });
+    if (!myTeacher) return next(new appError("User is not a teacher", 403));
+
     const pfes = await PFE.findAll({
-        where: { createdBy: userId },
         include: [
+            {
+                model: teacher,
+                as: 'supervisors',
+                where: { id: req.user.id },
+                through: { attributes: [] }, 
+                required: true,
+                include: [
+                    {
+                        model: User,
+                        as: 'user',
+                        attributes: ['email'],
+                        required: false
+                    }
+                ]
+            },
             {
                 model: User,
                 as: 'creator',
                 attributes: ['id', 'email'],
                 include: [
-                    { model: teacher, as: 'teacher', attributes: ['firstname', 'lastname'], required: false },
-                    { model: Company, as: 'company', required: false }
-                ]
-            },
-            {
-                model: teacher,
-                as: 'supervisors',
-                required: false,
-                include: [
-                    { model: User, as: 'user', attributes: ['email'], required: false }
+                    {
+                        model: teacher,
+                        as: 'teacher',
+                        attributes: ['firstname', 'lastname'],
+                        required: false
+                    },
+                    {
+                        model: Company,
+                        as: 'company',
+                        required: false
+                    }
                 ]
             }
         ]
     });
 
     if (!pfes || pfes.length === 0) {
-        return next(new appError("You have not created any PFEs.", 404));
+        return next(new appError("You are not supervising any PFEs.", 404));
     }
 
     const formattedPfes = formatPFEUrls(pfes).map((pfe) => ({
@@ -206,6 +277,7 @@ export const getMyPfe = catchAsync(async (req, res, next) => {
 
     res.status(200).json({ status: "success", data: formattedPfes });
 });
+
 
 
 

@@ -335,11 +335,10 @@ const alreadyApproved = await Preflist.findOne({
 });
 
 
-
 export const respondToRequest = catchAsync(async (req, res, next) => {
   const { status } = req.body; // 'ACCEPTED' or 'REJECTED'
   const { id } = req.params;
-  console.log(id)
+  console.log(id);
 
   const request = await SupervisionRequest.findByPk(id);
 
@@ -371,11 +370,31 @@ export const respondToRequest = catchAsync(async (req, res, next) => {
     );
   }
 
+  if (status === 'REJECTED') {
+    const preflist = await Preflist.findAll({
+      where: { teamId: request.teamId },
+      order: [['order', 'ASC']]
+    });
+
+    const currentIndex = preflist.findIndex(p => p.pfeId === request.pfeId);
+    const next = preflist[currentIndex + 1];
+
+    if (next) {
+      await SupervisionRequest.create({
+        teamId: request.teamId,
+        pfeId: next.pfeId,
+        status: 'PENDING',
+        sentAt: new Date()
+      });
+    }
+  }
+
   res.status(200).json({
     status: 'success',
     message: `Request ${status.toLowerCase()} successfully.`
   });
 });
+
 
 
 
