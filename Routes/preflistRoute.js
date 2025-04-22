@@ -4,7 +4,8 @@ import {
   updatePreflist,
   removeFromPreflist,
   respondToRequest,
-  acceptRandomRequestsForMultiplePFEs
+  acceptRandomRequestsForMultiplePFEs,
+  getMyPreflist
 } from '../controllers/preflistController.js';
 import { protect, restrictedfor } from '../middlewares/authmiddleware.js';
 import { upload } from '../utils/cloudinary.js';
@@ -259,6 +260,65 @@ router.post(
     restrictedfor('teacher'),
     acceptRandomRequestsForMultiplePFEs
   );
+
+
+  /**
+ * @swagger
+ * /api/v1/preflist/my:
+ *   get:
+ *     summary: Get the current student's preflist
+ *     tags:
+ *       - Preflist
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved the preflist
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 results:
+ *                   type: integer
+ *                   example: 5
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: integer
+ *                       teamId:
+ *                         type: integer
+ *                       pfeId:
+ *                         type: integer
+ *                       order:
+ *                         type: integer
+ *                       pfe:
+ *                         type: object
+ *                         properties:
+ *                           id:
+ *                             type: integer
+ *                           title:
+ *                             type: string
+ *                           description:
+ *                             type: string
+ *                           year:
+ *                             type: string
+ *                           specialite:
+ *                             type: string
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Student is not in a team
+ *       404:
+ *         description: No preflist found or student not found
+ */
+router.get('/my', protect, getMyPreflist);
   
 
 export default router;

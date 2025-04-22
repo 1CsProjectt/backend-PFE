@@ -289,3 +289,44 @@ export const acceptRandomRequestsForMultiplePFEs = catchAsync(async (req, res, n
   });
 });
 
+
+
+
+export const getMyPreflist = catchAsync(async (req, res, next) => {
+  if (!req.user) {
+    return next(new appError('User not authenticated.', 401));
+  }
+  const mystudent = await Student.findByPk(req.user.id);
+  if (!mystudent) {
+    return next(new appError('Student not found.', 404));
+  }
+
+  const teamId = mystudent.team_id;
+  if (!teamId) {
+    return next(new appError('Student is not in a team.', 403));
+  }
+
+  
+  const preflist = await Preflist.findAll({
+    where: { teamId },
+    order: [['order', 'ASC']],
+    include: [
+      {
+        model: PFE,
+        as: 'pfe', 
+        attributes: ['id', 'title', 'description', 'year', 'specialite'],
+      },
+    ],
+  });
+
+  if (!preflist || preflist.length === 0) {
+    return next(new appError('No preflist found for your team.', 404));
+  }
+
+  res.status(200).json({
+    status: 'success',
+    results: preflist.length,
+    data: preflist,
+  });
+});
+
