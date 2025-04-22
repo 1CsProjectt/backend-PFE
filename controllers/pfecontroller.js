@@ -32,6 +32,7 @@ export const createPFE = catchAsync(async (req, res, next) => {
     }
 
     let supervisorsArray = [];
+    let specialite;
 
     if (role === 'teacher') {
         const myteacher = await teacher.findByPk(userId);
@@ -39,9 +40,9 @@ export const createPFE = catchAsync(async (req, res, next) => {
             return next(new appError('Teacher not found', 404));
         }
         supervisorsArray.push(myteacher.id);
-        const specialite=specialization
+         specialite=specialization
     } else if (role === 'company') {
-       const specialite=null
+        specialite=null
     } else {
         return next(new appError('Invalid role', 403));
     }
