@@ -7,6 +7,9 @@ import SupervisionRequest from '../models/SupervisionRequestModel.js';
 
 import Teacher from '../models/teacherModel.js';
 import Team from '../models/groupModel.js';
+
+
+
 export const createPreflist = catchAsync(async (req, res, next) => {
   const { pfeIds } = req.body;
 
@@ -52,8 +55,8 @@ export const createPreflist = catchAsync(async (req, res, next) => {
   for (const pfe of pfes) {
     if (pfe.year !== studentYear) {
       return next(
-        new appError(
-          PFE ${pfe.id} year (${pfe.year}) does not match student's year (${studentYear}).,
+        new appError(`
+          PFE ${pfe.id} year (${pfe.year}) does not match student's year (${studentYear}).`,
           400
         )
       );
@@ -61,8 +64,8 @@ export const createPreflist = catchAsync(async (req, res, next) => {
     
     if (studentSpec && pfe.specialite !== studentSpec) {
       return next(
-        new appError(
-          PFE ${pfe.id} specialite (${pfe.specialite}) does not match student's specialite (${studentSpec}).,
+        new appError(`
+          PFE ${pfe.id} specialite (${pfe.specialite}) does not match student's specialite (${studentSpec}).`,
           400
         )
       );
@@ -89,7 +92,7 @@ export const createPreflist = catchAsync(async (req, res, next) => {
 
   res.status(201).json({
     status: 'success',
-    message: Preflist created for team ${teamId},
+    message: `Preflist created for team ${teamId}`,
     data: created,
   });
 });
