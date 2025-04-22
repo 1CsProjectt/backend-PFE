@@ -426,10 +426,13 @@ export const acceptRandomRequestsForMultiplePFEs = catchAsync(async (req, res, n
 
 
 export const getAllrequests = catchAsync(async (req, res, next) => {
+  const teacherId = req.user.id; 
+
   const requests = await SupervisionRequest.findAll({
     include: [
       {
         model: PFE,
+        where: { createdBy: teacherId }, 
         attributes: [
           'id',
           'title',
@@ -448,7 +451,7 @@ export const getAllrequests = catchAsync(async (req, res, next) => {
   });
 
   if (!requests || requests.length === 0) {
-    return next(new appError('No requests found', 404));
+    return next(new appError('No requests found for your PFEs', 404));
   }
 
   res.status(200).json({
