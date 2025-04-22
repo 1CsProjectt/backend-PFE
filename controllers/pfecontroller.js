@@ -40,19 +40,7 @@ export const createPFE = catchAsync(async (req, res, next) => {
         }
         supervisorsArray.push(myteacher.id);
     } else if (role === 'company') {
-        if (!supervisor || supervisor.length === 0) {
-            return next(new appError('Company must provide at least one teacher supervisor', 400));
-        }
-
-        supervisorsArray = Array.isArray(supervisor) ? supervisor : [supervisor];
-
-        const validTeachers = await teacher.findAll({
-            where: { id: supervisorsArray }
-        });
-
-        if (validTeachers.length !== supervisorsArray.length) {
-            return next(new appError('One or more supervisors are invalid (must be teachers)', 400));
-        }
+       
     } else {
         return next(new appError('Invalid role', 403));
     }
