@@ -177,15 +177,52 @@ const formatPFEUrls = (pfeList) => {
 export const getAllPFE = catchAsync(async (req, res, next) => {
     const pfeList = await PFE.findAll({
         include: [
-            { model: User, as: "creator", attributes: ["id", "username", "email"] },
-            { model: teacher, as: "supervisors", attributes: ["id", "firstname","lastname"], through: { attributes: [] } }
+            {
+                model: User,
+                as: "creator",
+                attributes: ["id", "username", "email"],
+                include: [
+                    {
+                        model: teacher,
+                        as: "teacher",
+                        attributes: ["firstname", "lastname"],
+                        required: false
+                    },
+                    {
+                        model: Company,
+                        as: "company",
+                        attributes: ["name"],
+                        required: false
+                    }
+                ]
+            },
+            {
+                model: teacher,
+                as: "supervisors",
+                attributes: ["id", "firstname", "lastname"],
+                through: { attributes: [] }
+            }
         ],
     });
 
-    const formattedPFEList = formatPFEUrls(pfeList);
+    const formattedPFEList = formatPFEUrls(pfeList).map(pfe => ({
+        ...pfe,
+        creator: {
+            ...pfe.creator,
+            firstname: pfe.creator?.teacher?.firstname || null,
+            lastname: pfe.creator?.teacher?.lastname || null,
+            companyName: pfe.creator?.company?.name || null,
+            companySector: pfe.creator?.company?.sector || null
+        }
+    }));
 
-    res.status(200).json({ status: "success", count: formattedPFEList.length, pfeList: formattedPFEList });
+    res.status(200).json({
+        status: "success",
+        count: formattedPFEList.length,
+        pfeList: formattedPFEList
+    });
 });
+
 
 
 
