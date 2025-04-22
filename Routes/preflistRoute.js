@@ -7,6 +7,7 @@ import {
   acceptRandomRequestsForMultiplePFEs,
   getMyPreflist,
   approvePreflist,
+  getAllrequests
 } from '../controllers/preflistController.js';
 import { protect, restrictedfor } from '../middlewares/authmiddleware.js';
 import { upload } from '../utils/cloudinary.js';
