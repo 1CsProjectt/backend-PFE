@@ -6,6 +6,7 @@ import PFE from '../models/PFEmodel.js';
 import SupervisionRequest from '../models/SupervisionRequestModel.js';
 
 import Teacher from '../models/teacherModel.js';
+import Team from '../models/groupModel.js';
 
 export const createPreflist = catchAsync(async (req, res, next) => {
   const { pfeIds } = req.body;
