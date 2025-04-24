@@ -473,13 +473,13 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
   let teams = await Team.findAll({ where: { full: false } });
 
   // Clean teams with insufficient members
-  for (const team of teams) {
+  for (let team of teams) { // Changed to `let`
     const members = await Student.findAll({ where: { team_id: team.id } });
     const threshold = Math.round(team.maxNumber / 2) + 1;
 
     if (members.length < threshold) {
       // Remove students from this team and reset their status
-      for (const student of members) {
+      for (let student of members) { // Changed to `let`
         student.team_id = null;
         student.status = 'available';
         await student.save();
@@ -521,7 +521,7 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
 
   if (studentsWithoutATeam.length < overflowThreshold) {
     // Overflow students into existing teams
-    for (const student of studentsWithoutATeam) {
+    for (let student of studentsWithoutATeam) { // Changed to `let`
       const compatibleTeams = allTeams.filter(team =>
         team.members.length < maxNumber && isCompatible(team, student)
       );
@@ -552,7 +552,7 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
         maxNumber,
       });
 
-      for (const student of group) {
+      for (let student of group) { // Changed to `let`
         student.team_id = newTeam.id;
         student.status = 'in a team';
         await student.save();
@@ -573,7 +573,7 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
         maxNumber,
       });
 
-      for (const student of overflowStudents) {
+      for (let student of overflowStudents) { // Changed to `let`
         student.team_id = newTeam.id;
         student.status = 'in a team';
         await student.save();
@@ -595,7 +595,7 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
       }
 
       // Overflow students into existing teams
-      for (let student of overflowStudents) {
+      for (let student of overflowStudents) { // Changed to `let`
         let randomTeam = availableTeams[Math.floor(Math.random() * availableTeams.length)];
         student.team_id = randomTeam.id;
         student.status = 'in a team';
