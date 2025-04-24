@@ -478,12 +478,14 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
     const threshold = Math.round(team.maxNumber / 2) + 1;
 
     if (members.length < threshold) {
+      // Remove students from this team and reset their status
       for (const student of members) {
         student.team_id = null;
         student.status = 'available';
         await student.save();
       }
 
+      // Destroy join requests and the team
       await JoinRequest.destroy({ where: { team_id: team.id } });
       await team.destroy();
     }
@@ -592,8 +594,9 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
         availableTeams.push(newTeam);
       }
 
-      for (const student of overflowStudents) {
-        const randomTeam = availableTeams[Math.floor(Math.random() * availableTeams.length)];
+      // Overflow students into existing teams
+      for (let student of overflowStudents) {
+        let randomTeam = availableTeams[Math.floor(Math.random() * availableTeams.length)];
         student.team_id = randomTeam.id;
         student.status = 'in a team';
         await student.save();
