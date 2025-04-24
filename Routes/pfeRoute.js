@@ -189,7 +189,7 @@ router.post(
  *       404:
  *         description: PFE not found
  */
-router.delete("/delete/:id", protect, restrictedfor('teacher'), deletePFEforcreator);
+router.delete("/delete/:id", protect, restrictedfor('teacher','company'), deletePFEforcreator);
 
 /**
  * @swagger
@@ -385,7 +385,7 @@ router.patch("/:id/validate", protect, restrictedfor("admin"), validatePFE);
  *       404:
  *         description: You have not created any PFEs.
  */
-router.get("/my-pfes", protect, getMyPfe);
+router.get("/my-pfes", protect,restrictedfor('teacher','company'), getMyPfe);
 
 /**
  * @swagger

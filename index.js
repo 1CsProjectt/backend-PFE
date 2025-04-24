@@ -158,6 +158,7 @@ app.use(session({
   
 
 // Routes
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.use(protect,getCurrentSession);
 app.use(injectCurrentSession);
 app.use('/api/v1/users', userRoutes);
@@ -170,7 +171,7 @@ app.use("/api/v1/invitation",invitationRoutes);
 app.use("/api/v1/jointeam",jointeamRoutes);
 app.use("/api/v1/preflist",preflistroute);
 
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
 
 
 app.get("/", (req, res) => {

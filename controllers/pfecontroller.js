@@ -96,19 +96,49 @@ export const deletePFE = catchAsync(async (req, res, next) => {
 
     const deleteCloudinaryFile = async (url) => {
         if (!url) return;
-
+      
         try {
-            const parts = url.split('/');
-            const fileWithExtension = parts[parts.length - 1];
-            const publicId = fileWithExtension.split('.')[0];
-            const folder = url.includes('/raw/') ? 'raw' : 'image';
-            await cloudinary.uploader.destroy(`pfe-uploads/${publicId}`, {
-                resource_type: folder,
-            });
+          const uploadIndex = url.indexOf('/upload/');
+          if (uploadIndex === -1) {
+            console.error('Invalid Cloudinary URL format');
+            return;
+          }
+      
+          const pathAfterUpload = url.substring(uploadIndex + 8);
+          const parts = pathAfterUpload.split('/');
+      
+          // Remove version if present
+          if (parts[0].startsWith('v')) {
+            parts.shift();
+          }
+      
+          const fileWithExtension = parts.pop();
+          let fileNameWithoutExtension = fileWithExtension;
+      
+          // Remove .jpg or .pdf extension if present
+          if (fileWithExtension.endsWith('.jpg')) {
+            fileNameWithoutExtension = fileWithExtension.slice(0, -4);
+          } else if (fileWithExtension.endsWith('.pdf')) {
+            fileNameWithoutExtension = fileWithExtension.slice(0, -4);
+          }
+      
+          parts.push(fileNameWithoutExtension);
+          const publicId = parts.join('/');
+          console.log(`Public ID: ${publicId}`);
+      
+          const resourceType = url.includes('/raw/') ? 'raw' : 'image';
+      
+          await cloudinary.uploader.destroy(publicId, {
+            resource_type: resourceType,
+            invalidate: true,
+          });
+      
+          console.log(`Deleted ${resourceType} from Cloudinary: ${publicId}`);
         } catch (err) {
-            console.error(`Error deleting file from Cloudinary: ${err.message}`);
+          console.error(`Error deleting file from Cloudinary: ${err.message}`);
         }
-    };
+      };
+      
 
     await deleteCloudinaryFile(pfe.pdfFile);
     await deleteCloudinaryFile(pfe.photo);
@@ -138,8 +168,9 @@ export const deletePFEforcreator = catchAsync(async (req, res, next) => {
         return next(new appError("You are not authorized to delete this PFE", 403));
     }
 
-    const deleteCloudinaryFile =async (url) => {
+    const deleteCloudinaryFile = async (url) => {
         if (!url) return;
+      
         try {
           const uploadIndex = url.indexOf('/upload/');
           if (uploadIndex === -1) {
@@ -147,24 +178,45 @@ export const deletePFEforcreator = catchAsync(async (req, res, next) => {
             return;
           }
       
-          const pathAfterUpload = url.substring(uploadIndex + 8); 
-      
+          const pathAfterUpload = url.substring(uploadIndex + 8);
           const parts = pathAfterUpload.split('/');
+      
+          // Remove version if present
           if (parts[0].startsWith('v')) {
-            parts.shift(); 
+            parts.shift();
           }
+      
           const fileWithExtension = parts.pop();
-          const fileName = fileWithExtension.split('.')[0];
-          parts.push(fileName);
+          let fileNameWithoutExtension = fileWithExtension;
+      
+          // Remove .jpg or .pdf extension if present
+          if (fileWithExtension.endsWith('.jpg')) {
+            fileNameWithoutExtension = fileWithExtension.slice(0, -4);
+          } else if (fileWithExtension.endsWith('.pdf')) {
+            fileNameWithoutExtension = fileWithExtension.slice(0, -4);
+          }
+      
+          parts.push(fileNameWithoutExtension);
           const publicId = parts.join('/');
+          console.log(`Public ID: ${publicId}`);
       
           const resourceType = url.includes('/raw/') ? 'raw' : 'image';
       
-          await cloudinary.uploader.destroy(publicId, { resource_type: resourceType });
+          await cloudinary.uploader.destroy(publicId, {
+            resource_type: resourceType,
+            invalidate: true,
+          });
+      
+          console.log(`Deleted ${resourceType} from Cloudinary: ${publicId}`);
         } catch (err) {
           console.error(`Error deleting file from Cloudinary: ${err.message}`);
         }
       };
+      
+      
+      
+      
+      
       
 
     await deleteCloudinaryFile(pfe.pdfFile);
@@ -228,12 +280,12 @@ export const getAllPFE = catchAsync(async (req, res, next) => {
 
 export const getMyPfe = catchAsync(async (req, res, next) => {
     const userId = req.user?.id;
+    let pfes;
     if (!userId) return next(new appError("User not authenticated", 401));
-
+ if (req.user?.role =='teacher'){
     const myTeacher = await teacher.findOne({ where: { id: userId } });
     if (!myTeacher) return next(new appError("User is not a teacher", 403));
-
-    const pfes = await PFE.findAll({
+     pfes = await PFE.findAll({
         include: [
             {
                 model: teacher,
@@ -269,7 +321,43 @@ export const getMyPfe = catchAsync(async (req, res, next) => {
                 ]
             }
         ]
-    });
+    }); }else{
+        const mycompany = await Company.findOne({ where: { id: userId } });
+        if (!mycompany) return next(new appError("User is not a Company", 403));
+         pfes = await PFE.findAll({
+            where: { createdBy: req.user.id },
+            include: [
+              {
+                model: teacher,
+                as: 'supervisors',
+                through: { attributes: [] },
+                include: [
+                  {
+                    model: User,
+                    as: 'user',
+                    attributes: ['email'],
+                  },
+                ],
+              },
+              {
+                model: User,
+                as: 'creator',
+                attributes: ['id', 'email'],
+                include: [
+                  {
+                    model: teacher,
+                    as: 'teacher',
+                    attributes: ['firstname', 'lastname'],
+                  },
+                  {
+                    model: Company,
+                    as: 'company',
+                  },
+                ],
+              },
+            ],
+          });
+     }
 
     if (!pfes || pfes.length === 0) {
         return next(new appError("You are not supervising any PFEs.", 404));

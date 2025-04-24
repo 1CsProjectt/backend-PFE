@@ -14,6 +14,9 @@ cloudinary.config({
 const storage = new CloudinaryStorage({
   cloudinary,
   params: async (req, file) => {
+    const sanitizedFilename = file.originalname
+    .replace(/\s+/g, '_') // 
+    .replace(/[^\w.-]/g, '');
     return {
       folder: 'pfe-uploads',
       resource_type: file.mimetype === 'application/pdf' ? 'raw' : 'image',
