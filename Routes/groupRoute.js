@@ -59,10 +59,12 @@ router.post('/creategroup', protect, restrictedfor('student'), createTeam);
  *             properties:
  *               year:
  *                 type: string
+ *                 example: 2CS
  *                 description: The academic year (e.g., 1CS, 2CS)
  *               specialite:
  *                 type: string
- *                 description: The specialization (required for 2CS only)
+ *                 example: SIQ
+ *                 description: Required only for 2CS students
  *     responses:
  *       200:
  *         description: Students have been automatically organized into teams
