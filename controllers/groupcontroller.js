@@ -438,13 +438,13 @@ export const destroyTeam = catchAsync(async (req, res, next) => {
 
 
 export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
-  const { year, specialite } = req.body;
+  const { yearr, specialite } = req.body;
 
   // Validate input
-  if (!year) {
+  if (!yearr) {
     return next(new appError('Year is required', 400));
   }
-  year = year.toUpperCase(); 
+  let year = yearr.toUpperCase(); 
 
   let whereClause = {
     team_id: null,
