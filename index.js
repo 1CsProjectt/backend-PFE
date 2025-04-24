@@ -164,7 +164,7 @@ app.use(injectCurrentSession);
 app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/pfe', pfeRoutes);
-app.use("/api/v1/session", eventRoutes);x
+app.use("/api/v1/session", eventRoutes);
 app.use("/api/v1/student", studentroute);
 app.use("/api/v1/teams", groupRoutes);
 app.use("/api/v1/invitation",invitationRoutes);
