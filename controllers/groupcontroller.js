@@ -442,7 +442,7 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
 
   // Validate input
   if (!yearr) {
-    return next(new appError('Yearr is required', 400));
+    return next(new appError('yearr is required', 400));
   }
   let year = yearr.toUpperCase();
 
@@ -452,6 +452,7 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
     year,
   };
 
+  // Special check for '2CS' year
   if (year === '2CS') {
     if (!specialite) {
       return next(new appError('Specialite is required for 2CS', 400));
@@ -473,13 +474,13 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
   let teams = await Team.findAll({ where: { full: false } });
 
   // Clean teams with insufficient members
-  for (let team of teams) {  // Changed to let
+  for (let team of teams) {
     const members = await Student.findAll({ where: { team_id: team.id } });
     const threshold = Math.round(team.maxNumber / 2) + 1;
 
     if (members.length < threshold) {
       // Remove students from this team and reset their status
-      for (let student of members) {  // Changed to let
+      for (let student of members) {
         student.team_id = null;
         student.status = 'available';
         await student.save();
@@ -521,7 +522,7 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
 
   if (studentsWithoutATeam.length < overflowThreshold) {
     // Overflow students into existing teams
-    for (let student of studentsWithoutATeam) {  // Changed to let
+    for (let student of studentsWithoutATeam) {
       const compatibleTeams = allTeams.filter(team =>
         team.members.length < maxNumber && isCompatible(team, student)
       );
@@ -552,7 +553,7 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
         maxNumber,
       });
 
-      for (let student of group) {  // Changed to let
+      for (let student of group) {
         student.team_id = newTeam.id;
         student.status = 'in a team';
         await student.save();
@@ -573,7 +574,7 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
         maxNumber,
       });
 
-      for (let student of overflowStudents) {  // Changed to let
+      for (let student of overflowStudents) {
         student.team_id = newTeam.id;
         student.status = 'in a team';
         await student.save();
@@ -595,7 +596,7 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
       }
 
       // Overflow students into existing teams
-      for (let student of overflowStudents) {  // Changed to let
+      for (let student of overflowStudents) {
         let randomTeam = availableTeams[Math.floor(Math.random() * availableTeams.length)];
         student.team_id = randomTeam.id;
         student.status = 'in a team';
@@ -609,6 +610,7 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
     message: 'Students have been automatically organized into teams',
   });
 });
+
 
 
 
