@@ -442,7 +442,7 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
 
   // Validate input
   if (!yearr) {
-    return next(new appError('Year is required', 400));
+    return next(new appError('Yearr is required', 400));
   }
   let year = yearr.toUpperCase();
 
