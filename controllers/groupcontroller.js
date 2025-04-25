@@ -519,8 +519,8 @@ for (const team of weakTeams) {
   
 
 
-  await JoinRequest.destroy({ where: { team_id: team.id } });
-  await team.destroy();
+  await JoinRequest.destroy({ where: { team_id: 287 } });
+  await team.destroy({ where: { team_id: 287 } });
   return res.status(200).json({
   status: 'success',
   message: `team ${team.id} is weak and will be removed`,
