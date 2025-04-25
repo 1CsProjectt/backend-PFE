@@ -87,7 +87,7 @@ router.get('/:team_id/students', protect, getStudentsByTeam);
  *       404:
  *         description: Student not found
  */
-router.put('/set-role', protect, restrictedfor('student'), setStudentRole);
+router.patch('/set-role', protect, restrictedfor('student'), setStudentRole);
 
 /**
  * @swagger
