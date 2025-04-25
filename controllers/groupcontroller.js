@@ -600,7 +600,7 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
 
   res.status(200).json({
     status: 'success',
-    message: 'Students have been automatically organized into teams',
+    message: 'Students have been automatically organized into teamssssssssssssss',
   });
 });
 
