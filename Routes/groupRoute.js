@@ -45,6 +45,10 @@ router.post('/creategroup', protect, restrictedfor('student'), createTeam);
  * /api/v1/team/autoOrganizeTeams:
  *   post:
  *     summary: Automatically organize students into teams
+ *     description: |
+ *       Automatically assigns students to teams based on their year and specialization.
+ *       - If one or more students from **3CS** are found without a team, a separate team will be created for each of them and no other students will be processed.
+ *       - For other years, students are grouped into teams according to compatibility rules and team size.
  *     tags: [Team]
  *     security:
  *       - bearerAuth: []
@@ -60,14 +64,14 @@ router.post('/creategroup', protect, restrictedfor('student'), createTeam);
  *               year:
  *                 type: string
  *                 example: 2CS
- *                 description: The academic year (e.g., 1CS, 2CS)
+ *                 description: The academic year of the students (e.g., 1CS, 2CS, 3CS)
  *               specialite:
  *                 type: string
  *                 example: SIW
  *                 description: Required only for 2CS students (e.g., ISI, SIW, IASD)
  *     responses:
  *       200:
- *         description: Students have been automatically organized into teams
+ *         description: Students have been automatically organized into teams or 3CS students have been assigned to individual teams
  *       400:
  *         description: Missing required parameters or invalid input
  *       401:
