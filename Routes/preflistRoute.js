@@ -654,7 +654,7 @@ router.get('/my', protect, getMyPreflist);
  *         description: Preflist not found
  */
 router.post(
-  '/:teamId/approve',
+  '/approve',
   protect,
   restrictedfor('student'),
   approvePreflist

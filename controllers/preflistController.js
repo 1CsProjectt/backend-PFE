@@ -7,6 +7,7 @@ import SupervisionRequest from '../models/SupervisionRequestModel.js';
 
 import teacher from '../models/teacherModel.js';
 import Team from '../models/groupModel.js';
+import app from '../index.js';
 
 
 
@@ -176,8 +177,17 @@ export const createPreflist = catchAsync(async (req, res, next) => {
 });
 
 export const approvePreflist = catchAsync(async (req, res, next) => {
+  if (!req.user){
+    next(new appError('Forbiden : you are not logged in !!!',403))
+  }
+  const mystudent=await Student.findByPk(req.user.id)
 
-  const { teamId } = req.params;
+  if (!mystudent){
+    next (new appError('student not found ',403))
+  }
+
+
+  const teamId  = mystudent.team_id;
   const entries = await Preflist.findAll({
     where: { teamId },
     order: [['order', 'ASC']]
