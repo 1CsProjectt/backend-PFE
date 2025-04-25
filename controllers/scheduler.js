@@ -1,3 +1,4 @@
+process.env.TZ = 'Europe/Algiers';
 import cron from 'node-cron';
 import { Op } from 'sequelize';
 import SupervisionRequest from '../models/SupervisionRequestModel.js';
@@ -55,6 +56,4 @@ cron.schedule('* * * * *', async () => {
   } catch (error) {
     console.error('Error processing expired supervision requests:', error);
   }
-},{
-  timezone: 'Europe/Algiers'
 });
