@@ -463,6 +463,8 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
   // Step 1: Get students without a team
   let studentsWithoutATeam = await Student.findAll({ where: whereClause });
 
+  console.log("Students without a team:", studentsWithoutATeam);  // Debugging line
+
   if (studentsWithoutATeam.length === 0) {
     return res.status(200).json({
       status: 'success',
@@ -480,6 +482,8 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
       },
     ],
   });
+
+  console.log("Teams to check:", teamsToCheck);  // Debugging line
 
   let weakTeams = []; // This will store teams that are too small
 
@@ -504,6 +508,7 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
     weakTeams: weakTeams, // This will show the teams with fewer than maxNumber / 2 + 1 members
   });
 });
+
 
 
 
