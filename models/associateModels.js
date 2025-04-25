@@ -46,8 +46,8 @@ JoinRequest.belongsTo(Student, {
   onDelete: "CASCADE"
 });
 
-Team.hasMany(Preflist, { foreignKey: 'teamId' });
-Preflist.belongsTo(Team, { foreignKey: 'teamId',as: 'preflists' });
+Team.hasMany(Preflist, { foreignKey: 'teamId',as: 'preflists' });
+Preflist.belongsTo(Team, { foreignKey: 'teamId', as: 'team' });
 
 PFE.hasMany(Preflist, { foreignKey: 'pfeId' });
 Preflist.belongsTo(PFE, { foreignKey: 'pfeId' });
