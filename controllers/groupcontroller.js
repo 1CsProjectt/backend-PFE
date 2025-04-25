@@ -568,7 +568,7 @@ for (const student of studentsWithoutATeam) {
   const compatibleTeams = allTeams.filter(team => isCompatible(team, student));
   return res.status(200).json({
     status: 'success',
-    message: `Compatible teams for student ${student.id}`,
+    message: `Compatible teams for studentttttttttttt ${student.id}`,
     compatibleTeams: compatibleTeams.map(t => t.id),
   });
 
