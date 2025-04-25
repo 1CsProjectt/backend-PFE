@@ -463,14 +463,27 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
   // Step 1: Get students without a team
   let studentsWithoutATeam = await Student.findAll({ where: whereClause });
 
-  console.log("Students without a team:", studentsWithoutATeam);  // Debugging line
-
+  // Return the list of students without a team for debugging
   if (studentsWithoutATeam.length === 0) {
     return res.status(200).json({
       status: 'success',
       message: 'All students are already in teams',
+      studentsWithoutATeam: [], // Send empty array if no students without team
     });
   }
+
+  // Send the list of students without a team in the response for debugging
+  res.status(200).json({
+    status: 'success',
+    message: 'Students without a team',
+    studentsWithoutATeam: studentsWithoutATeam.map(student => ({
+      id: student.id,
+      year: student.year,
+      specialite: student.specialite,
+      status: student.status,
+      team_id: student.team_id,
+    })),
+  });
 
   // Step 2: Check teams with fewer members than the threshold
   const teamsToCheck = await Team.findAll({
@@ -482,8 +495,6 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
       },
     ],
   });
-
-  console.log("Teams to check:", teamsToCheck);  // Debugging line
 
   let weakTeams = []; // This will store teams that are too small
 
@@ -502,14 +513,12 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
     }
   }
 
-  // Return weak teams in the response for debugging
+  // Send the weak teams in the response for debugging
   return res.status(200).json({
     status: 'success',
     weakTeams: weakTeams, // This will show the teams with fewer than maxNumber / 2 + 1 members
   });
 });
-
-
 
 
 
