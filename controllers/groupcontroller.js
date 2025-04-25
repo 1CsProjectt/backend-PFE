@@ -470,7 +470,7 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
     });
   }
 
-  // Step 2: Clean weak teams
+  // Step 2: Get all teams to check for weak teams
   const teamsToCheck = await Team.findAll({
     include: [
       {
@@ -481,24 +481,26 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
     ],
   });
 
-  // Find teams with fewer members than maxNumber / 2 + 1
+  // Step 3: Find weak teams (teams with fewer members than maxNumber / 2 + 1)
   const weakTeams = teamsToCheck.filter(team => {
     const members = team.members || [];
     const threshold = Math.round(team.maxNumber / 2) + 1;
-    return members.length < threshold;
+    return members.length < threshold; // Teams with fewer than the threshold
   });
 
-  // For debugging: Send response with weak teams
+  // Step 4: Send response with weak teams
   res.status(200).json({
     status: 'success',
-    message: 'Weak teams',
+    message: 'Weak teams found',
     weakTeams: weakTeams.map(team => ({
       teamId: team.id,
-      members: team.members.length,
+      teamName: team.groupName,
+      numMembers: team.members.length,
+      maxNumber: team.maxNumber,
     })),
   });
 
-  // Step 3: Process each weak team
+  // Step 5: Clean up weak teams
   for (const team of weakTeams) {
     const members = team.members || [];
     for (const student of members) {
@@ -519,6 +521,7 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
     message: 'Weak teams have been cleaned',
   });
 });
+
 
 
 
