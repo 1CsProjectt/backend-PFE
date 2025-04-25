@@ -198,7 +198,10 @@ export const getAllTeams = catchAsync(async (req, res, next) => {
       },{
         model: Preflist,
         as: 'preflists',
-        attributes: ['ML'],
+        separate: true,  
+        limit: 1,          
+        order: [['order', 'ASC']],
+        attributes: ['ML']
       }
     ],
     attributes: ['id', 'groupName', 'supervisorId', 'maxNumber', 'createdAt']
