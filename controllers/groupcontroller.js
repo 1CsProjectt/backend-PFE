@@ -498,7 +498,7 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
   // Refresh students and teams after cleanup
   studentsWithoutATeam = await Student.findAll({ where: whereClause });
 
-  // Get all teams again with their members
+  // Get all available teams again with their members
   let allTeams = await Team.findAll({
     where: { full: false },
     include: [
@@ -517,83 +517,27 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
     const members = team.members;
     const sameYear = members.every(m => m.year === student.year);
 
-    if (year === '2CS') {
+    if (student.year === '2CS') {
       const sameSpec = members.every(m => m.specialite === student.specialite);
       return sameYear && sameSpec;
     }
+
     return sameYear;
   };
 
-  // CASE 1: No existing teams at all
-  if (allTeams.length === 0) {
-    let index = 0;
+  // Check for compatible teams
+  const hasCompatibleTeam = allTeams.some(team => {
+    const members = team.members;
+    const sameYear = members.every(m => m.year === year);
 
-    while (studentsWithoutATeam.length - index >= maxNumber) {
-      const group = studentsWithoutATeam.slice(index, index + maxNumber);
-
-      const newTeam = await Team.create({
-        groupName: `Group-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
-        maxNumber,
-      });
-
-      for (const student of group) {
-        student.team_id = newTeam.id;
-        student.status = 'in a team';
-        await student.save();
-      }
-
-      newTeam.full = true;
-      await newTeam.save();
-      index += maxNumber;
+    if (year === '2CS') {
+      return sameYear && members.every(m => m.specialite === specialite);
     }
 
-    const overflowStudents = studentsWithoutATeam.slice(index);
-    if (overflowStudents.length > 0) {
-      const newTeam = await Team.create({
-        groupName: `Group-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
-        maxNumber,
-      });
+    return sameYear;
+  });
 
-      for (const student of overflowStudents) {
-        student.team_id = newTeam.id;
-        student.status = 'in a team';
-        await student.save();
-      }
-
-      if (overflowStudents.length === maxNumber) {
-        newTeam.full = true;
-        await newTeam.save();
-      }
-    }
-
-    return res.status(200).json({
-      status: 'success',
-      message: 'Teams created from scratch',
-    });
-  }
-
-  // CASE 2 & 3: Overflow logic
-  if (studentsWithoutATeam.length < overflowThreshold) {
-    // Overflow students into existing teams
-    for (const student of studentsWithoutATeam) {
-      let compatibleTeams = allTeams.filter(team => {
-        return team.members.length < maxNumber && isCompatible(team, student);
-      });
-
-      if (compatibleTeams.length === 0) continue;
-
-      const chosenTeam = compatibleTeams[Math.floor(Math.random() * compatibleTeams.length)];
-      student.team_id = chosenTeam.id;
-      student.status = 'in a team';
-      await student.save();
-
-      const count = await Student.count({ where: { team_id: chosenTeam.id } });
-      if (count >= chosenTeam.maxNumber && !chosenTeam.full) {
-        chosenTeam.full = true;
-        await chosenTeam.save();
-      }
-    }
-  } else {
+  if (!hasCompatibleTeam || studentsWithoutATeam.length >= overflowThreshold) {
     let index = 0;
     const newTeams = [];
 
@@ -648,17 +592,46 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
       }
 
       for (const student of overflowStudents) {
-        const randomTeam = availableTeams[Math.floor(Math.random() * availableTeams.length)];
+        const compatibleTeams = availableTeams.filter(team => isCompatible(team, student));
+        if (compatibleTeams.length === 0) continue;
+
+        const randomTeam = compatibleTeams[Math.floor(Math.random() * compatibleTeams.length)];
         student.team_id = randomTeam.id;
         student.status = 'in a team';
         await student.save();
+
+        const count = await Student.count({ where: { team_id: randomTeam.id } });
+        if (count >= randomTeam.maxNumber && !randomTeam.full) {
+          randomTeam.full = true;
+          await randomTeam.save();
+        }
+      }
+    }
+  } else {
+    // Overflow students into existing compatible teams
+    for (const student of studentsWithoutATeam) {
+      const compatibleTeams = allTeams.filter(team => {
+        return team.members.length < maxNumber && isCompatible(team, student);
+      });
+
+      if (compatibleTeams.length === 0) continue;
+
+      const chosenTeam = compatibleTeams[Math.floor(Math.random() * compatibleTeams.length)];
+      student.team_id = chosenTeam.id;
+      student.status = 'in a team';
+      await student.save();
+
+      const count = await Student.count({ where: { team_id: chosenTeam.id } });
+      if (count >= chosenTeam.maxNumber && !chosenTeam.full) {
+        chosenTeam.full = true;
+        await chosenTeam.save();
       }
     }
   }
 
   res.status(200).json({
     status: 'success',
-    message: 'Students have been automatically organized into teamsssssssssssssss',
+    message: 'Students have been automatically organized into teamssssssssssssssssssss',
   });
 });
 
