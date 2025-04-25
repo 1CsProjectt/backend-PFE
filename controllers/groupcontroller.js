@@ -519,12 +519,9 @@ for (const team of weakTeams) {
   
 
 
-  await JoinRequest.destroy({ where: { team_id: 287 } });
-  await team.destroy({ where: { team_id: 287 } });
-  return res.status(200).json({
-  status: 'success',
-  message: `team ${team.id} is weak and will be removed`,
-})
+  await JoinRequest.destroy({ where: { team_id: team.id } });
+  await team.destroy();
+  
 }
 // return res.status(200).json({
 //   status: 'success',
@@ -533,7 +530,7 @@ for (const team of weakTeams) {
 // });
 
 
-return
+
 
 
   // Step 3: Refresh data
@@ -564,40 +561,32 @@ return
   };
 
   // Step 4: Assign students
-  if (studentsWithoutATeam.length < overflowThreshold) {
-    // Put remaining into existing teams if possible
-    for (const student of studentsWithoutATeam) {
-      let compatibleTeams = allTeams.filter(team => {
-        const count = team.members?.length || 0;
-        return count < maxNumber && isCompatible(team, student);
-      });
+ if (studentsWithoutATeam.length < overflowThreshold) {
+  // Overflow case: try to assign to existing teams only
+  for (const student of studentsWithoutATeam) {
+    let compatibleTeams = allTeams.filter(team => {
+      const count = team.members?.length || 0;
+      return count < maxNumber && isCompatible(team, student);
+    });
 
-      if (compatibleTeams.length === 0) {
-        // No compatible team, create new one
-        const newTeam = await Team.create({
-          groupName: `Group-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
-          maxNumber,
-        });
+    if (compatibleTeams.length > 0) {
+      const chosenTeam = compatibleTeams[Math.floor(Math.random() * compatibleTeams.length)];
+      student.team_id = chosenTeam.id;
+      student.status = 'in a team';
+      await student.save();
 
-        student.team_id = newTeam.id;
-        student.status = 'in a team';
-        await student.save();
-        allTeams.push({ ...newTeam.dataValues, members: [student] });
-      } else {
-        const chosenTeam = compatibleTeams[Math.floor(Math.random() * compatibleTeams.length)];
-        student.team_id = chosenTeam.id;
-        student.status = 'in a team';
-        await student.save();
-
-        const count = await Student.count({ where: { team_id: chosenTeam.id } });
-        if (count >= maxNumber && !chosenTeam.full) {
-          chosenTeam.full = true;
-          await chosenTeam.save();
-        }
-        chosenTeam.members.push(student); // Keep team in sync
+      const count = await Student.count({ where: { team_id: chosenTeam.id } });
+      if (count >= maxNumber && !chosenTeam.full) {
+        chosenTeam.full = true;
+        await chosenTeam.save();
       }
+      chosenTeam.members.push(student); // Keep in sync
+    } else {
+      // No compatible teams found, student stays without team
+      console.log(`No compatible team found for student ${student.id}`);
     }
-  } else {
+  }
+} else {
     // Create as many full teams as possible
     let index = 0;
     const newTeams = [];
