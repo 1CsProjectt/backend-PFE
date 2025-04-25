@@ -474,21 +474,21 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
   // Step 2: Clean weak teams
  // Step 1: Get all teams to check for weak teams
   const teamsToCheck = await Team.findAll({
-  include: [
-    {
-      model: Student,
-      as: 'members',
-      attributes: ['id'],
-    },
-  ],
-});
+    include: [
+      {
+        model: Student,
+        as: 'members',
+        attributes: ['id'],
+      },
+    ],
+  });
 
-// Step 1: Find weak teams (teams with fewer members than maxNumber / 2 + 1)
-const weakTeams = teamsToCheck.filter(team => {
-  const members = team.members || [];
-  const threshold = Math.round(team.maxNumber / 2) + 1;
-  return members.length < threshold;
-});
+  // Step 2: Find weak teams (teams with fewer members than maxNumber / 2 + 1)
+  const weakTeams = teamsToCheck.filter(team => {
+    const members = team.members;
+    const threshold = Math.round(team.maxNumber / 2) + 1;
+    return members.length < threshold; // Teams with fewer than the threshold
+  });
 
 // Step 2: Clean up weak teams
 for (const team of weakTeams) {
