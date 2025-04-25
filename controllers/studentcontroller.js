@@ -30,6 +30,19 @@ export const getStudentsByTeam =catchAsync( async (req, res,next) => {
           model: User,
           as: "user", 
           attributes: ['email', 'username']
+        },{
+          model: Team, 
+          as: 'team',
+          include: [
+            {
+              model: Preflist,
+              as: 'preflists',
+              separate: true,  
+              limit: 1,          
+              order: [['order', 'ASC']],
+              attributes: ['ML']
+            }
+          ]
         }
       ]
     });
