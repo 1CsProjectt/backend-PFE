@@ -4,7 +4,7 @@ import Student from '../models/studenModel.js';
 import User from '../models/UserModel.js';
 import JoinRequest from '../models/jointeamModel.js'; 
 import teacher from '../models/teacherModel.js';
-
+import Preflist from '../models/preflistModel.js';
 import { catchAsync } from '../utils/catchAsync.js';
 import { Op, Sequelize } from "sequelize";
 
@@ -195,6 +195,13 @@ export const getAllTeams = catchAsync(async (req, res, next) => {
             attributes: ['email'],
           }
         ]
+      },{
+        model: Preflist,
+        as: 'preflists',
+        separate: true,  
+        limit: 1,          
+        order: [['order', 'ASC']],
+        attributes: ['ML']
       }
     ],
     attributes: ['id', 'groupName', 'supervisorId', 'maxNumber', 'createdAt']

@@ -47,7 +47,7 @@ JoinRequest.belongsTo(Student, {
 });
 
 Team.hasMany(Preflist, { foreignKey: 'teamId' });
-Preflist.belongsTo(Team, { foreignKey: 'teamId' });
+Preflist.belongsTo(Team, { foreignKey: 'teamId',as: 'preflists' });
 
 PFE.hasMany(Preflist, { foreignKey: 'pfeId' });
 Preflist.belongsTo(PFE, { foreignKey: 'pfeId' });
