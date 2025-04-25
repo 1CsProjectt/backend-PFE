@@ -738,6 +738,7 @@ export const autoAssignPfesToTeamsWithoutPfe = catchAsync(async (req, res, next)
   const teamsWithoutPFE = await Team.findAll({
     where: { pfe_id: null },
   });
+ 
 
   if (teamsWithoutPFE.length === 0) {
     return next(new appError('All teams already have assigned PFEs', 404));

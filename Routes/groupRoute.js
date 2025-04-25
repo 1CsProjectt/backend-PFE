@@ -55,16 +55,16 @@ router.post('/creategroup', protect, restrictedfor('student'), createTeam);
  *           schema:
  *             type: object
  *             required:
- *               - yearr
+ *               - year
  *             properties:
- *               yearr:
+ *               year:
  *                 type: string
  *                 example: 2CS
  *                 description: The academic year (e.g., 1CS, 2CS)
  *               specialite:
  *                 type: string
- *                 example: SIQ
- *                 description: Required only for 2CS students
+ *                 example: SIW
+ *                 description: Required only for 2CS students (e.g., ISI, SIW, IASD)
  *     responses:
  *       200:
  *         description: Students have been automatically organized into teams
@@ -77,6 +77,7 @@ router.post('/creategroup', protect, restrictedfor('student'), createTeam);
  *       500:
  *         description: Internal Server Error - Something went wrong on the server
  */
+
 
 router.post('/autoOrganizeTeams', protect, restrictedfor('admin'), autoOrganizeTeams);
 

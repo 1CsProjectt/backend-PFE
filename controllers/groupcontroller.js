@@ -473,6 +473,35 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
       message: 'No students available for team assignment',
     });
   }
+  const students3CS = studentsWithoutATeam.filter(s => s.year.toUpperCase() === '3CS');
+ 
+  // Assign 3CS students to individual teams
+  // Check if there are any 3CS students without a team
+  if (students3CS.length === 0) {
+    return res.status(200).json({
+      status: 'success',
+      message: 'No 3CS students available for individual team assignment',
+    });
+  }
+  // Create individual teams for each 3CS student
+if (students3CS.length > 0) {
+  for (const student of students3CS) {
+    const newTeam = await Team.create({
+      groupName: `Group-3CS-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
+      maxNumber: 1,
+      full: true,
+    });
+
+    student.team_id = newTeam.id;
+    student.status = 'in a team';
+    await student.save();
+  }
+
+  return res.status(200).json({
+    status: 'success',
+    message: '3CS students have been assigned to individual teams',
+  });
+}
 
   // Step 2: Clean weak teams
   const teamsToCheck = await Team.findAll({
