@@ -572,7 +572,7 @@ for (const team of weakTeams) {
       message: 'compatible teams',
       teams: compatibleTeams.map(team => team.id),
     });
-    
+
     if (compatibleTeams.length > 0) {
       const chosenTeam = compatibleTeams[Math.floor(Math.random() * compatibleTeams.length)];
       student.team_id = chosenTeam.id;
