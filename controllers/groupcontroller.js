@@ -560,11 +560,7 @@ for (const team of weakTeams) {
     return sameYear;
   };
 
-  return res.status(200).json({
-    status: 'success',
-    message: 'Students without a team',
-    studentsWithoutATeam: studentsWithoutATeam.length
-  });
+
 
   // Step 4: Assign students
  if (studentsWithoutATeam.length < overflowThreshold) {
@@ -574,6 +570,12 @@ for (const team of weakTeams) {
       const count = team.members?.length || 0;
       return count < maxNumber && isCompatible(team, student);
     });
+
+      return res.status(200).json({
+    status: 'success',
+    message: 'compatible teams',
+    compatibleTeams: compatibleTeams.map(team => team.id),
+  });
 
     if (compatibleTeams.length > 0) {
       const chosenTeam = compatibleTeams[Math.floor(Math.random() * compatibleTeams.length)];
@@ -592,70 +594,73 @@ for (const team of weakTeams) {
       console.log(`No compatible team found for student ${student.id}`);
     }
   }
-} else {
-    // Create as many full teams as possible
-    let index = 0;
-    const newTeams = [];
+} 
 
-    while (studentsWithoutATeam.length - index >= maxNumber) {
-      const group = studentsWithoutATeam.slice(index, index + maxNumber);
 
-      const newTeam = await Team.create({
-        groupName: `Group-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
-        maxNumber,
-        full: true,
-      });
+// else {
+//     // Create as many full teams as possible
+//     let index = 0;
+//     const newTeams = [];
 
-      for (const student of group) {
-        student.team_id = newTeam.id;
-        student.status = 'in a team';
-        await student.save();
-      }
+//     while (studentsWithoutATeam.length - index >= maxNumber) {
+//       const group = studentsWithoutATeam.slice(index, index + maxNumber);
 
-      newTeams.push({ ...newTeam.dataValues, members: group });
-      index += maxNumber;
-    }
+//       const newTeam = await Team.create({
+//         groupName: `Group-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
+//         maxNumber,
+//         full: true,
+//       });
 
-    const overflowStudents = studentsWithoutATeam.slice(index);
-    const availableTeams = [...allTeams, ...newTeams];
+//       for (const student of group) {
+//         student.team_id = newTeam.id;
+//         student.status = 'in a team';
+//         await student.save();
+//       }
 
-    for (const student of overflowStudents) {
-      let compatibleTeams = availableTeams.filter(team => {
-        const count = team.members?.length || 0;
-        return count < maxNumber && isCompatible(team, student);
-      });
+//       newTeams.push({ ...newTeam.dataValues, members: group });
+//       index += maxNumber;
+//     }
 
-      if (compatibleTeams.length === 0) {
-        const newTeam = await Team.create({
-          groupName: `Group-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
-          maxNumber,
-        });
+//     const overflowStudents = studentsWithoutATeam.slice(index);
+//     const availableTeams = [...allTeams, ...newTeams];
 
-        student.team_id = newTeam.id;
-        student.status = 'in a team';
-        await student.save();
+//     for (const student of overflowStudents) {
+//       let compatibleTeams = availableTeams.filter(team => {
+//         const count = team.members?.length || 0;
+//         return count < maxNumber && isCompatible(team, student);
+//       });
 
-        newTeam.members = [student];
-        availableTeams.push(newTeam);
-      } else {
-        const chosenTeam = compatibleTeams[Math.floor(Math.random() * compatibleTeams.length)];
-        student.team_id = chosenTeam.id;
-        student.status = 'in a team';
-        await student.save();
+//       if (compatibleTeams.length === 0) {
+//         const newTeam = await Team.create({
+//           groupName: `Group-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
+//           maxNumber,
+//         });
 
-        const count = await Student.count({ where: { team_id: chosenTeam.id } });
-        if (count >= maxNumber && !chosenTeam.full) {
-          chosenTeam.full = true;
-          await chosenTeam.save();
-        }
-        chosenTeam.members.push(student);
-      }
-    }
-  }
+//         student.team_id = newTeam.id;
+//         student.status = 'in a team';
+//         await student.save();
 
-  return res.status(200).json({
-    status: 'success',
-    message: 'Students have been automatically organized into teams',
-  });
+//         newTeam.members = [student];
+//         availableTeams.push(newTeam);
+//       } else {
+//         const chosenTeam = compatibleTeams[Math.floor(Math.random() * compatibleTeams.length)];
+//         student.team_id = chosenTeam.id;
+//         student.status = 'in a team';
+//         await student.save();
+
+//         const count = await Student.count({ where: { team_id: chosenTeam.id } });
+//         if (count >= maxNumber && !chosenTeam.full) {
+//           chosenTeam.full = true;
+//           await chosenTeam.save();
+//         }
+//         chosenTeam.members.push(student);
+//       }
+//     }
+//   }
+
+//   return res.status(200).json({
+//     status: 'success',
+//     message: 'Students have been automatically organized into teams',
+//   });
 });
 
