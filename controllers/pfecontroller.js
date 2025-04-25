@@ -735,19 +735,16 @@ export const autoAssignPfesToTeamsWithoutPfe = catchAsync(async (req, res, next)
     return next(new appError('Specialite is required for 2CS and 3CS', 400));
   }
 
+  // Retrieve teams that have no assigned PFE
   const teamsWithoutPFE = await Team.findAll({
     where: { pfe_id: null },
-  });
-  return res.status(200).json({
-    status: 'success',
-    message: 'Teams without PFE retrieved successfully',
-    teamsWithoutPFE,
   });
 
   if (teamsWithoutPFE.length === 0) {
     return next(new appError('All teams already have assigned PFEs', 404));
   }
 
+  // Retrieve all used PFEs
   const usedPfeIds = await Team.findAll({
     where: {
       pfe_id: {
@@ -760,6 +757,7 @@ export const autoAssignPfesToTeamsWithoutPfe = catchAsync(async (req, res, next)
   const usedIds = new Set(usedPfeIds.map(team => team.pfe_id));
   const assignmentLog = [];
 
+  // First, try to assign PFEs to teams without PFE based on year and specialite
   for (const team of teamsWithoutPFE) {
     const students = await Student.findAll({
       where: { team_id: team.id },
@@ -782,6 +780,7 @@ export const autoAssignPfesToTeamsWithoutPfe = catchAsync(async (req, res, next)
       pfeWhere.specialization = studentSpecialite;
     }
 
+    // Exclude already used PFEs for 3CS
     if (studentYear === '3CS') {
       pfeWhere.id = { [Op.notIn]: Array.from(usedIds) };
     }
@@ -792,6 +791,7 @@ export const autoAssignPfesToTeamsWithoutPfe = catchAsync(async (req, res, next)
 
     const selectedPfe = availablePfes[Math.floor(Math.random() * availablePfes.length)];
 
+    // Assign the PFE to the team
     team.pfe_id = selectedPfe.id;
     await team.save();
 
@@ -807,12 +807,39 @@ export const autoAssignPfesToTeamsWithoutPfe = catchAsync(async (req, res, next)
     });
   }
 
+  // If there are still teams without PFE and PFEs have been exhausted, allow random assignment
+  const remainingTeams = await Team.findAll({
+    where: { pfe_id: null },
+  });
+
+  if (remainingTeams.length > 0 && upperYear !== '3CS') {
+    // If we're not dealing with 3CS, randomly assign remaining PFEs
+    const allPfes = await PFE.findAll();
+    const unassignedPfes = allPfes.filter(pfe => !usedIds.has(pfe.id));
+
+    for (const team of remainingTeams) {
+      if (unassignedPfes.length === 0) break;
+
+      const selectedPfe = unassignedPfes[Math.floor(Math.random() * unassignedPfes.length)];
+      team.pfe_id = selectedPfe.id;
+      await team.save();
+      
+      usedIds.add(selectedPfe.id);  // Mark as used
+      assignmentLog.push({
+        teamId: team.id,
+        pfeTitle: selectedPfe.title,
+        year: upperYear,
+      });
+    }
+  }
+
   res.status(200).json({
     status: 'success',
     message: 'PFEs successfully assigned to teams',
     assigned: assignmentLog,
   });
 });
+
 
 export const changePfeForTeam = catchAsync(async (req, res, next) => {
     const { teamId, newPfeId } = req.body;
