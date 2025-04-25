@@ -9,7 +9,8 @@ import {
   approvePreflist,
   getAllrequests,
   filterRequestsByGrade,
-  filterRequestsBySpecialization
+  filterRequestsBySpecialization,
+  getpreflist
 } from '../controllers/preflistController.js';
 import { protect, restrictedfor } from '../middlewares/authmiddleware.js';
 import { upload } from '../utils/cloudinary.js';
@@ -659,6 +660,73 @@ router.post(
   restrictedfor('student'),
   approvePreflist
 );
+
+
+/**
+ * @swagger
+ * /api/v1/preflist/{teamId}:
+ *   get:
+ *     summary: Get preflist by team ID
+ *     tags:
+ *       - Preflist
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - name: teamId
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: The ID of the team
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved the preflist
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 results:
+ *                   type: integer
+ *                   example: 5
+ *                 data:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: integer
+ *                       teamId:
+ *                         type: integer
+ *                       pfeId:
+ *                         type: integer
+ *                       order:
+ *                         type: integer
+ *                       pfe:
+ *                         type: object
+ *                         properties:
+ *                           id:
+ *                             type: integer
+ *                           title:
+ *                             type: string
+ *                           description:
+ *                             type: string
+ *                           year:
+ *                             type: string
+ *                           specialization:
+ *                             type: string
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: Student is not in a team
+ *       404:
+ *         description: No preflist found for the given team
+ */
+router.get('/:teamId', protect, getpreflist);
+
   
 
 export default router;
