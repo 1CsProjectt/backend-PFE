@@ -465,7 +465,7 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
 
   // Return the list of students without a team for debugging
   if (studentsWithoutATeam.length === 0) {
-    return res.status(200).json({
+     res.status(200).json({
       status: 'success',
       message: 'All students are already in teams',
       studentsWithoutATeam: [], // Send empty array if no students without team
