@@ -18,7 +18,7 @@ const router = express.Router();
 
 /**
  * @swagger
- * /api/v1/students/liststudents:
+ * /api/v1/student/liststudents:
  *   get:
  *     summary: List all students in the same year (excluding self)
  *     tags: [Students]
@@ -38,7 +38,7 @@ router.get('/liststudents', protect, listAllStudents);
 
 /**
  * @swagger
- * /api/v1/students/{team_id}/students:
+ * /api/v1/student/{team_id}/students:
  *   get:
  *     summary: Get students by team ID
  *     tags: [Students]
@@ -61,7 +61,7 @@ router.get('/:team_id/students', protect, getStudentsByTeam);
 
 /**
  * @swagger
- * /api/v1/students/set-role:
+ * /api/v1/student/set-role:
  *   put:
  *     summary: Set student role (only if it's still 'member')
  *     tags: [Students]
@@ -91,7 +91,7 @@ router.patch('/set-role', protect, restrictedfor('student'), setStudentRole);
 
 /**
  * @swagger
- * /api/v1/students/edit-role:
+ * /api/v1/student/edit-role:
  *   put:
  *     summary: Edit student role
  *     tags: [Students]
