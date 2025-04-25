@@ -550,15 +550,20 @@ for (const team of weakTeams) {
   const overflowThreshold = Math.round(maxNumber / 2) + 1;
 
   const isCompatible = (team, student) => {
-    const members = team.members || [];
-    const sameYear = members.every(m => m.year === student.year);
+  const members = team.members || [];
 
-    if (year === '2CS') {
-      const sameSpec = members.every(m => m.specialite === student.specialite);
-      return sameYear && sameSpec;
-    }
-    return sameYear;
-  };
+  // All members must be same year
+  const sameYear = members.every(m => m.year === student.year);
+  if (!sameYear) return false;
+
+  // Only check specialite if year is 2CS
+  if (student.year === '2CS') {
+    return members.every(m => m.specialite === student.specialite);
+  }
+
+  return true;
+};
+
 
 
 
