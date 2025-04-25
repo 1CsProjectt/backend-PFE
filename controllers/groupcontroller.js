@@ -492,6 +492,12 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
     const threshold = Math.round(team.maxNumber / 2) + 1;
     return members.length < threshold; // Teams with fewer than the threshold
   });
+  return res.status(200).json({
+    status: 'success',
+    message: 'Weak teams found',
+    weakTeams: weakTeams.map(team => team.id), // Return only the IDs of weak teams
+    
+  });
 
 for (const team of weakTeams) {
     const members = await Student.findAll({ where: { team_id: team.id } });
