@@ -85,23 +85,23 @@ router.post('/creategroup', protect, restrictedfor('student'), createTeam);
 
 router.post('/autoOrganizeTeams', protect, restrictedfor('admin'), autoOrganizeTeams);
 
-/**
- * @swagger
- * /api/v1/team/{groupId}/students:
- *   get:
- *     summary: Get students of a team
- *     tags: [Team]
- *     parameters:
- *       - in: path
- *         name: groupId
- *         required: true
- *         schema:
- *           type: string
- *     responses:
- *       200:
- *         description: List of students in the team
- */
-router.get('/:groupId/students', getStudentsByTeam);
+// /**
+//  * @swagger
+//  * /api/v1/team/{groupId}/students:
+//  *   get:
+//  *     summary: Get students of a team
+//  *     tags: [Team]
+//  *     parameters:
+//  *       - in: path
+//  *         name: groupId
+//  *         required: true
+//  *         schema:
+//  *           type: string
+//  *     responses:
+//  *       200:
+//  *         description: List of students in the team
+//  */
+// router.get('/:groupId/students', getStudentsByTeam);
 
 /**
  * @swagger
