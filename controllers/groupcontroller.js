@@ -489,12 +489,17 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
     const threshold = Math.round(team.maxNumber / 2) + 1;
     return members.length < threshold; // Teams with fewer than the threshold
   });
+  return res.status(200).json({
+  status: 'success',
+  message: 'Weak teams cleaned and removed',
+  removedTeams: weakTeams.map(team => team.id),
+});
 
 // Step 2: Clean up weak teams
 for (const team of weakTeams) {
-  const members = await Student.findAll({ where: { team_id: team.id } });
+  const memberss = await Student.findAll({ where: { team_id: team.id } });
 
-  for (const student of members) {
+  for (const student of memberss) {
     student.team_id = null;
     student.status = 'available';
     await student.save();
