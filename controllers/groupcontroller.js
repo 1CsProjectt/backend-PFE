@@ -468,10 +468,7 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
   let studentsWithoutATeam = await Student.findAll({ where: whereClause });
 
   if (studentsWithoutATeam.length === 0) {
-     res.status(200).json({
-      status: 'success',
-      message: 'All students are already in teamsssssssssssssss',
-    });
+     
   }
 
   // Step 2: Clean weak teams
