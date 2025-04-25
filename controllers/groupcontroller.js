@@ -549,14 +549,14 @@ for (const team of weakTeams) {
   const maxNumber = allTeams[0]?.maxNumber || 5;
   const overflowThreshold = Math.round(maxNumber / 2) + 1;
 
-  const isCompatible = (team, student) => {
+ const isCompatible = (team, student) => {
   const members = team.members || [];
 
-  // All members must be same year
+  // Check if all members have same year
   const sameYear = members.every(m => m.year === student.year);
   if (!sameYear) return false;
 
-  // Only check specialite if year is 2CS
+  // Only check specialite for 2CS
   if (student.year === '2CS') {
     return members.every(m => m.specialite === student.specialite);
   }
@@ -564,19 +564,18 @@ for (const team of weakTeams) {
   return true;
 };
 
+for (const student of studentsWithoutATeam) {
+  const compatibleTeams = allTeams.filter(team => isCompatible(team, student));
+  return res.status(200).json({
+    status: 'success',
+    message: `Compatible teams for student ${student.id}`,
+    compatibleTeams: compatibleTeams.map(t => t.id),
+  });
 
+  console.log(`Student ${student.id} compatible with teams:`, compatibleTeams.map(t => t.id));
+}
+return
 
-
-  // Step 4: Assign students
- if (studentsWithoutATeam.length < overflowThreshold) {
-  for (const student of studentsWithoutATeam) {
-    // Include full compatible teams too
-    let compatibleTeams = allTeams.filter(team => isCompatible(team, student));
-    return res.status(200).json({
-      status: 'success',
-      message: 'compatible teams',
-      teams: compatibleTeams.map(team => team.id),
-    });
 
     if (compatibleTeams.length > 0) {
       const chosenTeam = compatibleTeams[Math.floor(Math.random() * compatibleTeams.length)];
@@ -594,8 +593,7 @@ for (const team of weakTeams) {
     } else {
       console.log(`No compatible team at all for student ${student.id}`);
     }
-  }
-}
+  
 
 
 // else {
