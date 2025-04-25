@@ -470,49 +470,47 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
   if (studentsWithoutATeam.length === 0) {
      res.status(200).json({
       status: 'success',
-      message: 'All students are already in teams',
+      message: 'All students are already in teamsssssssssssssss',
     });
   }
 
   // Step 2: Clean weak teams
  // Step 1: Get all teams to check for weak teams
   const teamsToCheck = await Team.findAll({
-    include: [
-      {
-        model: Student,
-        as: 'members',
-        attributes: ['id'],
-      },
-    ],
-  });
+  include: [
+    {
+      model: Student,
+      as: 'members',
+      attributes: ['id'],
+    },
+  ],
+});
 
-  // Step 2: Find weak teams (teams with fewer members than maxNumber / 2 + 1)
-  const weakTeams = teamsToCheck.filter(team => {
-    const members = team.members || [];
-    const threshold = Math.round(team.maxNumber / 2) + 1;
-    return members.length < threshold; // Teams with fewer than the threshold
-  });
-  return res.status(200).json({
-    status: 'success',
-    message: 'Weak teams found',
-    weakTeams: weakTeams.map(team => team.id), // Return only the IDs of weak teams
-    
-  });
+// Step 1: Find weak teams (teams with fewer members than maxNumber / 2 + 1)
+const weakTeams = teamsToCheck.filter(team => {
+  const members = team.members || [];
+  const threshold = Math.round(team.maxNumber / 2) + 1;
+  return members.length < threshold;
+});
 
+// Step 2: Clean up weak teams
 for (const team of weakTeams) {
-    const members = await Student.findAll({ where: { team_id: team.id } });
+  const members = await Student.findAll({ where: { team_id: team.id } });
 
-   
-      for (const student of members) {
-        student.team_id = null;
-        student.status = 'available';
-        await student.save();
-      }
-
-      await JoinRequest.destroy({ where: { team_id: team.id } });
-      await team.destroy();
-    
+  for (const student of members) {
+    student.team_id = null;
+    student.status = 'available';
+    await student.save();
   }
+
+  await JoinRequest.destroy({ where: { team_id: team.id } });
+  await team.destroy();
+}
+return res.status(200).json({
+  status: 'success',
+  message: 'Weak teams cleaned and removed',
+  removedTeams: weakTeams.map(team => team.id),
+});
 
 
 
