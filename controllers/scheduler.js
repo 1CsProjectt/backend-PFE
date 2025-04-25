@@ -6,7 +6,7 @@ import Preflist from '../models/preflistModel.js';
 
 cron.schedule('* * * * *', async () => {
   try {
-    const cutoff = new Date(Date.now() - 1 * 10 * 60 * 1000); // 48 hours ago
+    const cutoff = new Date(Date.now() - 48 * 60 * 60 * 1000); // 48 hours ago
     console.log(cutoff)
 
     const expiredRequests = await SupervisionRequest.findAll({
