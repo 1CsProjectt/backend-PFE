@@ -481,33 +481,26 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
   ],
 });
 
-let reassignedStudents = []; // To store students who were in weak teams
-
 for (const team of teamsToCheck) {
   const members = team.members || [];
   const threshold = Math.round(team.maxNumber / 2) + 1;
 
-  // Check if team has fewer members than the threshold
+  // If the team has fewer members than the threshold
   if (members.length < threshold) {
-    // Reset each student and reassign them to studentsWithoutATeam
+    // Reset each student and set them as available
     for (const student of members) {
       student.team_id = null;
       student.status = 'available';
-      await student.save();  // Save changes to the student
-      reassignedStudents.push(student);  // Track reassigned students
+      await student.save(); // Save each student's updated status
     }
 
-    // Delete the JoinRequests for this team
+    // Delete JoinRequests for the team
     await JoinRequest.destroy({ where: { team_id: team.id } });
 
-    // Destroy the team
+    // Delete the team
     await Team.destroy({ where: { id: team.id } });
   }
 }
-
-// Add reassigned students to the list of students without a team
-studentsWithoutATeam = [...studentsWithoutATeam, ...reassignedStudents];
-
 
   // Step 3: Refresh students and teams
   let allTeams = await Team.findAll({
