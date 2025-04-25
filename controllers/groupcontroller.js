@@ -505,11 +505,11 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
 // Step 2: Clean up weak teams
 for (const team of weakTeams) {
   const memberss = await Student.findAll({ where: { team_id: team.id } });
-return res.status(200).json({
-  status: 'success',
-  message: `members of weak team${team.id}` ,
-  members: memberss.map(member => member.id),
-});
+// return res.status(200).json({
+//   status: 'success',
+//   message: `members of weak team${team.id}` ,
+//   members: memberss.map(member => member.id),
+// });
   for (const student of memberss) {
     student.team_id = null;
     student.status = 'available';
@@ -517,7 +517,7 @@ return res.status(200).json({
   }
 
   
-
+return 
 
   await JoinRequest.destroy({ where: { team_id: team.id } });
   await team.destroy();
@@ -529,7 +529,7 @@ return res.status(200).json({
 // });
 
 
-return;
+return
 
 
   // Step 3: Refresh data
