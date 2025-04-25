@@ -656,7 +656,7 @@ router.get('/my', protect, getMyPreflist);
 router.post(
   '/:teamId/approve',
   protect,
-  restrictedfor('teacher', 'admin'),
+  restrictedfor('student'),
   approvePreflist
 );
   
