@@ -491,8 +491,9 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
   });
   return res.status(200).json({
   status: 'success',
-  message: 'Weak teams cleaned and removed',
-  removedTeams: weakTeams.map(team => team.id),
+  message: 'Weak teams found',
+  weakTeams: weakTeams.map(team => team.id),
+ 
 });
 
 // Step 2: Clean up weak teams
