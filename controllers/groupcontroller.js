@@ -536,7 +536,7 @@ for (const team of weakTeams) {
   // Step 3: Refresh data
   studentsWithoutATeam = await Student.findAll({ where: whereClause });
   let allTeams = await Team.findAll({
-    where: { full: false },
+    
     include: [
       {
         model: Student,
