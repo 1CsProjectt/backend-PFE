@@ -55,14 +55,16 @@ router.post('/creategroup', protect, restrictedfor('student'), createTeam);
  *           schema:
  *             type: object
  *             required:
- *               - year
+ *               - yearr
  *             properties:
- *               year:
+ *               yearr:
  *                 type: string
+ *                 example: 2CS
  *                 description: The academic year (e.g., 1CS, 2CS)
  *               specialite:
  *                 type: string
- *                 description: The specialization (required for 2CS only)
+ *                 example: SIQ
+ *                 description: Required only for 2CS students
  *     responses:
  *       200:
  *         description: Students have been automatically organized into teams
@@ -72,6 +74,8 @@ router.post('/creategroup', protect, restrictedfor('student'), createTeam);
  *         description: Unauthorized - Bearer token is missing or invalid
  *       403:
  *         description: Forbidden - User does not have permission
+ *       500:
+ *         description: Internal Server Error - Something went wrong on the server
  */
 
 router.post('/autoOrganizeTeams', protect, restrictedfor('admin'), autoOrganizeTeams);
