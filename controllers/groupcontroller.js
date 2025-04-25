@@ -466,51 +466,52 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
   if (studentsWithoutATeam.length === 0) {
     return res.status(200).json({
       status: 'success',
-      message: 'All students are already in teamssssssssssss',
+      message: 'All students are already in teams',
     });
-  }sss
-
-  
-// Step 2: Clean weak teams
-const teamsToCheck = await Team.findAll({
-  include: [
-    {
-      model: Student,
-      as: 'members',
-      attributes: ['id'],
-    },
-  ],
-});
-
-for (const team of teamsToCheck) {
-  const members = team.members || [];
-  const threshold = Math.round(team.maxNumber / 2) + 1;
-
-  if (members.length < threshold) {
-    // Reset each student
-    for (const student of members) {
-      await Student.update(
-        { team_id: null, status: 'available' },
-        { where: { id: student.id } }
-      );
-    }
-
-    await JoinRequest.destroy({ where: { team_id: team.id } });
-    await Team.destroy({ where: { id: team.id } });
   }
-}
 
+  // Step 2: Clean weak teams
+  const teamsToCheck = await Team.findAll({
+    include: [
+      {
+        model: Student,
+        as: 'members',
+        attributes: ['id'],
+      },
+    ],
+  });
+
+  let reassignedStudents = []; // To store students who were in weak teams
+
+  for (const team of teamsToCheck) {
+    const members = team.members || [];
+    const threshold = Math.round(team.maxNumber / 2) + 1;
+
+    if (members.length < threshold) {
+      // Reset each student and reassign them to studentsWithoutATeam
+      for (const student of members) {
+        student.team_id = null;
+        student.status = 'available';
+        await student.save();
+        reassignedStudents.push(student); // Keep track of reassigned students
+      }
+
+      await JoinRequest.destroy({ where: { team_id: team.id } });
+      await Team.destroy({ where: { id: team.id } });
+    }
+  }
 
   // Step 3: Refresh students and teams
-  studentsWithoutATeam = await Student.findAll({ where: whereClause });
-
+  studentsWithoutATeam = [...studentsWithoutATeam, ...reassignedStudents]; // Add reassigned students
   let allTeams = await Team.findAll({
     where: {},
-    include: [{
-      model: Student,
-      as: 'members',
-      attributes: ['id', 'year', 'specialite'],
-    }],
+    include: [
+      {
+        model: Student,
+        as: 'members',
+        attributes: ['id', 'year', 'specialite'],
+      },
+    ],
   });
 
   const maxNumber = allTeams[0]?.maxNumber || 5;
@@ -526,6 +527,7 @@ for (const team of teamsToCheck) {
     return sameYear;
   };
 
+  // Step 4: Assign students
   if (studentsWithoutATeam.length < overflowThreshold) {
     for (const student of studentsWithoutATeam) {
       let compatibleTeams = allTeams.filter(team =>
@@ -649,6 +651,7 @@ for (const team of teamsToCheck) {
     message: 'Students have been automatically organized into teams',
   });
 });
+
 
 
 
