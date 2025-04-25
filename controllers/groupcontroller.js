@@ -562,8 +562,8 @@ for (const team of weakTeams) {
 
   return res.status(200).json({
     status: 'success',
-    message: 'Students without a teamsssssssssssssssssssssssssss',
-    studentsWithoutATeam: studentsWithoutATeam.map(student => student.id),
+    message: 'Students without a team',
+    studentsWithoutATeam: studentsWithoutATeam.length
   });
 
   // Step 4: Assign students
