@@ -487,31 +487,33 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
     const members = team.members || [];
     const threshold = Math.round(team.maxNumber / 2) + 1;
 
+    // Check if team has fewer members than the threshold
     if (members.length < threshold) {
       // Reset each student and reassign them to studentsWithoutATeam
       for (const student of members) {
         student.team_id = null;
         student.status = 'available';
         await student.save();
-        reassignedStudents.push(student); // Keep track of reassigned students
+        reassignedStudents.push(student); // Track reassigned students
       }
 
+      // Delete the JoinRequests and the team
       await JoinRequest.destroy({ where: { team_id: team.id } });
       await Team.destroy({ where: { id: team.id } });
     }
   }
 
+  // Add reassigned students to the list of students without a team
+  studentsWithoutATeam = [...studentsWithoutATeam, ...reassignedStudents];
+
   // Step 3: Refresh students and teams
-  studentsWithoutATeam = [...studentsWithoutATeam, ...reassignedStudents]; // Add reassigned students
   let allTeams = await Team.findAll({
     where: {},
-    include: [
-      {
-        model: Student,
-        as: 'members',
-        attributes: ['id', 'year', 'specialite'],
-      },
-    ],
+    include: [{
+      model: Student,
+      as: 'members',
+      attributes: ['id', 'year', 'specialite'],
+    }],
   });
 
   const maxNumber = allTeams[0]?.maxNumber || 5;
@@ -527,7 +529,6 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
     return sameYear;
   };
 
-  // Step 4: Assign students
   if (studentsWithoutATeam.length < overflowThreshold) {
     for (const student of studentsWithoutATeam) {
       let compatibleTeams = allTeams.filter(team =>
@@ -651,6 +652,7 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
     message: 'Students have been automatically organized into teams',
   });
 });
+
 
 
 
