@@ -466,27 +466,43 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
   if (studentsWithoutATeam.length === 0) {
     return res.status(200).json({
       status: 'success',
-      message: 'All students are already in teamsssssssssssssssss',
+      message: 'All students are already in teams',
     });
   }sss
 
+  
   // Step 2: Clean weak teams
-  let teams = await Team.findAll({ where: { full: false } });
+const teamsToCheck = await Team.findAll({
+  include: [
+    {
+      model: Student,
+      as: 'members',
+      attributes: ['id'],
+    },
+  ],
+  where: {
+    full: false,
+  },
+});
 
-  for (const team of teams) {
-    const members = await Student.findAll({ where: { team_id: team.id } });
-    const threshold = Math.round(team.maxNumber / 2) + 1;
+for (const team of teamsToCheck) {
+  const members = team.members || [];
+  const threshold = Math.round(team.maxNumber / 2) + 1;
 
-    if (members.length < threshold) {
-      for (const student of members) {
-        student.team_id = null;
-        student.status = 'available';
-        await student.save();
-      }
-      await JoinRequest.destroy({ where: { team_id: team.id } });
-      await team.destroy();
+  if (members.length < threshold) {
+    // Reset each student
+    for (const student of members) {
+      await Student.update(
+        { team_id: null, status: 'available' },
+        { where: { id: student.id } }
+      );
     }
+
+    await JoinRequest.destroy({ where: { team_id: team.id } });
+    await Team.destroy({ where: { id: team.id } });
   }
+}
+
 
   // Step 3: Refresh students and teams
   studentsWithoutATeam = await Student.findAll({ where: whereClause });
