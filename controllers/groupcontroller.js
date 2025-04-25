@@ -460,17 +460,7 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
     whereClause.specialite = specialite;
   }
 
-  // Step 1: Get students without a team
-  let studentsWithoutATeam = await Student.findAll({ where: whereClause });
-
-  if (studentsWithoutATeam.length === 0) {
-     res.status(200).json({
-      status: 'success',
-      message: 'All students are already in teams',
-    });
-  }
-
-  // Step 2: Get all teams to check for weak teams
+  // Step 1: Get all teams to check for weak teams
   const teamsToCheck = await Team.findAll({
     include: [
       {
@@ -481,15 +471,15 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
     ],
   });
 
-  // Step 3: Find weak teams (teams with fewer members than maxNumber / 2 + 1)
+  // Step 2: Find weak teams (teams with fewer members than maxNumber / 2 + 1)
   const weakTeams = teamsToCheck.filter(team => {
     const members = team.members || [];
     const threshold = Math.round(team.maxNumber / 2) + 1;
     return members.length < threshold; // Teams with fewer than the threshold
   });
 
-  // Step 4: Send response with weak teams
-  res.status(200).json({
+  // Step 3: Return weak teams in the response
+  return res.status(200).json({
     status: 'success',
     message: 'Weak teams found',
     weakTeams: weakTeams.map(team => ({
@@ -499,28 +489,8 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
       maxNumber: team.maxNumber,
     })),
   });
-
-  // Step 5: Clean up weak teams
-  for (const team of weakTeams) {
-    const members = team.members || [];
-    for (const student of members) {
-      student.team_id = null; // Remove team assignment
-      student.status = 'available'; // Mark as available
-      await student.save();
-    }
-
-    // Delete JoinRequests for the team
-    await JoinRequest.destroy({ where: { team_id: team.id } });
-
-    // Delete the team itself
-    await Team.destroy({ where: { id: team.id } });
-  }
-
-  return res.status(200).json({
-    status: 'success',
-    message: 'Weak teams have been cleaned',
-  });
 });
+
 
 
 
