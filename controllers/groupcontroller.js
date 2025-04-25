@@ -443,7 +443,7 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
   if (!year) {
     return next(new appError('Year is required', 400));
   }
-  year = year.toUpperCase(); 
+  year = year.toUpperCase();
 
   let whereClause = {
     team_id: null,
@@ -517,6 +517,55 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
     return sameYear;
   };
 
+  // CASE 1: No existing teams at all
+  if (allTeams.length === 0) {
+    let index = 0;
+
+    while (studentsWithoutATeam.length - index >= maxNumber) {
+      const group = studentsWithoutATeam.slice(index, index + maxNumber);
+
+      const newTeam = await Team.create({
+        groupName: `Group-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
+        maxNumber,
+      });
+
+      for (const student of group) {
+        student.team_id = newTeam.id;
+        student.status = 'in a team';
+        await student.save();
+      }
+
+      newTeam.full = true;
+      await newTeam.save();
+      index += maxNumber;
+    }
+
+    const overflowStudents = studentsWithoutATeam.slice(index);
+    if (overflowStudents.length > 0) {
+      const newTeam = await Team.create({
+        groupName: `Group-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
+        maxNumber,
+      });
+
+      for (const student of overflowStudents) {
+        student.team_id = newTeam.id;
+        student.status = 'in a team';
+        await student.save();
+      }
+
+      if (overflowStudents.length === maxNumber) {
+        newTeam.full = true;
+        await newTeam.save();
+      }
+    }
+
+    return res.status(200).json({
+      status: 'success',
+      message: 'Teams created from scratch',
+    });
+  }
+
+  // CASE 2 & 3: Overflow logic
   if (studentsWithoutATeam.length < overflowThreshold) {
     // Overflow students into existing teams
     for (const student of studentsWithoutATeam) {
@@ -602,9 +651,10 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
 
   res.status(200).json({
     status: 'success',
-    message: 'Students have been automatically organized into teams',
+    message: 'Students have been automatically organized into teamsssssssssssssss',
   });
 });
+
 
 
 
