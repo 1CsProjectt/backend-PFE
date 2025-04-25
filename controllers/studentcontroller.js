@@ -3,10 +3,8 @@ import appError from '../utils/appError.js';
 import Student from '../models/studenModel.js';
 import User from '../models/UserModel.js';
 import { catchAsync } from '../utils/catchAsync.js';
-import { Op
-  
- } from 'sequelize';
-
+import { Op } from 'sequelize';
+import Preflist from '../models/preflistModel.js';
 // const Team = require('../models/groupModel.js');
 // const appError = require('../utils/appError.js');
 // const Student = require('../models/studenModel.js'); // Ensure correct casing for Student model
