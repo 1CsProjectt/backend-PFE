@@ -450,8 +450,8 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
   year = year.toUpperCase();
 
   let whereClause = {
-    team_id: null,
-    status: 'available',
+    team_id: null, // Students without a team
+    status: 'available', // Only students who are available
     year,
   };
 
@@ -463,29 +463,14 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
   // Step 1: Get students without a team
   let studentsWithoutATeam = await Student.findAll({ where: whereClause });
 
-  // Return the list of students without a team for debugging
   if (studentsWithoutATeam.length === 0) {
-     res.status(200).json({
+    return res.status(200).json({
       status: 'success',
       message: 'All students are already in teams',
-      studentsWithoutATeam: [], // Send empty array if no students without team
     });
   }
 
-  // Send the list of students without a team in the response for debugging
-  res.status(200).json({
-    status: 'success',
-    message: 'Students without a team',
-    studentsWithoutATeam: studentsWithoutATeam.map(student => ({
-      id: student.id,
-      year: student.year,
-      specialite: student.specialite,
-      status: student.status,
-      team_id: student.team_id,
-    })),
-  });
-
-  // Step 2: Check teams with fewer members than the threshold
+  // Step 2: Clean weak teams
   const teamsToCheck = await Team.findAll({
     include: [
       {
@@ -496,29 +481,45 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
     ],
   });
 
-  let weakTeams = []; // This will store teams that are too small
-
-  for (const team of teamsToCheck) {
+  // Find teams with fewer members than maxNumber / 2 + 1
+  const weakTeams = teamsToCheck.filter(team => {
     const members = team.members || [];
     const threshold = Math.round(team.maxNumber / 2) + 1;
+    return members.length < threshold;
+  });
 
-    // If the team has fewer members than the threshold
-    if (members.length < threshold) {
-      weakTeams.push({
-        teamId: team.id,
-        groupName: team.groupName,
-        membersCount: members.length,
-        maxNumber: team.maxNumber,
-      });
+  // For debugging: Send response with weak teams
+  res.status(200).json({
+    status: 'success',
+    message: 'Weak teams',
+    weakTeams: weakTeams.map(team => ({
+      teamId: team.id,
+      members: team.members.length,
+    })),
+  });
+
+  // Step 3: Process each weak team
+  for (const team of weakTeams) {
+    const members = team.members || [];
+    for (const student of members) {
+      student.team_id = null; // Remove team assignment
+      student.status = 'available'; // Mark as available
+      await student.save();
     }
+
+    // Delete JoinRequests for the team
+    await JoinRequest.destroy({ where: { team_id: team.id } });
+
+    // Delete the team itself
+    await Team.destroy({ where: { id: team.id } });
   }
 
-  // Send the weak teams in the response for debugging
   return res.status(200).json({
     status: 'success',
-    weakTeams: weakTeams, // This will show the teams with fewer than maxNumber / 2 + 1 members
+    message: 'Weak teams have been cleaned',
   });
 });
+
 
 
 
