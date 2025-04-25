@@ -471,7 +471,7 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
   }sss
 
   
-  // Step 2: Clean weak teams
+// Step 2: Clean weak teams
 const teamsToCheck = await Team.findAll({
   include: [
     {
@@ -480,9 +480,6 @@ const teamsToCheck = await Team.findAll({
       attributes: ['id'],
     },
   ],
-  where: {
-    full: false,
-  },
 });
 
 for (const team of teamsToCheck) {
