@@ -1,11 +1,13 @@
+process.env.TZ = 'Europe/Algiers';
 import cron from 'node-cron';
 import { Op } from 'sequelize';
 import SupervisionRequest from '../models/SupervisionRequestModel.js';
 import Preflist from '../models/preflistModel.js';
 
-cron.schedule('0 * * * *', async () => {
+cron.schedule('* * * * *', async () => {
   try {
-    const cutoff = new Date(Date.now() - 48 * 60 * 60 * 1000); // 48 hours ago
+    const cutoff = new Date(Date.now() - 1 * 10 * 60 * 1000); // 48 hours ago
+    console.log(cutoff)
 
     const expiredRequests = await SupervisionRequest.findAll({
       where: {

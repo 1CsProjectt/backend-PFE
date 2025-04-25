@@ -5,7 +5,7 @@ import Student from '../models/studenModel.js';
 import PFE from '../models/PFEmodel.js';
 import SupervisionRequest from '../models/SupervisionRequestModel.js';
 
-import Teacher from '../models/teacherModel.js';
+import teacher from '../models/teacherModel.js';
 import Team from '../models/groupModel.js';
 
 
@@ -357,18 +357,25 @@ export const respondToRequest = catchAsync(async (req, res, next) => {
   request.status = status;
   await request.save();
 
-  if (status === 'ACCEPTED') {
-    await SupervisionRequest.update(
-      { status: 'REJECTED' },
-      {
-        where: {
-          teamId: request.teamId,
-          status: 'PENDING',
-          id: { [Op.ne]: id }
-        }
+    if (status === 'ACCEPTED') {
+
+      const pfe = await PFE.findByPk(request.pfeId);
+      if (!pfe) {
+        return next(new appError('PFE not found', 404));
       }
-    );
-  }
+    
+      const creatorTeacher = await teacher.findOne({ where: { id: pfe.createdBy } });
+      if (!creatorTeacher) {
+        return next(new appError('Creator of the PFE is not a teacher', 400));
+      }
+      await Team.update(
+        {
+          pfe_id: pfe.id,
+          supervisorId: creatorTeacher.id
+        },
+        { where: { id: request.teamId } }
+      );
+    }
   if (status === 'REJECTED') {
     const preflist = await Preflist.findAll({
       where: { teamId: request.teamId },
@@ -387,7 +394,6 @@ export const respondToRequest = catchAsync(async (req, res, next) => {
       });
     }
   }
-
   res.status(200).json({
     status: 'success',
     message: `Request ${status.toLowerCase()} successfully.`
@@ -444,6 +450,10 @@ export const acceptRandomRequestsForMultiplePFEs = catchAsync(async (req, res, n
 
 
 export const getAllrequests = catchAsync(async (req, res, next) => {
+
+  if (!req.user){
+    next(new appError('you are not authenticated , please login again!!!!!!',403))
+  }
   const userId = req.user.id;
   const role = req.user.role;
 
@@ -532,8 +542,8 @@ export const filterRequestsByGrade = catchAsync(async (req, res, next) => {
   }
 
   const user = req.user;
-  const teacher = await Teacher.findByPk(user.id);
-  if (!teacher) {
+  const myteacher = await teacher.findByPk(user.id);
+  if (!myteacher) {
     return next(new appError('Teacher not found.', 404));
   }
 
@@ -553,7 +563,7 @@ export const filterRequestsByGrade = catchAsync(async (req, res, next) => {
                 required: true,
                 include: [
                   {
-                    model: Teacher,
+                    model: teacher,
                     as: 'supervisors',
                     where: { id: teacher.id }, // Only PFEs where the teacher is a supervisor
                     required: true,
@@ -608,8 +618,8 @@ export const filterRequestsBySpecialization = catchAsync(async (req, res, next) 
   }
 
   const user = req.user;
-  const teacher = await Teacher.findByPk(user.id);
-  if (!teacher) {
+  const myteacher = await teacher.findByPk(user.id);
+  if (!myteacher) {
     return next(new appError('Teacher not found.', 404));
   }
 
@@ -629,7 +639,7 @@ export const filterRequestsBySpecialization = catchAsync(async (req, res, next) 
                 required: true,
                 include: [
                   {
-                    model: Teacher,
+                    model: teacher,
                     as: 'supervisors',
                     where: { id: teacher.id }, // Only PFEs where the teacher is a supervisor
                     required: true,

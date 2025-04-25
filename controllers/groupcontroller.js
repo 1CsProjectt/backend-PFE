@@ -187,7 +187,7 @@ export const getAllTeams = catchAsync(async (req, res, next) => {
       {
         model: Student,
         as: 'members',
-        attributes: ['id', 'firstname', 'lastname'],
+        attributes: ['id', 'firstname', 'lastname','year'],
         include: [
           {
             model: User,
