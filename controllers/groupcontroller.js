@@ -446,35 +446,21 @@ export const destroyTeam = catchAsync(async (req, res, next) => {
 export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
   let { year, specialite } = req.body;
 
-  if (!year) {
-    return next(new appError('Year is required', 400));
-  }
+  if (!year) return next(new appError('Year is required', 400));
   year = year.toUpperCase();
 
   let whereClause = {
-    team_id: null,
-    status: 'available',
+    team_id: null, // Students without a team
+    status: 'available', // Only students who are available
     year,
   };
 
   if (year === '2CS') {
-    if (!specialite) {
-      return next(new appError('Specialite is required for 2CS', 400));
-    }
+    if (!specialite) return next(new appError('Specialite is required for 2CS', 400));
     whereClause.specialite = specialite;
   }
 
-  // Step 1: Get students without a team
-  let studentsWithoutATeam = await Student.findAll({ where: whereClause });
-
-  if (studentsWithoutATeam.length === 0) {
-    return res.status(200).json({
-      status: 'success',
-      message: 'All students are already in teams',
-    });
-  }
-
-  // Step 2: Clean weak teams
+  // Step 1: Get all teams to check for weak teams
   const teamsToCheck = await Team.findAll({
     include: [
       {
@@ -492,20 +478,29 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
     return members.length < threshold; // Teams with fewer than the threshold
   });
 
-  // Delete weak teams and their join requests
+  // Step 3: Clean up weak teams
   for (const team of weakTeams) {
     const members = team.members || [];
     for (const student of members) {
       student.team_id = null;
       student.status = 'available';
-      await student.save();
+      await student.save(); // Make students available
     }
-    await JoinRequest.destroy({ where: { team_id: team.id } });
-    await team.destroy();
+    await JoinRequest.destroy({ where: { team_id: team.id } }); // Destroy join requests
+    await team.destroy(); // Delete weak team
   }
 
-  // Step 3: Refresh data after weak teams removal
-  studentsWithoutATeam = await Student.findAll({ where: whereClause });
+  // Step 4: Get students without a team
+  let studentsWithoutATeam = await Student.findAll({ where: whereClause });
+
+  if (studentsWithoutATeam.length === 0) {
+    return res.status(200).json({
+      status: 'success',
+      message: 'All students are already in teams',
+    });
+  }
+
+  // Step 5: Get all available teams
   let allTeams = await Team.findAll({
     where: { full: false },
     include: [
@@ -531,9 +526,9 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
     return sameYear;
   };
 
-  // Step 4: Assign students to teams
+  // Step 6: Assign students to teams
   if (studentsWithoutATeam.length < overflowThreshold) {
-    // Put remaining into existing teams if possible
+    // Put remaining students into existing teams if possible
     for (const student of studentsWithoutATeam) {
       let compatibleTeams = allTeams.filter(team => {
         const count = team.members?.length || 0;
@@ -631,3 +626,4 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
     message: 'Students have been automatically organized into teams',
   });
 });
+
