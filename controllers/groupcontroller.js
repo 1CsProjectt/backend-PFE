@@ -446,7 +446,6 @@ export const destroyTeam = catchAsync(async (req, res, next) => {
 export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
   let { year, specialite } = req.body;
 
-  // Validate input
   if (!year) {
     return next(new appError('Year is required', 400));
   }
@@ -465,7 +464,7 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
     whereClause.specialite = specialite;
   }
 
-  // Get students without a team
+  // Step 1: Get students without a team
   let studentsWithoutATeam = await Student.findAll({ where: whereClause });
 
   if (studentsWithoutATeam.length === 0) {
@@ -475,30 +474,38 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
     });
   }
 
-  // Get available teams
-  let teams = await Team.findAll({ where: { full: false } });
+  // Step 2: Clean weak teams
+  const teamsToCheck = await Team.findAll({
+    include: [
+      {
+        model: Student,
+        as: 'members',
+        attributes: ['id'],
+      },
+    ],
+  });
 
-  // Clean teams with insufficient members
-  for (const team of teams) {
-    const members = await Student.findAll({ where: { team_id: team.id } });
+  // Step 2: Find weak teams (teams with fewer members than maxNumber / 2 + 1)
+  const weakTeams = teamsToCheck.filter(team => {
+    const members = team.members || [];
     const threshold = Math.round(team.maxNumber / 2) + 1;
+    return members.length < threshold; // Teams with fewer than the threshold
+  });
 
-    if (members.length < threshold) {
-      for (const student of members) {
-        student.team_id = null;
-        student.status = 'available';
-        await student.save();
-      }
-
-      await JoinRequest.destroy({ where: { team_id: team.id } });
-      await team.destroy();
+  // Delete weak teams and their join requests
+  for (const team of weakTeams) {
+    const members = team.members || [];
+    for (const student of members) {
+      student.team_id = null;
+      student.status = 'available';
+      await student.save();
     }
+    await JoinRequest.destroy({ where: { team_id: team.id } });
+    await team.destroy();
   }
 
-  // Refresh students and teams after cleanup
+  // Step 3: Refresh data after weak teams removal
   studentsWithoutATeam = await Student.findAll({ where: whereClause });
-
-  // Get all available teams again with their members
   let allTeams = await Team.findAll({
     where: { full: false },
     include: [
@@ -514,19 +521,52 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
   const overflowThreshold = Math.round(maxNumber / 2) + 1;
 
   const isCompatible = (team, student) => {
-    const members = team.members;
+    const members = team.members || [];
     const sameYear = members.every(m => m.year === student.year);
 
-    if (student.year === '2CS') {
+    if (year === '2CS') {
       const sameSpec = members.every(m => m.specialite === student.specialite);
       return sameYear && sameSpec;
     }
-
     return sameYear;
   };
 
-  // Create new teams or overflow into existing ones
-  if (studentsWithoutATeam.length >= overflowThreshold) {
+  // Step 4: Assign students to teams
+  if (studentsWithoutATeam.length < overflowThreshold) {
+    // Put remaining into existing teams if possible
+    for (const student of studentsWithoutATeam) {
+      let compatibleTeams = allTeams.filter(team => {
+        const count = team.members?.length || 0;
+        return count < maxNumber && isCompatible(team, student);
+      });
+
+      if (compatibleTeams.length === 0) {
+        // No compatible team, create new one
+        const newTeam = await Team.create({
+          groupName: `Group-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
+          maxNumber,
+        });
+
+        student.team_id = newTeam.id;
+        student.status = 'in a team';
+        await student.save();
+        allTeams.push({ ...newTeam.dataValues, members: [student] });
+      } else {
+        const chosenTeam = compatibleTeams[Math.floor(Math.random() * compatibleTeams.length)];
+        student.team_id = chosenTeam.id;
+        student.status = 'in a team';
+        await student.save();
+
+        const count = await Student.count({ where: { team_id: chosenTeam.id } });
+        if (count >= maxNumber && !chosenTeam.full) {
+          chosenTeam.full = true;
+          await chosenTeam.save();
+        }
+        chosenTeam.members.push(student);
+      }
+    }
+  } else {
+    // Create as many full teams as possible
     let index = 0;
     const newTeams = [];
 
@@ -536,68 +576,58 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
       const newTeam = await Team.create({
         groupName: `Group-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
         maxNumber,
+        full: true,
       });
 
       for (const student of group) {
         student.team_id = newTeam.id;
         student.status = 'in a team';
-        await student.save(); // Make sure the student's team_id is saved
+        await student.save();
       }
 
-      newTeam.full = true;
-      await newTeam.save();
-      newTeams.push(newTeam);
+      newTeams.push({ ...newTeam.dataValues, members: group });
       index += maxNumber;
     }
 
-    // Handle overflow students
     const overflowStudents = studentsWithoutATeam.slice(index);
     const availableTeams = [...allTeams, ...newTeams];
 
     for (const student of overflowStudents) {
-      const compatibleTeams = availableTeams.filter(team => isCompatible(team, student));
-      if (compatibleTeams.length === 0) continue;
+      let compatibleTeams = availableTeams.filter(team => {
+        const count = team.members?.length || 0;
+        return count < maxNumber && isCompatible(team, student);
+      });
 
-      const randomTeam = compatibleTeams[Math.floor(Math.random() * compatibleTeams.length)];
-      student.team_id = randomTeam.id;
-      student.status = 'in a team';
-      await student.save(); // Ensure team_id is saved
+      if (compatibleTeams.length === 0) {
+        const newTeam = await Team.create({
+          groupName: `Group-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
+          maxNumber,
+        });
 
-      const count = await Student.count({ where: { team_id: randomTeam.id } });
-      if (count >= randomTeam.maxNumber && !randomTeam.full) {
-        randomTeam.full = true;
-        await randomTeam.save();
-      }
-    }
-  } else {
-    // Handle students overflow into existing teams
-    for (const student of studentsWithoutATeam) {
-      let compatibleTeams = allTeams.filter(team => team.members.length < maxNumber && isCompatible(team, student));
-      
-      if (compatibleTeams.length === 0) continue;
+        student.team_id = newTeam.id;
+        student.status = 'in a team';
+        await student.save();
 
-      const chosenTeam = compatibleTeams[Math.floor(Math.random() * compatibleTeams.length)];
-      student.team_id = chosenTeam.id;
-      student.status = 'in a team';
-      await student.save(); // Ensure team_id is saved
+        newTeam.members = [student];
+        availableTeams.push(newTeam);
+      } else {
+        const chosenTeam = compatibleTeams[Math.floor(Math.random() * compatibleTeams.length)];
+        student.team_id = chosenTeam.id;
+        student.status = 'in a team';
+        await student.save();
 
-      const count = await Student.count({ where: { team_id: chosenTeam.id } });
-      if (count >= chosenTeam.maxNumber && !chosenTeam.full) {
-        chosenTeam.full = true;
-        await chosenTeam.save();
+        const count = await Student.count({ where: { team_id: chosenTeam.id } });
+        if (count >= maxNumber && !chosenTeam.full) {
+          chosenTeam.full = true;
+          await chosenTeam.save();
+        }
+        chosenTeam.members.push(student);
       }
     }
   }
 
-  res.status(200).json({
+  return res.status(200).json({
     status: 'success',
     message: 'Students have been automatically organized into teams',
   });
 });
-
-
-
-
-
-
-
