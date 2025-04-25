@@ -467,6 +467,13 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
   // Step 1: Get students without a team
   let studentsWithoutATeam = await Student.findAll({ where: whereClause });
 
+  if (studentsWithoutATeam.length === 0) {
+    return res.status(200).json({ 
+      status: 'success',
+      message: 'No students available for team assignment',
+    });
+  }
+
   // Step 2: Clean weak teams
   const teamsToCheck = await Team.findAll({
     include: [{ model: Student, as: 'members', attributes: ['id'] }],
