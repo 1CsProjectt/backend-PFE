@@ -3,7 +3,7 @@ import { Op } from 'sequelize';
 import SupervisionRequest from '../models/SupervisionRequestModel.js';
 import Preflist from '../models/preflistModel.js';
 
-cron.schedule('0 * * * *', async () => {
+cron.schedule('* * * * *', async () => {
   try {
     const cutoff = new Date(Date.now() - 1 * 10 * 60 * 1000); // 48 hours ago
     console.log(cutoff)
@@ -55,4 +55,6 @@ cron.schedule('0 * * * *', async () => {
   } catch (error) {
     console.error('Error processing expired supervision requests:', error);
   }
+},{
+  timezone: 'Europe/Algiers'
 });
