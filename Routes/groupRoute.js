@@ -9,7 +9,8 @@ import {
   destroyTeam,
   moveStudentsToAnotherTeam,
   createTeamByAdmin,autoOrganizeTeams,
-  getAllTeams
+  getAllTeams,
+  getAllTeams_supervisedByMe
 } from '../controllers/groupcontroller.js';
 import { getStudentsByTeam } from '../controllers/studentcontroller.js';
 import { protect, restrictedfor } from "../middlewares/authmiddleware.js";
@@ -85,23 +86,7 @@ router.post('/creategroup', protect, restrictedfor('student'), createTeam);
 
 router.post('/autoOrganizeTeams', protect, restrictedfor('admin'), autoOrganizeTeams);
 
-// /**
-//  * @swagger
-//  * /api/v1/team/{groupId}/students:
-//  *   get:
-//  *     summary: Get students of a team
-//  *     tags: [Team]
-//  *     parameters:
-//  *       - in: path
-//  *         name: groupId
-//  *         required: true
-//  *         schema:
-//  *           type: string
-//  *     responses:
-//  *       200:
-//  *         description: List of students in the team
-//  */
-// router.get('/:groupId/students', getStudentsByTeam);
+
 
 /**
  * @swagger
@@ -247,5 +232,83 @@ router.post('/admin/create-team', protect, restrictedfor('admin'), createTeamByA
  *         description: List of all teams
  */
 router.get('/all-teams', protect, restrictedfor('admin', 'teacher'), getAllTeams);
+
+
+/**
+ * @swagger
+ * /api/v1/team/supervised-by-me:
+ *   get:
+ *     summary: List all teams supervised by the current teacher
+ *     tags: [Team]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of teams supervised by the logged-in teacher
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 total:
+ *                   type: integer
+ *                   example: 3
+ *                 teams:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: integer
+ *                         example: 1
+ *                       groupName:
+ *                         type: string
+ *                         example: "Team A"
+ *                       supervisorId:
+ *                         type: integer
+ *                         example: 5
+ *                       maxNumber:
+ *                         type: integer
+ *                         example: 5
+ *                       createdAt:
+ *                         type: string
+ *                         format: date-time
+ *                       members:
+ *                         type: array
+ *                         items:
+ *                           type: object
+ *                           properties:
+ *                             id:
+ *                               type: integer
+ *                               example: 10
+ *                             firstname:
+ *                               type: string
+ *                               example: "John"
+ *                             lastname:
+ *                               type: string
+ *                               example: "Doe"
+ *                             year:
+ *                               type: integer
+ *                               example: 3
+ *                             user:
+ *                               type: object
+ *                               properties:
+ *                                 email:
+ *                                   type: string
+ *                                   example: "john.doe@example.com"
+ *                       preflists:
+ *                         type: array
+ *                         items:
+ *                           type: object
+ *                           properties:
+ *                             ML:
+ *                               type: string
+ *                               example: "Machine Learning"
+ */
+router.get('/supervised-by-me', protect,restrictedfor('teacher'), getAllTeams_supervisedByMe);
+
 
 export default router;
