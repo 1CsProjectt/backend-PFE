@@ -665,7 +665,7 @@ export const getAllTeams_supervisedByMe = catchAsync(async (req, res, next) => {
 
   const teams = await Team.findAll({
     where: {
-      supervisorId: teacherID  // <-- filter by supervisorId
+      supervisorId: teacherID  
     },
     include: [
       {
