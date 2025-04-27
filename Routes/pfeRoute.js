@@ -654,7 +654,7 @@ router.patch('/:id/reject', protect, restrictedfor('admin', 'teacher'), upload.f
 
 /**
  * @swagger
- * /api/v1/pfes/{id}:
+ * /api/v1/pfe/{id}:
  *   get:
  *     summary: Retrieve a single PFE by its ID
  *     tags:
