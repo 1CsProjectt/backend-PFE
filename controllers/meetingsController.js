@@ -2,6 +2,8 @@ import { Op } from "sequelize";
 import Meet from "../models/meetingModel.js";
 import Team from "../models/groupModel.js";
 import {catchAsync} from "../utils/catchAsync.js";
+import appError from "../utils/appError.js";
+
 
 export const startNewMeeting = catchAsync(async (req, res, next) => {
     const { date, time, room,  Meeting_objectives_files} = req.body;
