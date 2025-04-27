@@ -4,7 +4,7 @@ import Preflist from '../models/preflistModel.js';
 import Student from '../models/studenModel.js';
 import PFE from '../models/PFEmodel.js';
 import SupervisionRequest from '../models/SupervisionRequestModel.js';
-
+import sequelize from '../config/database.js';
 import teacher from '../models/teacherModel.js';
 import Team from '../models/groupModel.js';
 import app from '../index.js';
