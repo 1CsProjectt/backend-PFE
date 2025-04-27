@@ -709,7 +709,15 @@ export const getMyPreflist = catchAsync(async (req, res, next) => {
     include: [
       {
         model: PFE, 
-        attributes: ['id', 'title', 'description', 'year', 'specialization'],
+        attributes: ['id', 'title', 'description', 'year', 'specialization',"photo","pdfFile"],
+        include: [
+          {
+            model: teacher,
+            as: 'supervisors', 
+            through: { attributes: [] }, 
+            attributes: ['id', 'firstname', 'lastname'], 
+          }
+        ]
       },
     ],
   });
@@ -741,7 +749,7 @@ export const getpreflist = catchAsync(async (req, res, next) => {
     include: [
       {
         model: PFE, 
-        attributes: ['id', 'title', 'description', 'year', 'specialization'],
+        attributes: ['id', 'title', 'description', 'year', 'specialization',"photo","pdfFile"],
       },
     ],
   });
