@@ -6,7 +6,7 @@ import User from './UserModel.js';
 import JoinRequest from './jointeamModel.js';
 import Preflist from './preflistModel.js';
 import SupervisionRequest from './SupervisionRequestModel.js';
-import Meeting from './meeting.js';
+import Meet from './meetingModel.js';
 
 
 // const { DataTypes } = require("sequelize");
@@ -90,19 +90,19 @@ SupervisionRequest.belongsTo(PFE, {
 });
 
 
-Meeting.belongsTo(Team, {
+Meet.belongsTo(Team, {
   foreignKey: 'teamId',
   as: 'team',
   onDelete: 'CASCADE',
 });
 
-Meeting.belongsTo(PFE, {
+Meet.belongsTo(PFE, {
   foreignKey: 'pfeId',
   as: 'pfe',
   onDelete: 'CASCADE',
 });
 
-Meeting.belongsTo(teacher, {
+Meet.belongsTo(teacher, {
   foreignKey: 'supervisorId',
   as: 'supervisor',
   onDelete: 'CASCADE',

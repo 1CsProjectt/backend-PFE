@@ -4,17 +4,7 @@
 import { removeFromPreflist } from '../controllers/preflistController.js';
  
 
-  // const { DataTypes } = require("sequelize");
-  // const sequelize = require("../database.js");
-  // const User = require("./UserModel.js");
-  // const Group = require("./groupModel.js");
-  // const Student = require("./studenModel.js");
-  // const teacher = require("./teacherModel.js"); // Capitalized for consistency
-  // const PFE = require("./PFEmodel.js");
-  // const Company = require("./companyModel.js");
-  // const bcrypt = require("bcryptjs");
-
-  const Team = sequelize.define('Meeting', {
+  const Meet = sequelize.define('Meeting', {
     id: {
       type: DataTypes.INTEGER,
       autoIncrement: true,
@@ -74,7 +64,7 @@ import { removeFromPreflist } from '../controllers/preflistController.js';
 
 
 
-  export default Team;
+  export default Meet;
 
 
   //module.exports = Group;

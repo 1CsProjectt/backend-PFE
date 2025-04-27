@@ -1,5 +1,5 @@
 import { Op } from "sequelize";
-import Meeting from './meeting.js';
+import Meet from "../models/meetingModel.js";
 import Team from './groupModel.js';
 import {catchAsync} from "../utils/catchAsync.js";
 
