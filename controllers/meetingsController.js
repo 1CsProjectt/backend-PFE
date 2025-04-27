@@ -1,6 +1,6 @@
 import { Op } from "sequelize";
 import Meet from "../models/meetingModel.js";
-import Team from './groupModel.js';
+import Team from "../models/groupModel.js";
 import {catchAsync} from "../utils/catchAsync.js";
 
 export const startNewMeeting = catchAsync(async (req, res, next) => {
