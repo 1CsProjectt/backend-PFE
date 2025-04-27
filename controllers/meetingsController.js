@@ -9,10 +9,23 @@ export const startNewMeeting = catchAsync(async (req, res, next) => {
     const { date, time, room,  Meeting_objectives_files} = req.body;
     const teamId = req.params.teamId; 
     const team = await Team.findByPk(teamId);
+    const priviousMeet = await Meet.findOne({
+        where: {
+            teamId: teamId,
+            nextMeeting: true,
+        },
+    });
+
+    if (priviousMeet) {
+        await priviousMeet.update({
+            nextMeeting: false,
+        });
+    }
     if (!team) {
         return next(new appError("Team not found", 404));
     }
     const team_name = team.groupName;
+
     const mymeet = await Meet.create({
         date,
         time,
@@ -20,6 +33,7 @@ export const startNewMeeting = catchAsync(async (req, res, next) => {
         Meeting_objectives_files,
         teamId, 
     });
+
     return res.status(201).json({
         status: `success starting new meeting for team ${team_name}`,
         data: {
@@ -27,7 +41,78 @@ export const startNewMeeting = catchAsync(async (req, res, next) => {
         },
     });
 
+});
+
+export const getAllMeetings = catchAsync(async (req, res, next) => {
+    const meetings = await Meet.findAll({
+        where: {
+            teamId: req.params.teamId,
+        },
+    });
+    if (!meetings) {
+        return next(new appError("No meetings found for this team", 404));
+    }
+    return res.status(200).json({
+        status: "success",
+        data: {
+            meetings,
+        },
+    });
+});
+
+export const cancelMeeting = catchAsync(async (req, res, next) => {
+    const meetingId = req.params.meetingId;
+    const meeting = await Meet.findByPk(meetingId);
+    if (!meeting) {
+        return next(new appError("Meeting not found", 404));
+    }
+    await meeting.destroy();
+    return res.status(204).json({
+        status: "success",
+        message: "Meeting deleted successfully",
+    });
 })
+
+export const getNextMeet = catchAsync(async (req, res, next) => {
+    const teamId = req.params.teamId;
+    const nextMeeting = await Meet.findOne({
+        where: {
+            teamId: teamId,
+            nextMeeting: true,
+        }
+    });
+    if (!nextMeeting) {
+        return next(new appError("No upcoming meetings found for this team", 404));
+    }
+    return res.status(200).json({
+        status: "success",
+        data: {
+            nextMeeting,
+        },
+    });
+})
+
+
+export const updateMeeting = catchAsync(async (req, res, next) => {
+    const meetingId = req.params.meetingId;
+    const { date, time, room, Meeting_objectives_files } = req.body;
+    const meeting = await Meet.findByPk(meetingId);
+    if (!meeting) {
+        return next(new appError("Meeting not found", 404));
+    }
+    await meeting.update({
+        date,
+        time,
+        room,
+        Meeting_objectives_files,
+    });
+    return res.status(200).json({
+        status: "success",
+        data: {
+            meeting,
+        },
+    });
+}) 
 
 
 

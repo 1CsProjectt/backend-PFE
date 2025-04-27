@@ -49,7 +49,11 @@ import { removeFromPreflist } from '../controllers/preflistController.js';
        type: DataTypes.STRING,
        allowNull: true,
 
-    }
+    },
+    nextMeeting:{
+       type: DataTypes.BOOLEAN,
+       defaultValue:true,
+    },
 
 
 
