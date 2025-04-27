@@ -7,7 +7,7 @@ import teacher from '../models/teacherModel.js';
 import Preflist from '../models/preflistModel.js';
 import { catchAsync } from '../utils/catchAsync.js';
 import { Op, Sequelize } from "sequelize";
-
+import invitation from '../models/invitationModel.js';
 
 
 const checkAndDestroyEmptyTeam = async (teamId) => {
@@ -159,7 +159,7 @@ export const showMyTeam = catchAsync(async (req, res, next) => {
             {
                 model: Student,
                 as: 'members',
-                attributes: ['id', 'firstname', 'lastname'],
+                attributes: ['id', 'firstname', 'lastname','roleINproject'],
                 include: [
                     {
                         model: User,
@@ -228,9 +228,11 @@ export const leaveTeam = catchAsync(async (req, res, next) => {
         if (!student) {
             return next(new appError("Student not found", 404));
         }
+
+        await invitation.destroy({where:{sender_id:student.id}});
         const teamId = student.team_id;
         student.team_id = null;
-        student.status="available"
+        student.status="available";
         await student.save();
 
         const remainingMembers = await Student.count({ where: { team_id: teamId } });
