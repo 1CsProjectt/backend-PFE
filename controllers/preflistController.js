@@ -716,6 +716,11 @@ export const getMyPreflist = catchAsync(async (req, res, next) => {
             as: 'supervisors', 
             through: { attributes: [] }, 
             attributes: ['id', 'firstname', 'lastname'], 
+          },
+          {
+            model: SupervisionRequest,
+            as: 'supervisionRequests', 
+            attributes: ['status'], 
           }
         ]
       },
@@ -756,7 +761,13 @@ export const getpreflist = catchAsync(async (req, res, next) => {
             as: 'supervisors', 
             through: { attributes: [] }, 
             attributes: ['id', 'firstname', 'lastname'], 
+          },
+          {
+            model: SupervisionRequest,
+            as: 'supervisionRequests', 
+            attributes: ['status'], 
           }
+
         ]
       },
     ],
