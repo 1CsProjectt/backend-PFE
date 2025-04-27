@@ -4,7 +4,7 @@ import Preflist from '../models/preflistModel.js';
 import Student from '../models/studenModel.js';
 import PFE from '../models/PFEmodel.js';
 import SupervisionRequest from '../models/SupervisionRequestModel.js';
-
+import sequelize from '../config/database.js';
 import teacher from '../models/teacherModel.js';
 import Team from '../models/groupModel.js';
 import app from '../index.js';
@@ -720,6 +720,7 @@ export const getMyPreflist = catchAsync(async (req, res, next) => {
           {
             model: SupervisionRequest,
             as: 'supervisionRequests', 
+            where:{teamId, pfeId: sequelize.col('PFE.id')},
             attributes: ['status'], 
           }
         ]
@@ -765,6 +766,7 @@ export const getpreflist = catchAsync(async (req, res, next) => {
           {
             model: SupervisionRequest,
             as: 'supervisionRequests', 
+            where:{teamId, pfeId: sequelize.col('PFE.id')},
             attributes: ['status'], 
           }
 
