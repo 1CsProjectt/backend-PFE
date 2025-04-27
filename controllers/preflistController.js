@@ -499,11 +499,11 @@ export const getAllrequests = catchAsync(async (req, res, next) => {
     }
 
     requests = await SupervisionRequest.findAll({
+      where: { teamId: student.team_id },
       include: [
         {
           model: PFE,
           as: 'pfe',
-          where: { team_id: student.team_id },
           attributes: [
             'id',
             'title',
