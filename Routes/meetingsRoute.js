@@ -12,6 +12,18 @@ import {
 } from "../middlewares/authmiddleware.js";
 
 const router = express.Router();
+
+
+
+
+/**
+ * @swagger
+ * tags:
+ *   name: MEETINGS
+ *   description: MEETINGS-related operations
+ */ 
+
+
 /**
  * @swagger
  * /api/v1/meetings/startNewMeeting/{teamId}:
