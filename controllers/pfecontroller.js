@@ -948,6 +948,50 @@ export const changePfeForTeam = catchAsync(async (req, res, next) => {
 });
 
 
+export const getPFEByID = catchAsync(async (req, res, next) => {
+    const { id } = req.params;
+  
+    const pfe = await PFE.findByPk(id, {
+      include: [
+        {
+          model: User,
+          as: 'creator',
+          attributes: ['id', 'username', 'email'],
+          include: [
+            {
+              model: teacher,
+              as: 'teacher',
+              attributes: ['firstname', 'lastname'],
+              required: false,
+            },
+            {
+              model: Company,
+              as: 'company',
+              attributes: ['name'],
+              required: false,
+            },
+          ],
+        },
+        {
+          model: teacher,
+          as: 'supervisors',
+          attributes: ['id', 'firstname', 'lastname'],
+          through: { attributes: [] },
+        },
+      ],
+    });
+  
+    if (!pfe) {
+      return next(new AppError(`No PFE found with ID ${id}`, 404));
+    }
+  
+    const formatted = formatPFEUrls([pfe])[0];
+  
+    res.status(200).json({
+      status: 'success',
+      pfe: formatted,
+    });
+  });
 
 
 

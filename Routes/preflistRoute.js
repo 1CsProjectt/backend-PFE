@@ -632,7 +632,7 @@ router.get('/my', protect, getMyPreflist);
 
 /**
  * @swagger
- * /api/v1/preflist/{teamId}/approve:
+ * /api/v1/preflist/approve:
  *   post:
  *     summary: Approve a team's preflist and send the first supervision request
  *     tags:
