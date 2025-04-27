@@ -203,7 +203,7 @@ export const getAllTeams = catchAsync(async (req, res, next) => {
       },
       {
         model: PFE,             
-        as: 'pfe',
+        as: 'assignedPFE',
         attributes: ['id', 'title'] 
       }
     ],
