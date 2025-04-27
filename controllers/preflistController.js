@@ -499,11 +499,11 @@ export const getAllrequests = catchAsync(async (req, res, next) => {
     }
 
     requests = await SupervisionRequest.findAll({
+      where: { teamId: student.team_id },
       include: [
         {
           model: PFE,
           as: 'pfe',
-          where: { team_id: student.team_id },
           attributes: [
             'id',
             'title',
@@ -709,7 +709,15 @@ export const getMyPreflist = catchAsync(async (req, res, next) => {
     include: [
       {
         model: PFE, 
-        attributes: ['id', 'title', 'description', 'year', 'specialization'],
+        attributes: ['id', 'title', 'description', 'year', 'specialization',"photo","pdfFile"],
+        include: [
+          {
+            model: teacher,
+            as: 'supervisors', 
+            through: { attributes: [] }, 
+            attributes: ['id', 'firstname', 'lastname'], 
+          }
+        ]
       },
     ],
   });
@@ -741,7 +749,15 @@ export const getpreflist = catchAsync(async (req, res, next) => {
     include: [
       {
         model: PFE, 
-        attributes: ['id', 'title', 'description', 'year', 'specialization'],
+        attributes: ['id', 'title', 'description', 'year', 'specialization',"photo","pdfFile"],
+        include: [
+          {
+            model: teacher,
+            as: 'supervisors', 
+            through: { attributes: [] }, 
+            attributes: ['id', 'firstname', 'lastname'], 
+          }
+        ]
       },
     ],
   });
@@ -756,3 +772,7 @@ export const getpreflist = catchAsync(async (req, res, next) => {
     data: preflist,
   });
 });
+
+
+
+

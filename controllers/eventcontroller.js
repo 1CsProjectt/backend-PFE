@@ -18,6 +18,9 @@ const setEvent = catchAsync(async (req, res, next) => {
     if (!allowedNames.includes(name)) {
         return next(new appError("Invalid event name", 400));
     }
+    if(name==='PFE_SUBMISSION'){
+        targeted = 'teachers';
+    }
 
     if (!allowedTargets.includes(targeted)) {
         return next(new appError("Invalid targeted value", 400));
@@ -44,7 +47,6 @@ const setEvent = catchAsync(async (req, res, next) => {
 
     const now = new Date();
 
-    // === Dependency checks ===
     if (targeted === 'students') {
         const conditions = { targeted, year };
 
@@ -294,11 +296,12 @@ export const getAllEvents = catchAsync(async (req, res, next) => {
 
 export const getCurrentSession = catchAsync(async (req, res, next) => {
   const userId=req.user.id;
-  const rolee=req.user.role;       
+  const rolee=req.user.role;    
+  console.log(rolee)   
   let targeted = null;
   let year = null;
 
-  if (rolee === 'teacher' || 'company') {
+  if (rolee === 'teacher' || rolee === 'company') {
     targeted = 'teachers';
   } else if (rolee === 'student') {
     targeted = 'students';
@@ -308,7 +311,7 @@ export const getCurrentSession = catchAsync(async (req, res, next) => {
       return next(new appError('Student profile not found', 404));
     }
     year = student.year;    
-  } else if(rolee='admin')
+  } else if(rolee==='admin')
      {
         res.locals.currentSessions='NORMAL_SESSION'
   }else{
@@ -324,6 +327,7 @@ export const getCurrentSession = catchAsync(async (req, res, next) => {
   if (targeted === 'students') {
     where.year = year;
   }
+  console.log(where)
 
   const currentEvents = await Event.findAll({ where });
 

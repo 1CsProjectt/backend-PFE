@@ -8,7 +8,7 @@ import Preflist from '../models/preflistModel.js';
 import { catchAsync } from '../utils/catchAsync.js';
 import { Op, Sequelize } from "sequelize";
 import invitation from '../models/invitationModel.js';
-
+import PFE from '../models/PFEmodel.js';
 
 
 const checkAndDestroyEmptyTeam = async (teamId) => {
@@ -197,15 +197,17 @@ export const getAllTeams = catchAsync(async (req, res, next) => {
           }
         ]
       },{
-        model: Preflist,
-        as: 'preflists',
-        separate: true,  
-        limit: 1,          
-        order: [['order', 'ASC']],
-        attributes: ['ML']
+        model: teacher,         
+        as: 'supervisor',
+        attributes: ['id', 'firstname', 'lastname']
+      },
+      {
+        model: PFE,             
+        as: 'assignedPFE',
+        attributes: ['id', 'title'] 
       }
     ],
-    attributes: ['id', 'groupName', 'supervisorId', 'maxNumber', 'createdAt']
+    attributes: ['id', 'groupName', 'supervisorId', 'maxNumber', 'createdAt','pfe_id']
   });
 
   return res.status(200).json({
