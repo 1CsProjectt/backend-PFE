@@ -299,7 +299,7 @@ export const getCurrentSession = catchAsync(async (req, res, next) => {
   let targeted = null;
   let year = null;
 
-  if (rolee === 'teacher' || 'company') {
+  if (rolee === 'teacher' || rolee === 'company') {
     targeted = 'teachers';
   } else if (rolee === 'student') {
     targeted = 'students';
