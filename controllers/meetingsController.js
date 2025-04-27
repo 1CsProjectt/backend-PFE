@@ -11,7 +11,7 @@ export const startNewMeeting = catchAsync(async (req, res, next) => {
         return next(new appError("Team not found", 404));
     }
     const team_name = team.groupName;
-    const meeting = await Meeting.create({
+    const mymeet = await Meet.create({
         date,
         time,
         room,
@@ -21,7 +21,7 @@ export const startNewMeeting = catchAsync(async (req, res, next) => {
     return res.status(201).json({
         status: `success starting new meeting for team ${team_name}`,
         data: {
-            meeting,
+            mymeet,
         },
     });
 
