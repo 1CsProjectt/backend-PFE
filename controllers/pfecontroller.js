@@ -772,6 +772,7 @@ export const autoAssignPfesToTeamsWithoutPfe = catchAsync(async (req, res, next)
 
     const pfeWhere = {
       year: studentYear,
+      status: 'VALIDE',
     };
 
     // Include specialization only if it's not null
@@ -810,6 +811,95 @@ export const autoAssignPfesToTeamsWithoutPfe = catchAsync(async (req, res, next)
     assigned: assignmentLog,
   });
 });
+
+
+
+export const autoAssignPfesToTeamWithoutPfe = catchAsync(async (req, res, next) => {
+  const { teamId } = req.body;
+
+  if (!teamId) {
+    return next(new appError('Team id is required', 400));
+  }
+
+  // Fetch the team
+  const team = await Team.findByPk(teamId);
+
+  if (!team) {
+    return next(new appError('Team not found', 404));
+  }
+
+  // Check if the team already has a PFE
+  if (team.pfe_id !== null) {
+    return next(new appError('This team already has a PFE assigned', 400));
+  }
+
+  // Fetch team members
+  const members = await Student.findAll({ where: { team_id: teamId } });
+
+  if (!members || members.length === 0) {
+    return next(new appError('Team has no members', 400));
+  }
+
+  const teamYear = members[0].year;
+  const teamSpecialite = members[0].specialite;
+
+  if (!teamYear) {
+    return next(new appError('Team members must have a year defined', 400));
+  }
+
+  // Build PFE search conditions
+  let pfeSearchQuery = {
+    year: teamYear,
+    status: 'VALIDE', // Only validated PFEs
+  };
+
+  if (teamYear === '2CS' || teamYear === '3CS') {
+    if (!teamSpecialite) {
+      return next(new appError('Team members must have a specialite for 2CS and 3CS', 400));
+    }
+    pfeSearchQuery.specialization = teamSpecialite;
+  }
+
+  // Fetch all PFEs matching year (+ specialization if needed)
+  let pfes = await PFE.findAll({ where: pfeSearchQuery });
+
+  if (!pfes || pfes.length === 0) {
+    return next(new appError(`No available PFEs for ${teamYear}${teamSpecialite ? ` - ${teamSpecialite}` : ''}`, 404));
+  }
+
+  // For 3CS: filter out PFEs already assigned to other teams
+  if (teamYear === '3CS') {
+    const assignedTeams = await Team.findAll({
+      where: {
+        pfe_id: pfes.map(p => p.id),
+      },
+    });
+
+    const assignedPfeIds = assignedTeams.map(t => t.pfe_id);
+
+    // Keep only PFEs NOT assigned
+    pfes = pfes.filter(pfe => !assignedPfeIds.includes(pfe.id));
+  }
+
+  if (pfes.length === 0) {
+    return next(new appError('No unassigned PFEs available for this team', 404));
+  }
+
+  // 👉 Pick a random available PFE
+  const randomIndex = Math.floor(Math.random() * pfes.length);
+  const selectedPfe = pfes[randomIndex];
+
+  // Assign PFE to the team
+  team.pfe_id = selectedPfe.id;
+  await team.save();
+
+  res.status(200).json({
+    status: 'success',
+    message: `PFE successfully assigned to team ${teamId}`,
+    assigned: selectedPfe,
+  });
+});
+
 
 export const changePfeForTeam = catchAsync(async (req, res, next) => {
     const { teamId, newPfeId } = req.body;

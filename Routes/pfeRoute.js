@@ -22,7 +22,8 @@ import {
     displayvalidePFE,autoAssignPfesToTeamsWithoutPfe
     ,changePfeForTeam,
     rejectPFE,
-    displayrejectedPFE
+    displayrejectedPFE,
+    autoAssignPfesToTeamWithoutPfe
 } from "../controllers/pfecontroller.js";
 
 const router = express.Router();
@@ -166,6 +167,16 @@ router.post(
     restrictedfor('admin'),
     
     autoAssignPfesToTeamsWithoutPfe
+);
+
+
+router.post(
+    '/autoAssignPfesToTeamWithoutPfe',
+    protect,
+    restrictedfor('admin'),
+    
+    autoAssignPfesToTeamWithoutPfe
+
 );
 /**
  * @swagger
