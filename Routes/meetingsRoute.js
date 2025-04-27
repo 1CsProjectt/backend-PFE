@@ -13,7 +13,7 @@ const router = express.Router();
 
 
 
-router.post("/startNewMeeting/:teamId", protect, restrictedfor("taehcer"), startNewMeeting);
+router.post("/startNewMeeting/:teamId", protect, restrictedfor("teacher"), startNewMeeting);
 
 
 
