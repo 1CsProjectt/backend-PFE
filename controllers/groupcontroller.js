@@ -652,3 +652,49 @@ if (students3CS.length > 0) {
 });
 
 
+export const getAllTeams_supervisedByMe = catchAsync(async (req, res, next) => {
+  if (!req.user) {
+    return next(new appError('Forbidden: you are not logged in', 403));
+  }
+
+  const teacherID = req.user.id;
+  const myTeacher = await teacher.findByPk(teacherID);
+  if (!myTeacher) {
+    return next(new appError('Teacher was not found, login again or contact the administration', 401));
+  }
+
+  const teams = await Team.findAll({
+    where: {
+      supervisorId: teacherID  
+    },
+    include: [
+      {
+        model: Student,
+        as: 'members',
+        attributes: ['id', 'firstname', 'lastname', 'year'],
+        include: [
+          {
+            model: User,
+            as: 'user',
+            attributes: ['email'],
+          }
+        ]
+      },
+      {
+        model: Preflist,
+        as: 'preflists',
+        separate: true,
+        limit: 1,
+        order: [['order', 'ASC']],
+        attributes: ['ML']
+      }
+    ],
+    attributes: ['id', 'groupName', 'supervisorId', 'maxNumber', 'createdAt']
+  });
+
+  return res.status(200).json({
+    status: 'success',
+    total: teams.length,
+    teams,
+  });
+});

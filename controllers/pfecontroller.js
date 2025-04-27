@@ -479,6 +479,25 @@ const downloadfile=(req, res) => {
     
         res.status(200).json({ status: "success", count: formattedPFEList.length, pfeList: formattedPFEList });
     });
+
+    export const displayrejectedPFE = catchAsync(async (req, res, next) => {
+        const currentYear = new Date().getFullYear();
+    
+        const pfeList = await PFE.findAll({
+            where: {
+                status: 'REJECTED',
+                [Op.and]: [literal(`EXTRACT(YEAR FROM "PFE"."createdAt") = ${currentYear}`)]
+            },
+            include: [
+                { model: User, as: "creator", attributes: ["id", "username", "email"] },
+                { model: teacher, as: "supervisors", attributes: ["id", "name"], through: { attributes: [] } }
+            ],
+        });
+    
+        const formattedPFEList = formatPFEUrls(pfeList);
+    
+        res.status(200).json({ status: "success", count: formattedPFEList.length, pfeList: formattedPFEList });
+    });
     
     
     

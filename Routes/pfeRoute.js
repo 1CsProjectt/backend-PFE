@@ -21,7 +21,8 @@ import {
     getMyPfe,
     displayvalidePFE,autoAssignPfesToTeamsWithoutPfe
     ,changePfeForTeam,
-    rejectPFE
+    rejectPFE,
+    displayrejectedPFE
 } from "../controllers/pfecontroller.js";
 
 const router = express.Router();
@@ -280,6 +281,20 @@ router.get("/pending", protect, restrictedfor('admin'), displayPFE);
  *         description: A list of validated PFEs
  */
 router.get("/validpfe", protect, restrictedfor('admin'), displayvalidePFE);
+
+/**
+ * @swagger
+ * /api/v1/pfe/rejectedpfe:
+ *   get:
+ *     summary: Display rejected PFEs (for admin)
+ *     tags: [PFE]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: A list of validated PFEs
+ */
+router.get("/rejectedpfe", protect, restrictedfor('admin'), displayrejectedPFE);
 
 /**
  * @swagger
