@@ -147,7 +147,7 @@ export const editStudentRole = catchAsync(async (req, res, next) => {
     return next(new appError('Student not found', 404));
   }
 
-  student.role = role;
+  student.roleINproject = role;
   await student.save();
 
   return res.status(200).json({
