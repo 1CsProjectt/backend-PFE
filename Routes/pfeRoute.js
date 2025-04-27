@@ -22,7 +22,8 @@ import {
     displayvalidePFE,autoAssignPfesToTeamsWithoutPfe
     ,changePfeForTeam,
     rejectPFE,
-    displayrejectedPFE
+    displayrejectedPFE,
+    getPFEByID
 } from "../controllers/pfecontroller.js";
 
 const router = express.Router();
@@ -581,6 +582,46 @@ router.post(
 
 
 router.patch('/:id/reject', protect, restrictedfor('admin', 'teacher'), upload.fields([{ name: 'resonfile', maxCount: 1 }]),rejectPFE);
+
+
+
+/**
+ * @swagger
+ * /api/v1/pfes/{id}:
+ *   get:
+ *     summary: Retrieve a single PFE by its ID
+ *     tags:
+ *       - PFE
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: integer
+ *         description: The PFE ID
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved PFE
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/PFEResponse'
+ *       404:
+ *         description: No PFE found with that ID
+ */
+router.get('/:id',protect,getPFEByID)
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 // import express from 'express';
