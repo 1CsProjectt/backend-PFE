@@ -1,9 +1,10 @@
 import { Op } from "sequelize";
 import Meeting from './meeting.js';
-
+import Team from './groupModel.js';
+import {catchAsync} from "../utils/catchAsync.js";
 
 export const startNewMeeting = catchAsync(async (req, res, next) => {
-    const { date, time, room,  Meeting_objectives_files, Support_files, Team_deliverables_files, My_review_for_deliverables_files, Meeting_pv_files } = req.body;
+    const { date, time, room,  Meeting_objectives_files} = req.body;
     const teamId = req.params.teamId; 
     const team = await Team.findByPk(teamId);
     if (!team) {
@@ -15,11 +16,7 @@ export const startNewMeeting = catchAsync(async (req, res, next) => {
         time,
         room,
         Meeting_objectives_files,
-        Support_files,
-        Team_deliverables_files,
-        My_review_for_deliverables_files,
-        Meeting_pv_files,
-        teamId, // Assuming you have a foreign key in the Meeting model
+        teamId, 
     });
     return res.status(201).json({
         status: `success starting new meeting for team ${team_name}`,
@@ -29,6 +26,10 @@ export const startNewMeeting = catchAsync(async (req, res, next) => {
     });
 
 })
+
+
+
+
 
 
 

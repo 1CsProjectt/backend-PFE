@@ -40,6 +40,7 @@ import Admin from "./models/adminModel.js";
 import JoinRequest from "./models/jointeamModel.js";
 import invitation from "./models/invitationModel.js";
 import preflistroute from './Routes/preflistRoute.js'
+import meetingsroute from './Routes/meetingsRoute.js'
 import { getCurrentSession } from "./controllers/eventcontroller.js";
 import { protect } from "./middlewares/authmiddleware.js";
 import { injectCurrentSession } from "./middlewares/injectCurrentSession.js";
@@ -170,6 +171,7 @@ app.use("/api/v1/teams", groupRoutes);
 app.use("/api/v1/invitation",invitationRoutes);
 app.use("/api/v1/jointeam",jointeamRoutes);
 app.use("/api/v1/preflist",preflistroute);
+app.use("/api/v1/mettings",meetingsroute);
 
 
 
