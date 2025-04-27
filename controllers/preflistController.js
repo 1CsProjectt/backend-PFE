@@ -8,7 +8,7 @@ import sequelize from '../config/database.js';
 import teacher from '../models/teacherModel.js';
 import Team from '../models/groupModel.js';
 import app from '../index.js';
-
+import { Op } from 'sequelize';
 
 
 // export const createPreflist = catchAsync(async (req, res, next) => {
@@ -720,7 +720,12 @@ export const getMyPreflist = catchAsync(async (req, res, next) => {
           {
             model: SupervisionRequest,
             as: 'supervisionRequests', 
-            where:{teamId, pfeId: sequelize.col('PFE.id')},
+            where: {
+              [Op.and]: [
+                { teamId }, 
+                { pfeId: sequelize.col('PFE.id') } 
+              ]
+            },
             attributes: ['status'], 
           }
         ]
@@ -766,7 +771,12 @@ export const getpreflist = catchAsync(async (req, res, next) => {
           {
             model: SupervisionRequest,
             as: 'supervisionRequests', 
-            where:{teamId, pfeId: sequelize.col('PFE.id')},
+            where: {
+              [Op.and]: [
+                { teamId }, 
+                { pfeId: sequelize.col('PFE.id') } 
+              ]
+            },
             attributes: ['status'], 
           }
 
