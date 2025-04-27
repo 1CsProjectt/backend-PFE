@@ -309,7 +309,7 @@ export const getCurrentSession = catchAsync(async (req, res, next) => {
       return next(new appError('Student profile not found', 404));
     }
     year = student.year;    
-  } else if(rolee='admin')
+  } else if(rolee==='admin')
      {
         res.locals.currentSessions='NORMAL_SESSION'
   }else{
