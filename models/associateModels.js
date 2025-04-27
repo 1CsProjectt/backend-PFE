@@ -6,6 +6,8 @@ import User from './UserModel.js';
 import JoinRequest from './jointeamModel.js';
 import Preflist from './preflistModel.js';
 import SupervisionRequest from './SupervisionRequestModel.js';
+import Meeting from './meeting.js';
+
 
 // const { DataTypes } = require("sequelize");
 // const sequelize = require("../database.js");
@@ -86,6 +88,26 @@ SupervisionRequest.belongsTo(PFE, {
   as: 'pfe',
   onDelete: 'CASCADE',
 });
+
+
+Meeting.belongsTo(Team, {
+  foreignKey: 'teamId',
+  as: 'team',
+  onDelete: 'CASCADE',
+});
+
+Meeting.belongsTo(PFE, {
+  foreignKey: 'pfeId',
+  as: 'pfe',
+  onDelete: 'CASCADE',
+});
+
+Meeting.belongsTo(teacher, {
+  foreignKey: 'supervisorId',
+  as: 'supervisor',
+  onDelete: 'CASCADE',
+});
+
 
 
 
