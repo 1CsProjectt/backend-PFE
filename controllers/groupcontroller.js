@@ -10,6 +10,7 @@ import { Op, Sequelize } from "sequelize";
 import invitation from '../models/invitationModel.js';
 
 
+
 const checkAndDestroyEmptyTeam = async (teamId) => {
     const currentMembers = await Student.count({ where: { team_id: teamId } });
     if (currentMembers === 0) {
@@ -238,6 +239,7 @@ export const leaveTeam = catchAsync(async (req, res, next) => {
         const remainingMembers = await Student.count({ where: { team_id: teamId } });
 
     if (remainingMembers === 0 && teamId) {
+
         
         await Team.destroy({ where: { id: teamId } });
     }
