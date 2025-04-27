@@ -720,6 +720,7 @@ export const getMyPreflist = catchAsync(async (req, res, next) => {
           {
             model: SupervisionRequest,
             as: 'supervisionRequests', 
+            where:{teamId, pfeId: Sequelize.col('PFE.id')},
             attributes: ['status'], 
           }
         ]
