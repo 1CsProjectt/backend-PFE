@@ -23,6 +23,7 @@ import {
     ,changePfeForTeam,
     rejectPFE,
     displayrejectedPFE,
+    autoAssignPfesToTeamWithoutPfe,
     getPFEByID
 } from "../controllers/pfecontroller.js";
 
@@ -167,6 +168,16 @@ router.post(
     restrictedfor('admin'),
     
     autoAssignPfesToTeamsWithoutPfe
+);
+
+
+router.post(
+    '/autoAssignPfesToTeamWithoutPfe',
+    protect,
+    restrictedfor('admin'),
+    
+    autoAssignPfesToTeamWithoutPfe
+
 );
 /**
  * @swagger
