@@ -709,7 +709,6 @@ export const getMyPreflist = catchAsync(async (req, res, next) => {
     include: [
       {
         model: PFE, 
-        as: 'assignedPFE',
         attributes: ['id', 'title', 'description', 'year', 'specialization',"photo","pdfFile"],
         include: [
           {
