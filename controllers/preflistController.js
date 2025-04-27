@@ -723,7 +723,7 @@ export const getMyPreflist = catchAsync(async (req, res, next) => {
             where: {
               [Op.and]: [
                 { teamId }, 
-                { pfeId: sequelize.col('PFE.id') } 
+                { pfeId: { [Op.eq]: sequelize.col('PFE.id') } } 
               ]
             },
             attributes: ['status'], 
@@ -774,7 +774,7 @@ export const getpreflist = catchAsync(async (req, res, next) => {
             where: {
               [Op.and]: [
                 { teamId }, 
-                { pfeId: sequelize.col('PFE.id') } 
+                { pfeId: { [Op.eq]: sequelize.col('PFE.id') } } 
               ]
             },
             attributes: ['status'], 
