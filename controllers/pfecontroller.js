@@ -377,20 +377,6 @@ export const getMyPfe = catchAsync(async (req, res, next) => {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 const downloadfile=(req, res) => {
       const filePath = path.join(__dirname,'..', 'uploads', req.params.filename);
       console.log(filePath)
@@ -407,8 +393,6 @@ const downloadfile=(req, res) => {
     }
 
  
-
-
     export const displayPFE = catchAsync(async (req, res, next) => {
         const currentYear = new Date().getFullYear();
     
@@ -500,8 +484,6 @@ const downloadfile=(req, res) => {
     });
     
     
-    
-
     export const addSupervisor = catchAsync(async (req, res, next) => {
         const { pfeId } = req.params;
         const { supervisors } = req.body; 

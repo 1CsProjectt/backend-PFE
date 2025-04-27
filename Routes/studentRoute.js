@@ -92,7 +92,7 @@ router.patch('/set-role', protect, restrictedfor('student'), setStudentRole);
 /**
  * @swagger
  * /api/v1/student/edit-role:
- *   put:
+ *   patch:
  *     summary: Edit student role
  *     tags: [Students]
  *     security:
@@ -117,6 +117,6 @@ router.patch('/set-role', protect, restrictedfor('student'), setStudentRole);
  *       404:
  *         description: Student not found
  */
-router.put('/edit-role', protect, restrictedfor('student'), editStudentRole);
+router.patch('/edit-role', protect, restrictedfor('student'), editStudentRole);
 
 export default router;
