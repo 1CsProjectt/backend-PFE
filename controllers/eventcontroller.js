@@ -294,7 +294,8 @@ export const getAllEvents = catchAsync(async (req, res, next) => {
 
 export const getCurrentSession = catchAsync(async (req, res, next) => {
   const userId=req.user.id;
-  const rolee=req.user.role;       
+  const rolee=req.user.role;    
+  console.log(rolee)   
   let targeted = null;
   let year = null;
 
@@ -324,6 +325,7 @@ export const getCurrentSession = catchAsync(async (req, res, next) => {
   if (targeted === 'students') {
     where.year = year;
   }
+  console.log(where)
 
   const currentEvents = await Event.findAll({ where });
 
