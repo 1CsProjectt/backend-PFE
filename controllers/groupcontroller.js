@@ -7,6 +7,7 @@ import teacher from '../models/teacherModel.js';
 import Preflist from '../models/preflistModel.js';
 import { catchAsync } from '../utils/catchAsync.js';
 import { Op, Sequelize } from "sequelize";
+import invitation from '../models/invitationModel.js';
 
 
 
@@ -236,6 +237,7 @@ export const leaveTeam = catchAsync(async (req, res, next) => {
         const remainingMembers = await Student.count({ where: { team_id: teamId } });
 
     if (remainingMembers === 0 && teamId) {
+
         
         await Team.destroy({ where: { id: teamId } });
     }
