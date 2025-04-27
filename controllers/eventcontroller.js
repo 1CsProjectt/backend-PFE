@@ -18,6 +18,9 @@ const setEvent = catchAsync(async (req, res, next) => {
     if (!allowedNames.includes(name)) {
         return next(new appError("Invalid event name", 400));
     }
+    if(name==='PFE_SUBMISSION'){
+        targeted = 'teachers';
+    }
 
     if (!allowedTargets.includes(targeted)) {
         return next(new appError("Invalid targeted value", 400));
@@ -44,7 +47,6 @@ const setEvent = catchAsync(async (req, res, next) => {
 
     const now = new Date();
 
-    // === Dependency checks ===
     if (targeted === 'students') {
         const conditions = { targeted, year };
 
