@@ -170,6 +170,62 @@ router.post(
     autoAssignPfesToTeamsWithoutPfe
 );
 
+/**
+ * @swagger
+ * /api/v1/teams/autoAssignPfesToTeamWithoutPfe:
+ *   post:
+ *     summary: Auto-assign a PFE to a team without a PFE
+ *     tags: [Teams]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - teamId
+ *             properties:
+ *               teamId:
+ *                 type: integer
+ *                 description: ID of the team to which a PFE will be assigned
+ *                 example: 123
+ *     responses:
+ *       200:
+ *         description: PFE successfully assigned to the team
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 message:
+ *                   type: string
+ *                   example: PFE successfully assigned to team 123
+ *                 assigned:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: integer
+ *                       example: 456
+ *                     title:
+ *                       type: string
+ *                       example: "Design and Implementation of a Web Platform"
+ *                     specialization:
+ *                       type: string
+ *                       example: ISI
+ *                     year:
+ *                       type: string
+ *                       example: 3CS
+ *       400:
+ *         description: Bad request (missing team ID, already assigned, invalid data)
+ *       404:
+ *         description: No PFEs available or team not found
+ */
+
 
 router.post(
     '/autoAssignPfesToTeamWithoutPfe',
