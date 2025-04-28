@@ -82,7 +82,7 @@ export const cancelMeeting = catchAsync(async (req, res, next) => {
         return next(new appError("Meeting not found", 404));
     }
     await meeting.destroy();
-    return res.status(204).json({
+    return res.status(200).json({
         status: "success",
         message: "Meeting cancelled successfully",
        
