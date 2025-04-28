@@ -710,6 +710,7 @@ export const getMyPreflist = catchAsync(async (req, res, next) => {
       {
         model: PFE, 
         attributes: ['id', 'title', 'description', 'year', 'specialization',"photo","pdfFile"],
+        required: true,
         include: [
           {
             model: teacher,
@@ -720,12 +721,8 @@ export const getMyPreflist = catchAsync(async (req, res, next) => {
           {
             model: SupervisionRequest,
             as: 'supervisionRequests', 
-            where: {
-              [Op.and]: [
-                { teamId }, 
-                { pfeId: sequelize.col('PFE.id') } 
-              ]
-            },
+            where: { teamId },
+            required: false,
             attributes: ['status'], 
           }
         ]
@@ -771,12 +768,8 @@ export const getpreflist = catchAsync(async (req, res, next) => {
           {
             model: SupervisionRequest,
             as: 'supervisionRequests', 
-            where: {
-              [Op.and]: [
-                { teamId }, 
-                { pfeId: sequelize.col('PFE.id') } 
-              ]
-            },
+            where: { teamId },
+            required: false,
             attributes: ['status'], 
           }
 
