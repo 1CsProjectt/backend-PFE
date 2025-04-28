@@ -46,7 +46,7 @@ export const startNewMeeting = catchAsync(async (req, res, next) => {
         teamId, 
         supervisorId: supervisorId,
         nextMeeting: true,
-        pfe_id: team.pfe_id,
+        pfeId: team.pfe_id,
     });
 
     return res.status(201).json({
