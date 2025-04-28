@@ -50,7 +50,7 @@ export const startNewMeeting = catchAsync(async (req, res, next) => {
     });
 
     return res.status(201).json({
-        status: `success starting new meeting for team ${team_name}`,
+        status: `success starting new meeting for team ${team_name} and pfe_id ${team.pfe_id}`,
         data: {
             mymeet,
         },
