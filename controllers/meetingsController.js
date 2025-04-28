@@ -84,7 +84,7 @@ export const cancelMeeting = catchAsync(async (req, res, next) => {
     await meeting.destroy();
     return res.status(204).json({
         status: "success",
-        message: "Meeting deleted successfully",
+        message: "Meeting canceled successfully",
     });
 })
 
