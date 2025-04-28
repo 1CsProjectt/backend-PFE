@@ -115,6 +115,24 @@ export const updateMeeting = catchAsync(async (req, res, next) => {
 }) 
 
 
+export const update_Work_Status = catchAsync(async (req, res, next) => {
+    const meetingId = req.params.meetingId;
+    const { work_Status } = req.body;
+    const meeting = await Meet.findByPk(meetingId);
+    if (!meeting) {
+        return next(new appError("Meeting not found", 404));
+    }
+    await meeting.update({
+        work_Status,
+    });
+    return res.status(200).json({
+        status: `success updating work status to ${work_Status}`,
+        data: {
+            meeting,
+        },
+    });
+})
+
 
 
 
