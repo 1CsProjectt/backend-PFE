@@ -28,7 +28,7 @@ const router = express.Router();
  * @swagger
  * /api/v1/meetings/startNewMeeting/{teamId}:
  *   post:
- *     summary: Start a new meeting for a specific team
+ *     summary: Start a new meeting for a specific team (only the supervisor can do it)
  *     tags: [Meetings]
  *     security:
  *       - bearerAuth: []
@@ -45,6 +45,10 @@ const router = express.Router();
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - date
+ *               - time
+ *               - room
  *             properties:
  *               date:
  *                 type: string
@@ -63,6 +67,21 @@ const router = express.Router();
  *     responses:
  *       201:
  *         description: Meeting started successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success starting new meeting for team GroupA
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     mymeet:
+ *                       $ref: '#/components/schemas/Meeting'
+ *       403:
+ *         description: You are not authorized to start a meeting for this team
  *       404:
  *         description: Team not found
  */

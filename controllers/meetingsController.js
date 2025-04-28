@@ -8,8 +8,8 @@ import appError from "../utils/appError.js";
 export const startNewMeeting = catchAsync(async (req, res, next) => {
     const { date, time, room,  Meeting_objectives_files} = req.body;
     const teamId = req.params.teamId;
-    const { id } = req.user; // Assuming the user ID is available in req.user 
-    const supervisorId = id; // Assuming the supervisor ID is available in req.user
+    const { id } = req.user; 
+    const supervisorId = id;
     const isSupervisorOfTeam = await Team.findOne({
         where: {
             id: teamId,
@@ -20,10 +20,6 @@ export const startNewMeeting = catchAsync(async (req, res, next) => {
         return next(new appError("You are not authorized to start a meeting for this team", 403));  
     }
     // Check if the team exists
-
-
-
-
     const team = await Team.findByPk(teamId);
     const priviousMeet = await Meet.findOne({
         where: {
