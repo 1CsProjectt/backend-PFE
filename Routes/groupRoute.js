@@ -47,9 +47,13 @@ router.post('/creategroup', protect, restrictedfor('student'), createTeam);
  *   post:
  *     summary: Automatically organize students into teams
  *     description: |
- *       Automatically assigns students to teams based on their year and specialization.
- *       - If one or more students from **3CS** are found without a team, a separate team will be created for each of them and no other students will be processed.
- *       - For other years, students are grouped into teams according to compatibility rules and team size.
+ *       Automatically assigns students to teams based on their academic year and specialization.
+ *       
+ *       - **3CS students** are assigned individually to their own teams. No further processing is done for other students if 3CS students are present.
+ *       - For **2CS** and **1CS**, students are grouped based on year (and specialization for 2CS).
+ *       - If compatible teams are available and not full, students are added to them.
+ *       - Teams with fewer than `ceil(maxNumber / 2)` members are deleted, and their students are made available again.
+ *       - New teams are created when necessary, and overflow students may join existing full teams if their count is below the overflow threshold.
  *     tags: [Team]
  *     security:
  *       - bearerAuth: []
@@ -64,23 +68,26 @@ router.post('/creategroup', protect, restrictedfor('student'), createTeam);
  *             properties:
  *               year:
  *                 type: string
+ *                 enum: [1CS, 2CS, 3CS]
  *                 example: 2CS
- *                 description: The academic year of the students (e.g., 1CS, 2CS, 3CS)
+ *                 description: Academic year of the students.
  *               specialite:
  *                 type: string
  *                 example: SIW
- *                 description: Required only for 2CS students (e.g., ISI, SIW, IASD)
+ *                 description: Required only for 2CS and 3CS students (e.g., ISI, SIW, IASD).
  *     responses:
  *       200:
- *         description: Students have been automatically organized into teams or 3CS students have been assigned to individual teams
+ *         description: |
+ *           - For 3CS: Each student is assigned to a unique team.
+ *           - For 1CS and 2CS: Students are grouped into teams based on compatibility and team size.
  *       400:
- *         description: Missing required parameters or invalid input
+ *         description: Missing required parameters or invalid input (e.g., missing specialization for 2CS or 3CS).
  *       401:
- *         description: Unauthorized - Bearer token is missing or invalid
+ *         description: Unauthorized - Bearer token is missing or invalid.
  *       403:
- *         description: Forbidden - User does not have permission
+ *         description: Forbidden - User does not have permission to perform this action.
  *       500:
- *         description: Internal Server Error - Something went wrong on the server
+ *         description: Internal Server Error - Something went wrong on the server.
  */
 
 
