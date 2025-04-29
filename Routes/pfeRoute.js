@@ -99,7 +99,7 @@ router.post(
  * @swagger
  * /api/v1/pfes/autoAssignPfesToTeamsWithoutPfe:
  *   post:
- *     summary: Automatically assign PFEs to teams without PFEs
+ *     summary: Automatically assign PFEs to all teams without a PFE
  *     tags: [PFE]
  *     security:
  *       - bearerAuth: []
@@ -123,7 +123,7 @@ router.post(
  *                 description: Required only for 2CS and 3CS
  *     responses:
  *       200:
- *         description: PFEs successfully assigned to teams
+ *         description: PFEs successfully assigned to all eligible teams
  *         content:
  *           application/json:
  *             schema:
@@ -134,18 +134,33 @@ router.post(
  *                   example: success
  *                 message:
  *                   type: string
- *                   example: PFEs successfully assigned to teams
+ *                   example: PFEs successfully assigned to all teams without PFE
+ *                 count:
+ *                   type: integer
+ *                   example: 3
  *                 assigned:
  *                   type: array
  *                   items:
  *                     type: object
  *                     properties:
- *                       teamId:
- *                         type: integer
- *                         example: 12
- *                       pfeTitle:
- *                         type: string
- *                         example: "AI-based Optimization System"
+ *                       team:
+ *                         type: object
+ *                         properties:
+ *                           id:
+ *                             type: integer
+ *                             example: 12
+ *                           name:
+ *                             type: string
+ *                             example: Team A
+ *                       pfe:
+ *                         type: object
+ *                         properties:
+ *                           id:
+ *                             type: integer
+ *                             example: 45
+ *                           title:
+ *                             type: string
+ *                             example: "AI-based Optimization System"
  *                       specialization:
  *                         type: string
  *                         example: ISI
@@ -153,14 +168,15 @@ router.post(
  *                         type: string
  *                         example: 2CS
  *       400:
- *         description: Year or specialization missing
+ *         description: Year or specialization is missing or invalid
  *       404:
- *         description: All teams already have assigned PFEs
+ *         description: No eligible teams found or all teams already assigned PFEs
  *       401:
- *         description: Unauthorized - token missing or invalid
+ *         description: Unauthorized – token missing or invalid
  *       403:
- *         description: Forbidden - only admin can access
+ *         description: Forbidden – only admin can access
  */
+
 
 router.post(
     '/autoAssignPfesToTeamsWithoutPfe',
@@ -174,7 +190,7 @@ router.post(
  * @swagger
  * /api/v1/teams/autoAssignPfesToTeamWithoutPfe:
  *   post:
- *     summary: Auto-assign a PFE to a team without a PFE
+ *     summary: Assign a PFE to a specific team without one
  *     tags: [Teams]
  *     security:
  *       - bearerAuth: []
@@ -221,9 +237,13 @@ router.post(
  *                       type: string
  *                       example: 3CS
  *       400:
- *         description: Bad request (missing team ID, already assigned, invalid data)
+ *         description: Bad request (missing team ID, already assigned, or invalid data)
  *       404:
- *         description: No PFEs available or team not found
+ *         description: No matching PFEs found or team not found
+ *       401:
+ *         description: Unauthorized – token missing or invalid
+ *       403:
+ *         description: Forbidden – only admin can access
  */
 
 
