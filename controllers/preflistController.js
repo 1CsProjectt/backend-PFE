@@ -326,17 +326,64 @@ const alreadyApproved = await Preflist.findOne({
       )
     );
   }
-  const deleted = await Preflist.destroy({
+  const preflists = await Preflist.findAll({
     where: {
       teamId,
       pfeId,
     },
   });
 
-  if (!deleted) {
+  if (!preflists || preflists.length === 0) {
     return next(new appError('PFE not found in your team\'s preflist.', 404));
   }
+  
 
+  const deleteCloudinaryFile = async (url) => {
+          if (!url) return;
+        
+          try {
+            const uploadIndex = url.indexOf('/upload/');
+            if (uploadIndex === -1) {
+              console.error('Invalid Cloudinary URL format');
+              return;
+            }
+        
+            const pathAfterUpload = url.substring(uploadIndex + 8);
+            const parts = pathAfterUpload.split('/');
+        
+            // Remove version if present
+            if (parts[0].startsWith('v')) {
+              parts.shift();
+            }
+        
+            const fileWithExtension = parts.pop();
+            let fileNameWithoutExtension = fileWithExtension;
+        
+            // Remove .jpg or .pdf extension if present
+            if (fileWithExtension.endsWith('.jpg')) {
+              fileNameWithoutExtension = fileWithExtension.slice(0, -4);
+            } else if (fileWithExtension.endsWith('.pdf')) {
+              fileNameWithoutExtension = fileWithExtension.slice(0, -4);
+            }
+        
+            parts.push(fileNameWithoutExtension);
+            const publicId = parts.join('/');
+            console.log(`Public ID: ${publicId}`);
+        
+            const resourceType = url.includes('/raw/') ? 'raw' : 'image';
+        
+            await cloudinary.uploader.destroy(publicId, {
+              resource_type: resourceType,
+              invalidate: true,
+            });
+        
+            console.log(`Deleted ${resourceType} from Cloudinary: ${publicId}`);
+          } catch (err) {
+            console.error(`Error deleting file from Cloudinary: ${err.message}`);
+          }
+        };
+        await deleteCloudinaryFile(preflists.ML);
+        await preflists.destroy();
   res.status(200).json({
     status: 'success',
     message: `PFE ${pfeId} removed from preflist.`,
