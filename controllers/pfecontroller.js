@@ -732,37 +732,41 @@ export const autoAssignPfesToTeamsWithoutPfe = catchAsync(async (req, res, next)
   const upperYear = year.toUpperCase();
   const upperSpecialite = specialite ? specialite.toUpperCase() : null;
 
+  // Specialite is only required for 2CS and 3CS
   if ((upperYear === '2CS' || upperYear === '3CS') && !upperSpecialite) {
     return next(new appError('Specialite is required for 2CS and 3CS', 400));
   }
 
-  // Get all teams without assigned PFE, including their students
-  const allTeamsWithoutPFE = await Team.findAll({
-    where: { pfe_id: null },
-    include: [{ model: Student, as: 'members' }],
+  // Find teams without PFE and with students of matching year (+specialite if needed)
+  const teamsWithoutPFE = await Team.findAll({
+    where: {
+      pfe_id: null,
+    },
+    include: [
+      {
+        model: Student,
+        as: 'students',
+        required: true,
+        where: {
+          year: upperYear,
+          ...(upperYear === '2CS' || upperYear === '3CS'
+            ? { specialite: upperSpecialite }
+            : {}),
+        },
+      },
+    ],
   });
 
-  // Filter teams based on their members' year and specialite
-  const filteredTeams = allTeamsWithoutPFE.filter(team => {
-    if (!team.students || team.students.length === 0) return false;
-
-    const student = team.students[0];
-    const studentYear = student.year?.toUpperCase();
-    const studentSpecialite = student.specialite?.toUpperCase();
-
-    if (studentYear !== upperYear) return false;
-    if ((upperYear === '2CS' || upperYear === '3CS') && studentSpecialite !== upperSpecialite) return false;
-
-    return true;
-  });
-
-  if (filteredTeams.length === 0) {
+  if (teamsWithoutPFE.length === 0) {
     return next(
-      new appError(`All teams from ${upperYear}${upperSpecialite ? ' - ' + upperSpecialite : ''} already have assigned PFEs`, 404)
+      new appError(
+        `All teams from ${upperYear}${upperSpecialite ? ' - ' + upperSpecialite : ''} already have assigned PFEs`,
+        404
+      )
     );
   }
 
-  // Get all used PFE IDs
+  // Get already used PFE IDs
   const usedPfeRecords = await Team.findAll({
     where: { pfe_id: { [Op.ne]: null } },
     attributes: ['pfe_id'],
@@ -771,7 +775,7 @@ export const autoAssignPfesToTeamsWithoutPfe = catchAsync(async (req, res, next)
 
   const assignmentLog = [];
 
-  for (const team of filteredTeams) {
+  for (const team of teamsWithoutPFE) {
     const students = team.students;
     if (students.length === 0) continue;
 
@@ -781,7 +785,9 @@ export const autoAssignPfesToTeamsWithoutPfe = catchAsync(async (req, res, next)
     const pfeWhere = {
       year: studentYear,
       status: 'VALIDE',
-      ...(studentSpecialite && (studentYear === '2CS' || studentYear === '3CS') ? { specialization: studentSpecialite } : {}),
+      ...(studentYear === '2CS' || studentYear === '3CS'
+        ? { specialization: studentSpecialite }
+        : {}),
     };
 
     const availablePfes = await PFE.findAll({ where: pfeWhere });
@@ -823,11 +829,12 @@ export const autoAssignPfesToTeamsWithoutPfe = catchAsync(async (req, res, next)
 
   res.status(200).json({
     status: 'success',
-    message: 'PFEs successfully assigned to all eligible teams',
+    message: 'PFEs successfully assigned to all teams without PFE',
     count: assignmentLog.length,
     assigned: assignmentLog,
   });
 });
+
 
 
 
