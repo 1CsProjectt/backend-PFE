@@ -745,7 +745,7 @@ export const autoAssignPfesToTeamsWithoutPfe = catchAsync(async (req, res, next)
     include: [
       {
         model: Student,
-        as: 'members',
+        as: 'members', // Must match your model association
         required: true,
         where: {
           year: upperYear,
@@ -766,7 +766,6 @@ export const autoAssignPfesToTeamsWithoutPfe = catchAsync(async (req, res, next)
     );
   }
 
-  // Get already used PFE IDs
   const usedPfeRecords = await Team.findAll({
     where: { pfe_id: { [Op.ne]: null } },
     attributes: ['pfe_id'],
@@ -776,8 +775,8 @@ export const autoAssignPfesToTeamsWithoutPfe = catchAsync(async (req, res, next)
   const assignmentLog = [];
 
   for (const team of teamsWithoutPFE) {
-    const students = team.students;
-    if (students.length === 0) continue;
+    const students = team.members; // FIXED HERE
+    if (!students || students.length === 0) continue;
 
     const studentYear = students[0].year?.toUpperCase();
     const studentSpecialite = students[0].specialite?.toUpperCase() ?? null;
@@ -834,6 +833,7 @@ export const autoAssignPfesToTeamsWithoutPfe = catchAsync(async (req, res, next)
     assigned: assignmentLog,
   });
 });
+
 
 
 
