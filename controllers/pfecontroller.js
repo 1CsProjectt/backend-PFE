@@ -474,7 +474,7 @@ const downloadfile=(req, res) => {
             },
             include: [
                 { model: User, as: "creator", attributes: ["id", "username", "email"] },
-                { model: teacher, as: "supervisors", attributes: ["id", "name"], through: { attributes: [] } }
+                { model: teacher, as: "supervisors", attributes: ["id", "firstname","lastname"], through: { attributes: [] } }
             ],
         });
     
