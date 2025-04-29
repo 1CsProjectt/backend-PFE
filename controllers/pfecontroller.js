@@ -797,7 +797,7 @@ export const autoAssignPfesToTeamsWithoutPfe = catchAsync(async (req, res, next)
     if (studentYear === '3CS') {
       const unassignedPfes = availablePfes.filter(pfe => !usedPfeIds.has(pfe.id));
       if (unassignedPfes.length === 0) {
-        return next(new appError('No unassigned PFEs available for 3CS teams', 404));
+        return next(new appError('all PFEs are already assigned', 404));
       }
 
       selectedPfe = unassignedPfes[Math.floor(Math.random() * unassignedPfes.length)];
