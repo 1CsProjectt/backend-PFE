@@ -739,7 +739,7 @@ export const autoAssignPfesToTeamsWithoutPfe = catchAsync(async (req, res, next)
   // Get all teams without assigned PFE, including their students
   const allTeamsWithoutPFE = await Team.findAll({
     where: { pfe_id: null },
-    include: [{ model: Student, as: 'students' }],
+    include: [{ model: Student, as: 'members' }],
   });
 
   // Filter teams based on their members' year and specialite
