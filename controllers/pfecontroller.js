@@ -796,7 +796,10 @@ export const autoAssignPfesToTeamsWithoutPfe = catchAsync(async (req, res, next)
 
     if (studentYear === '3CS') {
       const unassignedPfes = availablePfes.filter(pfe => !usedPfeIds.has(pfe.id));
-      if (unassignedPfes.length === 0) continue;
+      if (unassignedPfes.length === 0) {
+        return next(new appError('No unassigned PFEs available for 3CS teams', 404));
+      }
+
       selectedPfe = unassignedPfes[Math.floor(Math.random() * unassignedPfes.length)];
       usedPfeIds.add(selectedPfe.id);
     } else {
@@ -827,17 +830,7 @@ export const autoAssignPfesToTeamsWithoutPfe = catchAsync(async (req, res, next)
     });
   }
 
-  if (assignmentLog.length === 0) {
-    return next(new appError('No PFEs could be assigned to any teams', 404));
-  }
-
-
-
-
-
-
-
-
+  
   res.status(200).json({
     status: 'success',
     message: 'PFEs successfully assigned to all teams without PFE',
