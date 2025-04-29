@@ -745,7 +745,7 @@ export const autoAssignPfesToTeamsWithoutPfe = catchAsync(async (req, res, next)
     include: [
       {
         model: Student,
-        as: 'students',
+        as: 'members',
         required: true,
         where: {
           year: upperYear,
