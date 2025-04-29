@@ -10,7 +10,7 @@ import {
   protect,
   restrictedfor,
 } from "../middlewares/authmiddleware.js";
-
+import { upload } from "../utils/cloudinary.js";
 const router = express.Router();
 
 
@@ -87,7 +87,12 @@ const router = express.Router();
  */
 
 // Start a new meeting (only teachers allowed)
-router.post("/startNewMeeting/:teamId", protect, restrictedfor("teacher"), startNewMeeting);
+router.post("/startNewMeeting/:teamId", protect, 
+  restrictedfor("teacher"),
+  upload.fields([
+        { name: 'Meeting_objectives_files', maxCount: 1 }
+      ]),
+ startNewMeeting);
 /**
  * @swagger
  * /api/v1/mettings/getAllMeetings/{teamId}:
