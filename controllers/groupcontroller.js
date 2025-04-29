@@ -483,12 +483,12 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
  
   // Assign 3CS students to individual teams
   // Check if there are any 3CS students without a team
-  if (students3CS.length === 0) {
-    return res.status(200).json({
-      status: 'success',
-      message: 'No 3CS students available for individual team assignment',
-    });
-  }
+  // if (students3CS.length === 0) {
+  //   return res.status(200).json({
+  //     status: 'success',
+  //     message: 'No 3CS students available for individual team assignment',
+  //   });
+  // }
   // Create individual teams for each 3CS student
 if (students3CS.length > 0) {
   for (const student of students3CS) {
