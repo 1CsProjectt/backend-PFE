@@ -16,6 +16,7 @@ import User from "../models/UserModel.js";
 import Company from "../models/companyModel.js";
 import Team from "../models/groupModel.js";
 import { v2 as cloudinary } from 'cloudinary';
+import { count } from "console";
 
 
 
@@ -825,6 +826,17 @@ export const autoAssignPfesToTeamsWithoutPfe = catchAsync(async (req, res, next)
       year: studentYear,
     });
   }
+
+  if (assignmentLog.length === 0) {
+    return next(new appError('No PFEs could be assigned to any teams', 404));
+  }
+
+
+
+
+
+
+
 
   res.status(200).json({
     status: 'success',
