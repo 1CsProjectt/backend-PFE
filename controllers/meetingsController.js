@@ -6,8 +6,21 @@ import appError from "../utils/appError.js";
 
 
 export const startNewMeeting = catchAsync(async (req, res, next) => {
-    const { date, time, room,  Meeting_objectives_files} = req.body;
-    const teamId = req.params.teamId; 
+    const { date, time, room} = req.body;
+    const Meeting_objectives_files = req.files?.Meeting_objectives_files?.[0]?.path;
+    const teamId = req.params.teamId;
+    const { id } = req.user; 
+    const supervisorId = id;
+    const isSupervisorOfTeam = await Team.findOne({
+        where: {
+            id: teamId,
+            supervisorId: id,
+        },
+    });
+    if (!isSupervisorOfTeam) {
+        return next(new appError("You are not authorized to start a meeting for this team", 403));  
+    }
+    // Check if the team exists
     const team = await Team.findByPk(teamId);
     const priviousMeet = await Meet.findOne({
         where: {
@@ -32,10 +45,13 @@ export const startNewMeeting = catchAsync(async (req, res, next) => {
         room,
         Meeting_objectives_files,
         teamId, 
+        supervisorId: supervisorId,
+        nextMeeting: true,
+        pfeId: team.pfe_id,
     });
 
     return res.status(201).json({
-        status: `success starting new meeting for team ${team_name}`,
+        status: `success starting new meeting for team ${team_name} and pfe_id ${team.pfe_id}`,
         data: {
             mymeet,
         },
@@ -66,10 +82,58 @@ export const cancelMeeting = catchAsync(async (req, res, next) => {
     if (!meeting) {
         return next(new appError("Meeting not found", 404));
     }
+    const deleteCloudinaryFile = async (url) => {
+            if (!url) return;
+          
+            try {
+              const uploadIndex = url.indexOf('/upload/');
+              if (uploadIndex === -1) {
+                console.error('Invalid Cloudinary URL format');
+                return;
+              }
+          
+              const pathAfterUpload = url.substring(uploadIndex + 8);
+              const parts = pathAfterUpload.split('/');
+          
+              // Remove version if present
+              if (parts[0].startsWith('v')) {
+                parts.shift();
+              }
+          
+              const fileWithExtension = parts.pop();
+              let fileNameWithoutExtension = fileWithExtension;
+          
+              // Remove .jpg or .pdf extension if present
+              if (fileWithExtension.endsWith('.jpg')) {
+                fileNameWithoutExtension = fileWithExtension.slice(0, -4);
+              } else if (fileWithExtension.endsWith('.pdf')) {
+                fileNameWithoutExtension = fileWithExtension.slice(0, -4);
+              }
+          
+              parts.push(fileNameWithoutExtension);
+              const publicId = parts.join('/');
+              console.log(`Public ID: ${publicId}`);
+          
+              const resourceType = url.includes('/raw/') ? 'raw' : 'image';
+          
+              await cloudinary.uploader.destroy(publicId, {
+                resource_type: resourceType,
+                invalidate: true,
+              });
+          
+              console.log(`Deleted ${resourceType} from Cloudinary: ${publicId}`);
+            } catch (err) {
+              console.error(`Error deleting file from Cloudinary: ${err.message}`);
+            }
+          };
+          
+    
+        await deleteCloudinaryFile(meeting.Meeting_objectives_files);
     await meeting.destroy();
-    return res.status(204).json({
+    return res.status(200).json({
         status: "success",
-        message: "Meeting deleted successfully",
+        message: "Meeting cancelled successfully",
+       
     });
 })
 
@@ -114,6 +178,24 @@ export const updateMeeting = catchAsync(async (req, res, next) => {
     });
 }) 
 
+
+export const update_Work_Status = catchAsync(async (req, res, next) => {
+    const meetingId = req.params.meetingId;
+    const { work_Status } = req.body;
+    const meeting = await Meet.findByPk(meetingId);
+    if (!meeting) {
+        return next(new appError("Meeting not found", 404));
+    }
+    await meeting.update({
+        work_Status,
+    });
+    return res.status(200).json({
+        status: `success updating work status to ${work_Status}`,
+        data: {
+            meeting,
+        },
+    });
+})
 
 
 

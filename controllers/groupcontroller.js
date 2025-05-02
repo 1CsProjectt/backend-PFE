@@ -463,9 +463,9 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
     year,
   };
 
-  if (year === '2CS') {
+  if (year === '2CS' || year==="3CS") {
     if (!specialite) {
-      return next(new appError('Specialite is required for 2CS', 400));
+      return next(new appError(`Specialite is required for ${year}`, 400));
     }
     whereClause.specialite = specialite;
   }
@@ -479,7 +479,10 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
       message: 'No students available for team assignment',
     });
   }
-  const students3CS = studentsWithoutATeam.filter(s => s.year.toUpperCase() === '3CS');
+
+
+if (year==='3CS'){
+    const students3CS = studentsWithoutATeam.filter(s => s.year.toUpperCase() === '3CS');
  
   // Assign 3CS students to individual teams
   // Check if there are any 3CS students without a team
@@ -508,6 +511,9 @@ if (students3CS.length > 0) {
     message: '3CS students have been assigned to individual teams',
   });
 }
+}
+
+
 
   // Step 2: Clean weak teams
   const teamsToCheck = await Team.findAll({

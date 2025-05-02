@@ -10,7 +10,7 @@ import {
   protect,
   restrictedfor,
 } from "../middlewares/authmiddleware.js";
-
+import { upload } from "../utils/cloudinary.js";
 const router = express.Router();
 
 
@@ -26,9 +26,9 @@ const router = express.Router();
 
 /**
  * @swagger
- * /api/v1/meetings/startNewMeeting/{teamId}:
+ * /api/v1/mettings/startNewMeeting/{teamId}:
  *   post:
- *     summary: Start a new meeting for a specific team
+ *     summary: Start a new meeting for a specific team (only the supervisor can do it)
  *     tags: [Meetings]
  *     security:
  *       - bearerAuth: []
@@ -45,6 +45,10 @@ const router = express.Router();
  *         application/json:
  *           schema:
  *             type: object
+ *             required:
+ *               - date
+ *               - time
+ *               - room
  *             properties:
  *               date:
  *                 type: string
@@ -63,15 +67,35 @@ const router = express.Router();
  *     responses:
  *       201:
  *         description: Meeting started successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success starting new meeting for team GroupA
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     mymeet:
+ *                       $ref: '#/components/schemas/Meeting'
+ *       403:
+ *         description: You are not authorized to start a meeting for this team
  *       404:
  *         description: Team not found
  */
 
 // Start a new meeting (only teachers allowed)
-router.post("/startNewMeeting/:teamId", protect, restrictedfor("teacher"), startNewMeeting);
+router.post("/startNewMeeting/:teamId", protect, 
+  restrictedfor("teacher"),
+  upload.fields([
+        { name: 'Meeting_objectives_files', maxCount: 1 }
+      ]),
+ startNewMeeting);
 /**
  * @swagger
- * /api/v1/meetings/getAllMeetings/{teamId}:
+ * /api/v1/mettings/getAllMeetings/{teamId}:
  *   get:
  *     summary: Get all meetings for a specific team
  *     tags: [Meetings]
@@ -95,7 +119,7 @@ router.post("/startNewMeeting/:teamId", protect, restrictedfor("teacher"), start
 router.get("/getAllMeetings/:teamId", protect, restrictedfor("teacher", "student"), getAllMeetings);
 /**
  * @swagger
- * /api/v1/meetings/cancelMeeting/{meetingId}:
+ * /api/v1/mettings/cancelMeeting/{meetingId}:
  *   delete:
  *     summary: Cancel (delete) a specific meeting
  *     tags: [Meetings]
@@ -119,7 +143,7 @@ router.get("/getAllMeetings/:teamId", protect, restrictedfor("teacher", "student
 router.delete("/cancelMeeting/:meetingId", protect, restrictedfor("teacher"), cancelMeeting);
 /**
  * @swagger
- * /api/v1/meetings/getNextMeet/{teamId}:
+ * /api/v1/mettings/getNextMeet/{teamId}:
  *   get:
  *     summary: Get the next upcoming meeting for a team
  *     tags: [Meetings]
@@ -143,7 +167,7 @@ router.delete("/cancelMeeting/:meetingId", protect, restrictedfor("teacher"), ca
 router.get("/getNextMeet/:teamId", protect, restrictedfor("teacher", "student"), getNextMeet);
 /**
  * @swagger
- * /api/v1/meetings/updateMeeting/{meetingId}:
+ * /api/v1/mettings/updateMeeting/{meetingId}:
  *   patch:
  *     summary: Update details of a meeting
  *     tags: [Meetings]
@@ -185,6 +209,6 @@ router.get("/getNextMeet/:teamId", protect, restrictedfor("teacher", "student"),
  */
 
 // Update a meeting (only teacher)
-router.patch("/updateMeeting/:meetingId", protect, restrictedfor("teacher"), updateMeeting);
+router.patch("/updateMeeting/:  ", protect, restrictedfor("teacher"), updateMeeting);
 
 export default router;
