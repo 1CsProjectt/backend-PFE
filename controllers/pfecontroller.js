@@ -31,10 +31,6 @@ export const createPFE = catchAsync(async (req, res, next) => {
     if (!pdfFile) {
         return next(new appError("PDF file is required", 400));
     }
-    if(year=="2CP" || year=="1CS"){
-      specialization=null;
-    }
-
     let supervisorsArray = [];
     let specialite;
 
@@ -62,8 +58,10 @@ export const createPFE = catchAsync(async (req, res, next) => {
                 }
             });
         }
-
-        specialite = specialization;
+        if (year=="2CS" || year=="3CS"){
+          specialite = specialization;
+        };
+         
     } else if (role === 'company') {
         supervisorsArray = [];
         specialite = null;
