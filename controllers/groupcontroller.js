@@ -469,113 +469,92 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
     year,
   };
 
-  if (year === '2CS' || year==="3CS") {
+  if (year === '2CS' || year === "3CS") {
     if (!specialite) {
       return next(new appError(`Specialite is required for ${year}`, 400));
     }
     whereClause.specialite = specialite;
   }
 
-    // Step 2: Clean weak teams
-    const teamsToCheck = await Team.findAll({
-      include: [{ model: Student, as: 'members', attributes: ['id'],      required: true,
-        where: {
-        year: year.toUpperCase(),
-  
-        ...(specialite ? { specialite } : {}),
-      }, }],
-    });
-    
-  
-    const weakTeamsmin = teamsToCheck.filter(team => {
-      const threshold = Math.round(team.maxNumber / 2) + 1;
-      return (team.members || []).length < threshold;
-    });
-  
-    for (const team of weakTeamsmin) {
-      const members = await Student.findAll({ where: { team_id: team.id } });
-      for (const student of members) {
-        student.team_id = null;
-        student.status = 'available';
-        await student.save();
-      }
-      await JoinRequest.destroy({ where: { team_id: team.id } });
-      await team.destroy();
-    }
-    const weakTeamsmmax = teamsToCheck.filter(team => {
-      const threshold = 6;
-      return (team.members || []).length > threshold;
-    });
-  
-    for (const team of weakTeamsmmax) {
-      const members = await Student.findAll({ where: { team_id: team.id } });
-      for (const student of members) {
-        student.team_id = null;
-        student.status = 'available';
-        await student.save();
-      }
-      await JoinRequest.destroy({ where: { team_id: team.id } });
-      await team.destroy();
-    }
-
   // Step 1: Get students without a team
   let studentsWithoutATeam = await Student.findAll({ where: whereClause });
 
   if (studentsWithoutATeam.length === 0) {
-    return res.status(200).json({ 
+    return res.status(200).json({
       status: 'success',
       message: 'No students available for team assignment',
     });
   }
 
-
-if (year==='3CS'){
+  // Step 1.5: Special case for 3CS
+  if (year === '3CS') {
     const students3CS = studentsWithoutATeam.filter(s => s.year.toUpperCase() === '3CS');
- 
-  // Assign 3CS students to individual teams
-  // Check if there are any 3CS students without a team
-  if (students3CS.length === 0) {
+
+    if (students3CS.length === 0) {
+      return res.status(200).json({
+        status: 'success',
+        message: 'No 3CS students available for individual team assignment',
+      });
+    }
+
+    for (const student of students3CS) {
+      const newTeam = await Team.create({
+        groupName: `Group-3CS-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
+        maxNumber: 1,
+        full: true,
+      });
+
+      student.team_id = newTeam.id;
+      student.status = 'in a team';
+      await student.save();
+    }
+
     return res.status(200).json({
       status: 'success',
-      message: 'No 3CS students available for individual team assignment',
+      message: '3CS students have been assigned to individual teams',
     });
   }
-  // Create individual teams for each 3CS student
-if (students3CS.length > 0) {
-  for (const student of students3CS) {
-    const newTeam = await Team.create({
-      groupName: `Group-3CS-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
-      maxNumber: 1,
-      full: true,
-    });
 
-    student.team_id = newTeam.id;
-    student.status = 'in a team';
-    await student.save();
-  }
-
-  return res.status(200).json({
-    status: 'success',
-    message: '3CS students have been assigned to individual teams',
+  // Step 2: Clean weak teams
+  const teamsToCheck = await Team.findAll({
+    include: [{
+      model: Student,
+      as: 'members',
+      attributes: ['id'],
+      required: true,
+      where: {
+        year: year.toUpperCase(),
+        ...(specialite ? { specialite } : {}),
+      },
+    }],
   });
-}
-}
 
+  const weakTeams = teamsToCheck.filter(team => {
+    const threshold = Math.round(team.maxNumber / 2) + 1;
+    return (team.members || []).length < threshold;
+  });
 
-
-
+  for (const team of weakTeams) {
+    const members = await Student.findAll({ where: { team_id: team.id } });
+    for (const student of members) {
+      student.team_id = null;
+      student.status = 'available';
+      await student.save();
+    }
+    await JoinRequest.destroy({ where: { team_id: team.id } });
+    await team.destroy();
+  }
 
   // Step 3: Refresh data
   studentsWithoutATeam = await Student.findAll({ where: whereClause });
+
   let allTeams = await Team.findAll({
-    
     include: [
       {
         model: Student,
         as: 'members',
         attributes: ['id', 'year', 'specialite'],
         required: true,
-
         where: {
           year: year.toUpperCase(),
           ...(specialite ? { specialite } : {}),
@@ -583,8 +562,8 @@ if (students3CS.length > 0) {
       },
     ],
   });
- 
 
+  allTeams = allTeams.filter(team => (team.members?.length || 0) < 7);
   const maxNumber = allTeams[0]?.maxNumber || 5;
   const overflowThreshold = Math.round(maxNumber / 2) + 1;
 
@@ -624,6 +603,11 @@ if (students3CS.length > 0) {
       }
 
       chosenTeam.members.push(student);
+
+      // ❗ Si l'équipe a maintenant ≥ 7 membres, on la retire de allTeams
+      if ((chosenTeam.members?.length || 0) >= 7) {
+        allTeams = allTeams.filter(team => team.id !== chosenTeam.id);
+      }
     }
   }
 
@@ -647,11 +631,12 @@ if (students3CS.length > 0) {
         await student.save();
       }
 
-      newTeams.push({ ...newTeam.dataValues, members: group });
+      newTeam.members = group;
+      newTeams.push(newTeam);
       index += maxNumber;
     }
 
-    // Handle overflow
+    // Step 6: Handle overflow students
     const overflowStudents = studentsWithoutATeam.slice(index);
     const availableTeams = [...allTeams, ...newTeams];
 
@@ -678,6 +663,11 @@ if (students3CS.length > 0) {
         }
 
         chosenTeam.members.push(student);
+
+        // ❗ Même vérification ici
+        if ((chosenTeam.members?.length || 0) >= 7) {
+          allTeams = allTeams.filter(team => team.id !== chosenTeam.id);
+        }
       } else {
         const newTeam = await Team.create({
           groupName: `Group-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
@@ -690,6 +680,11 @@ if (students3CS.length > 0) {
 
         newTeam.members = [student];
         availableTeams.push(newTeam);
+
+        // ❗ On peut même vérifier ici si >= 7 et ne plus utiliser cette team après
+        if ((newTeam.members?.length || 0) >= 7) {
+          allTeams = allTeams.filter(team => team.id !== newTeam.id);
+        }
       }
     }
   }
@@ -699,6 +694,7 @@ if (students3CS.length > 0) {
     message: 'Students have been automatically organized into teams',
   });
 });
+
 
 
 export const getAllTeams_supervisedByMe = catchAsync(async (req, res, next) => {
