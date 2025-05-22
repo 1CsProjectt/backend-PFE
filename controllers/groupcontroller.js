@@ -476,6 +476,48 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
     whereClause.specialite = specialite;
   }
 
+    // Step 2: Clean weak teams
+    const teamsToCheck = await Team.findAll({
+      include: [{ model: Student, as: 'members', attributes: ['id'],      required: true,
+        where: {
+        year: year.toUpperCase(),
+  
+        ...(specialite ? { specialite } : {}),
+      }, }],
+    });
+    
+  
+    const weakTeamsmin = teamsToCheck.filter(team => {
+      const threshold = Math.round(team.maxNumber / 2) + 1;
+      return (team.members || []).length < threshold;
+    });
+  
+    for (const team of weakTeamsmin) {
+      const members = await Student.findAll({ where: { team_id: team.id } });
+      for (const student of members) {
+        student.team_id = null;
+        student.status = 'available';
+        await student.save();
+      }
+      await JoinRequest.destroy({ where: { team_id: team.id } });
+      await team.destroy();
+    }
+    const weakTeamsmmax = teamsToCheck.filter(team => {
+      const threshold = 7;
+      return (team.members || []).length < threshold;
+    });
+  
+    for (const team of weakTeamsmmax) {
+      const members = await Student.findAll({ where: { team_id: team.id } });
+      for (const student of members) {
+        student.team_id = null;
+        student.status = 'available';
+        await student.save();
+      }
+      await JoinRequest.destroy({ where: { team_id: team.id } });
+      await team.destroy();
+    }
+
   // Step 1: Get students without a team
   let studentsWithoutATeam = await Student.findAll({ where: whereClause });
 
@@ -521,32 +563,7 @@ if (students3CS.length > 0) {
 
 
 
-  // Step 2: Clean weak teams
-  const teamsToCheck = await Team.findAll({
-    include: [{ model: Student, as: 'members', attributes: ['id'],      required: true,
-      where: {
-      year: year.toUpperCase(),
 
-      ...(specialite ? { specialite } : {}),
-    }, }],
-  });
-  
-
-  const weakTeams = teamsToCheck.filter(team => {
-    const threshold = Math.round(team.maxNumber / 2) + 1;
-    return (team.members || []).length < threshold;
-  });
-
-  for (const team of weakTeams) {
-    const members = await Student.findAll({ where: { team_id: team.id } });
-    for (const student of members) {
-      student.team_id = null;
-      student.status = 'available';
-      await student.save();
-    }
-    await JoinRequest.destroy({ where: { team_id: team.id } });
-    await team.destroy();
-  }
 
   // Step 3: Refresh data
   studentsWithoutATeam = await Student.findAll({ where: whereClause });
