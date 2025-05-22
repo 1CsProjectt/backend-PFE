@@ -77,6 +77,11 @@ export const sendInvitations = catchAsync(async (req, res, next) => {
       if (receiverStudent.year !== student.year) {
         results.push({ email, status: "failed", reason: "Student is not from the same year" });
         continue;
+      }if (student.specialite!== null) {
+        if (receiverStudent.specialite!== student.specialite) {
+          results.push({ email, status: "failed", reason: "Student deosn't have the same specialite" });
+          continue;
+        }
       }
       const existingInvitation = await Invitation.findOne({
         where: {
