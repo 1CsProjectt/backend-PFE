@@ -72,6 +72,10 @@ export const sendInvitations = catchAsync(async (req, res, next) => {
         results.push({ email, status: "failed", reason: "Student already in a team" });
         continue;
       }
+      if (receiverStudent.year !== student.year) {
+        results.push({ email, status: "failed", reason: "Student is not from the same year" });
+        continue;
+      }
       const existingInvitation = await Invitation.findOne({
         where: {
           sender_id: senderId,
@@ -99,6 +103,14 @@ export const sendInvitations = catchAsync(async (req, res, next) => {
     results,
   });
 });
+
+
+
+
+
+
+
+
 
 export const cancelInvitation = catchAsync(async (req,res)=>{
   const { invitationId } = req.body;
