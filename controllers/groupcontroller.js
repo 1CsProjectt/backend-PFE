@@ -530,11 +530,7 @@ if (students3CS.length > 0) {
       ...(specialite ? { specialite } : {}),
     }, }],
   });
-  return res.status(200).json({
-    status: 'success',
-    message: 'Teams have been checked for weak teams',
-    teams: teamsToCheck,
-  });
+  
 
   const weakTeams = teamsToCheck.filter(team => {
     const threshold = Math.round(team.maxNumber / 2) + 1;
@@ -569,6 +565,11 @@ if (students3CS.length > 0) {
         },
       },
     ],
+  });
+  return res.status(200).json({
+    status: 'success',
+    message: 'Teams have been cleaned and refreshed',
+    teams: allTeams,
   });
 
   const maxNumber = allTeams[0]?.maxNumber || 5;
