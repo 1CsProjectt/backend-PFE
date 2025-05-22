@@ -523,7 +523,12 @@ if (students3CS.length > 0) {
 
   // Step 2: Clean weak teams
   const teamsToCheck = await Team.findAll({
-    include: [{ model: Student, as: 'members', attributes: ['id'] }],
+    include: [{ model: Student, as: 'members', attributes: ['id'],      required: true,
+      where: {
+      year: year.toUpperCase(),
+
+      ...(specialite ? { specialite } : {}),
+    }, }],
   });
 
   const weakTeams = teamsToCheck.filter(team => {
@@ -545,11 +550,18 @@ if (students3CS.length > 0) {
   // Step 3: Refresh data
   studentsWithoutATeam = await Student.findAll({ where: whereClause });
   let allTeams = await Team.findAll({
+    
     include: [
       {
         model: Student,
         as: 'members',
         attributes: ['id', 'year', 'specialite'],
+        required: true,
+
+        where: {
+          year: year.toUpperCase(),
+          ...(specialite ? { specialite } : {}),
+        },
       },
     ],
   });
