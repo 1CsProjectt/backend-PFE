@@ -209,6 +209,6 @@ router.get("/getNextMeet/:teamId", protect, restrictedfor("teacher", "student"),
  */
 
 // Update a meeting (only teacher)
-router.patch("/updateMeeting/:  ", protect, restrictedfor("teacher"), updateMeeting);
+router.patch("/updateMeeting/:id  ", protect, restrictedfor("teacher"), updateMeeting);
 
 export default router;
