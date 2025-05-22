@@ -8,6 +8,11 @@ import appError from "../utils/appError.js";
 export const startNewMeeting = catchAsync(async (req, res, next) => {
     const { date, time, room} = req.body;
     const Meeting_objectives_files = req.files?.Meeting_objectives_files?.[0]?.path;
+    const Support_files = req.files?.Support_files?.[0]?.path;
+    const Team_deliverables_files = req.files?.Team_deliverables_files?.[0]?.path;
+    const My_review_for_deliverables_files = req.files?.My_review_for_deliverables_files?.[0]?.path;
+    const Meeting_pv_files = req.files?.Meeting_pv_files?.[0]?.path;
+
     const teamId = req.params.teamId;
     const { id } = req.user; 
     const supervisorId = id;
@@ -44,6 +49,10 @@ export const startNewMeeting = catchAsync(async (req, res, next) => {
         time,
         room,
         Meeting_objectives_files,
+        Support_files,
+        Team_deliverables_files,
+        My_review_for_deliverables_files,
+        Meeting_pv_files,
         teamId, 
         supervisorId: supervisorId,
         nextMeeting: true,
@@ -58,6 +67,12 @@ export const startNewMeeting = catchAsync(async (req, res, next) => {
     });
 
 });
+
+
+
+
+
+
 
 export const getAllMeetings = catchAsync(async (req, res, next) => {
     const meetings = await Meet.findAll({
@@ -129,6 +144,11 @@ export const cancelMeeting = catchAsync(async (req, res, next) => {
           
     
         await deleteCloudinaryFile(meeting.Meeting_objectives_files);
+        await deleteCloudinaryFile(meeting.Support_files);
+        await deleteCloudinaryFile(meeting.Team_deliverables_files);
+        await deleteCloudinaryFile(meeting.My_review_for_deliverables_files);
+        await deleteCloudinaryFile(meeting.Meeting_pv_files);
+        
     await meeting.destroy();
     return res.status(200).json({
         status: "success",
