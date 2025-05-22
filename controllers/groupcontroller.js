@@ -566,11 +566,7 @@ if (students3CS.length > 0) {
       },
     ],
   });
-  return res.status(200).json({
-    status: 'success',
-    message: 'Teams have been cleaned and refreshed',
-    teams: allTeams,
-  });
+ 
 
   const maxNumber = allTeams[0]?.maxNumber || 5;
   const overflowThreshold = Math.round(maxNumber / 2) + 1;
