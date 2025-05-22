@@ -43,11 +43,17 @@ export const createTeam = catchAsync(async (req, res, next) => {
     if (mystudent.team_id) {
         return next(new appError('You are already part of a group', 400));
     }
+    let maxNumber ;
+    if (mystudent.year=='3CS'){
+      maxNumber=2;}
+      else{
+        maxNumber=5;
+      }
 
     const newTeam = await Team.create({
         groupName: groupName.trim(),
         supervisorId: null,
-        maxNumber: req.maxnum || 5 
+        maxNumber: req.maxnum || maxNumber
         
     });
 
