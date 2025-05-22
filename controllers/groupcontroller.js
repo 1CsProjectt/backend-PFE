@@ -503,8 +503,8 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
       await team.destroy();
     }
     const weakTeamsmmax = teamsToCheck.filter(team => {
-      const threshold = 7;
-      return (team.members || []).length < threshold;
+      const threshold = 6;
+      return (team.members || []).length > threshold;
     });
   
     for (const team of weakTeamsmmax) {
