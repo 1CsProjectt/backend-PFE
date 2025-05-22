@@ -14,6 +14,8 @@ export const sendInvitations = catchAsync(async (req, res, next) => {
     return next(new appError("Unauthorized: No user found in request", 401));
   }
 
+  let year = req.user.year;
+
   const userId = req.user.id;
 
   const student = await Student.findOne({ where: { id: userId } });

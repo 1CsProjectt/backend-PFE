@@ -47,13 +47,26 @@ router.post('/creategroup', protect, restrictedfor('student'), createTeam);
  *   post:
  *     summary: Automatically organize students into teams
  *     description: |
- *       Automatically assigns students to teams based on their academic year and specialization.
+ *       Organize students into compatible teams based on their academic year and specialization.
  *       
- *       - **3CS students** are assigned individually to their own teams. No further processing is done for other students if 3CS students are present.
- *       - For **2CS** and **1CS**, students are grouped based on year (and specialization for 2CS).
- *       - If compatible teams are available and not full, students are added to them.
- *       - Teams with fewer than `ceil(maxNumber / 2)` members are deleted, and their students are made available again.
- *       - New teams are created when necessary, and overflow students may join existing full teams if their count is below the overflow threshold.
+ *       **Behavior by Year:**
+ *       
+ *       - **3CS**:
+ *         - Each student is assigned to their own individual team (team of one).
+ *         - No further processing (team clean-up, group assignment, etc.) occurs for other students.
+ *       
+ *       - **2CS & 1CS**:
+ *         - Teams with fewer than `ceil(maxNumber / 2) + 1` members are deleted, and their students are marked as "available".
+ *         - Remaining available students are assigned to existing compatible and non-full teams.
+ *           - Compatibility is based on same year and, for 2CS, same specialization.
+ *         - If few students remain (less than overflow threshold), they may overflow into already full compatible teams.
+ *         - If no compatible team is found, a new team is created for the remaining students.
+ *     
+ *       **Additional Rules:**
+ *       - `maxNumber` (default: 5) is used to limit team size.
+ *       - Teams with 7 or more members are automatically excluded from further assignment.
+ *       - Students assigned to a team have their `status` updated to `"in a team"`.
+ *       - Deleted teams have their associated `JoinRequest` entries removed.
  *     tags: [Team]
  *     security:
  *       - bearerAuth: []
@@ -70,24 +83,27 @@ router.post('/creategroup', protect, restrictedfor('student'), createTeam);
  *                 type: string
  *                 enum: [1CS, 2CS, 3CS]
  *                 example: 2CS
- *                 description: Academic year of the students.
+ *                 description: Academic year of the students to organize.
  *               specialite:
  *                 type: string
  *                 example: SIW
- *                 description: Required only for 2CS and 3CS students (e.g., ISI, SIW, IASD).
+ *                 description: Required only for 2CS and 3CS (e.g., ISI, SIW, IASD).
  *     responses:
  *       200:
  *         description: |
- *           - For 3CS: Each student is assigned to a unique team.
- *           - For 1CS and 2CS: Students are grouped into teams based on compatibility and team size.
+ *           Students were successfully organized into teams:
+ *             - 3CS: Each student gets a unique team.
+ *             - 1CS & 2CS: Students are grouped based on compatibility.
  *       400:
- *         description: Missing required parameters or invalid input (e.g., missing specialization for 2CS or 3CS).
+ *         description: |
+ *           - Missing required fields (e.g., year, specialization).
+ *           - Invalid input data.
  *       401:
- *         description: Unauthorized - Bearer token is missing or invalid.
+ *         description: Unauthorized - Bearer token missing or invalid.
  *       403:
- *         description: Forbidden - User does not have permission to perform this action.
+ *         description: Forbidden - User does not have permission.
  *       500:
- *         description: Internal Server Error - Something went wrong on the server.
+ *         description: Internal server error.
  */
 
 
