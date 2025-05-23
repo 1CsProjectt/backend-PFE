@@ -517,7 +517,33 @@ const downloadfile=(req, res) => {
             supervisors: await pfe.getSupervisors() 
         });
     });
+
+
+      
+      export const addSpecialization = catchAsync(async (req, res, next) => {
+        const { pfeId } = req.params;
+        const { specialization } = req.body;
     
+        const allowedSpecializations = ['ISI', 'SIW', 'IASD'];
+    
+        if (!specialization || !allowedSpecializations.includes(specialization)) {
+            return next(new appError('Please provide a valid specialization (ISI, SIW, IASD)', 400));
+        }
+    
+        const pfe = await PFE.findByPk(pfeId);
+        if (!pfe) {
+            return next(new appError('PFE not found', 404));
+        }
+    
+        pfe.specialization = specialization;
+        await pfe.save();
+    
+        res.status(200).json({
+            message: "Specialization added successfully",
+            specialization: pfe.specialization
+        });
+    });
+  
 
 
 export  const validatePFE = catchAsync(async (req, res, next) => {
