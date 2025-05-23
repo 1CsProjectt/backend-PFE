@@ -95,9 +95,21 @@ export const sendInvitations = catchAsync(async (req, res, next) => {
         continue;
       }
       await Invitation.create({ sender_id: senderId, receiver_email: email });
+      await Notification.create({
+        user_id: receiverUser.id,
+        type: "invitation",
+        content: `You received a team invitation from ${student.name}`,
+        is_read: false,
+        metadata: {
+          senderId: student.id,
+          senderName: student.name,
+          teamId: team.id,
+        },
+      });
+      
       io.to(receiverUser.id).emit("invitation", {
         sender: student.name,
-        message: "You have received a new team invitation.",
+        message: "i have invited you to join my team",
       });
       results.push({ email, status: "success"});
 

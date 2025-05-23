@@ -24,7 +24,8 @@ import {
     rejectPFE,
     displayrejectedPFE,
     autoAssignPfesToTeamWithoutPfe,
-    getPFEByID
+    getPFEByID,
+    addSpecialization
 } from "../controllers/pfecontroller.js";
 
 const router = express.Router();
@@ -458,7 +459,56 @@ router.get("/this-year", protect, displaythisyearsPFE);
  *       404:
  *         description: PFE not found
  */
-router.post("/:pfeId/add-supervisor", protect, restrictedfor("teacher", "company"), addSupervisor);
+router.post("/:pfeId/add-supervisor", protect, restrictedfor("admin"), addSupervisor);
+
+
+/**
+ * @swagger
+ * /api/v1/pfe/{pfeId}/add-specialization:
+ *   post:
+ *     summary: Add specialization to a PFE
+ *     tags: [PFE]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: pfeId
+ *         required: true
+ *         description: ID of the PFE to update specialization for
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               specialization:
+ *                 type: string
+ *                 enum: [ISI, SIW, IASD]
+ *                 example: SIW
+ *     responses:
+ *       200:
+ *         description: Specialization added successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Specialization added successfully
+ *                 specialization:
+ *                   type: string
+ *                   example: SIW
+ *       400:
+ *         description: Invalid input
+ *       404:
+ *         description: PFE not found
+ */
+router.post("/:pfeId/add-specialization", protect, restrictedfor("admin"), addSpecialization);
+
 
 /**
  * @swagger

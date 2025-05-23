@@ -12,6 +12,7 @@ import authRoutes from "./Routes/authRoute.js";
 import pfeRoutes from "./Routes/pfeRoute.js";
 import eventRoutes from "./Routes/eventRoute.js";
 import groupRoutes from "./Routes/groupRoute.js";
+import notificationRoute from "./Routes/notificationRoute.js";
 import jointeamRoutes from './Routes/jointeamroute.js';
 import invitationRoutes from './Routes/invitationRoute.js'
 import './models/associateModels.js';
@@ -172,6 +173,7 @@ app.use("/api/v1/invitation",invitationRoutes);
 app.use("/api/v1/jointeam",jointeamRoutes);
 app.use("/api/v1/preflist",preflistroute);
 app.use("/api/v1/mettings",meetingsroute);
+app.use("/api/v1/notification",notificationRoute);
 
 
 
