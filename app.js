@@ -38,18 +38,28 @@ const io = new Server(server, {
 app.set("socketio", io);
 
 // Handle connection
-io.on("connection", (socket) => {
-  console.log(`⚡ New client connected: ${socket.id}`);
-
-  socket.on("join", (userId) => {
-    socket.join(userId); // Join private room
-    console.log(`User with ID ${userId} joined their room`);
+app.get("/test-notification", (req, res) => {   
+  const io = req.app.get("socketio");
+  io.to("123").emit("invitation", {
+    sender: "TestUser",
+    message: "Test invitation from backend route"
   });
 
-  socket.on("disconnect", () => {
-    console.log(`⚡ Client disconnected: ${socket.id}`);
-  });
-});
+  res.send("📤 Invitation sent to user 123");
+})
+// io.on("connection", (socket) => {
+//   console.log(`⚡ New client connected: ${socket.id}`);
+
+//   // Simulate a user joining their own room directly (e.g., user ID = 123)
+//   const testUserId = "123";
+//   socket.join(testUserId);
+//   console.log(`Simulated join: Socket ${socket.id} joined room ${testUserId}`);
+
+//   socket.on("disconnect", () => {
+//     console.log(`⚡ Client disconnected: ${socket.id}`);
+//   });
+// });
+
 
 
 // const dotenv = require("dotenv");

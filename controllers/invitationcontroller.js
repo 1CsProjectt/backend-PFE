@@ -95,17 +95,37 @@ export const sendInvitations = catchAsync(async (req, res, next) => {
         continue;
       }
       await Invitation.create({ sender_id: senderId, receiver_email: email });
-      await Notification.create({
-        user_id: receiverUser.id,
-        type: "invitation",
-        content: `You received a team invitation from ${student.name}`,
-        is_read: false,
-        metadata: {
-          senderId: student.id,
-          senderName: student.name,
-          teamId: team.id,
-        },
-      });
+      try {
+        const newNotification = await Notification.create({
+          user_id: receiverUser.id,
+          type: "invitation",
+          content: `You received a team invitation from ${student.name}`,
+          is_read: false,
+          metadata: {
+            senderId: student.id,
+            senderName: student.name,
+            teamId: team.id,
+          },
+        });
+      
+        console.log("Notification created successfully:", newNotification.toJSON());
+      
+        return res.status(201).json({
+          message: "Invitation sent successfully",
+          data: {
+            Notification: newNotification, // renvoie la notification créée issue de la base
+            sender: student.name,
+            receiver: receiverUser.email,
+          },
+        });
+      } catch (error) {
+        console.error("Failed to create notification:", error);
+        return res.status(500).json({
+          message: "Failed to create notification",
+          error: error.message,
+        });
+      }
+      
       
       io.to(receiverUser.id).emit("invitation", {
         sender: student.name,
