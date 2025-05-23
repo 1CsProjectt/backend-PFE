@@ -2,6 +2,7 @@ import multer from 'multer';
 import xlsx from  'xlsx';
 import csv from 'csv-parser'; 
 import fs from 'fs'; 
+import path from 'path'
 import {catchAsync} from '../utils/catchAsync.js'; 
 import AppError from '../utils/appError.js'; 
 import Company from '../models/companyModel.js';
