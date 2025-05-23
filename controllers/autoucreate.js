@@ -4,7 +4,7 @@ import csv from 'csv-parser';
 import fs from 'fs'; 
 import {catchAsync} from '../utils/catchAsync.js'; 
 import AppError from '../utils/appError.js'; 
-import { User, Student, Teacher, Company, Admin, sequelize } from '../models.js'; 
+import { User, Student, Teacher, Company, Admin, sequelize } from '../models'; 
 
 // Configure Multer for file storage (e.g., in memory or to disk)
 const uploadDir = path.join(__dirname, '../uploads'); // Adjust path if needed
