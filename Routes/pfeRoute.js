@@ -99,7 +99,7 @@ router.post(
  * @swagger
  * /api/v1/pfes/autoAssignPfesToTeamsWithoutPfe:
  *   post:
- *     summary: Automatically assign PFEs to all teams without a PFE
+ *     summary: Automatically assign PFEs to all eligible teams without a PFE
  *     tags: [PFE]
  *     security:
  *       - bearerAuth: []
@@ -123,7 +123,7 @@ router.post(
  *                 description: Required only for 2CS and 3CS
  *     responses:
  *       200:
- *         description: PFEs successfully assigned to all eligible teams
+ *         description: PFEs successfully assigned or no PFEs available
  *         content:
  *           application/json:
  *             schema:
@@ -168,9 +168,9 @@ router.post(
  *                         type: string
  *                         example: 2CS
  *       400:
- *         description: Year or specialization is missing or invalid
+ *         description: Year is missing, or specialization is required but not provided
  *       404:
- *         description: No eligible teams found or all teams already assigned PFEs
+ *         description: No teams found without PFEs or all PFEs are already assigned
  *       401:
  *         description: Unauthorized – token missing or invalid
  *       403:
@@ -190,7 +190,7 @@ router.post(
  * @swagger
  * /api/v1/teams/autoAssignPfesToTeamWithoutPfe:
  *   post:
- *     summary: Assign a PFE to a specific team without one
+ *     summary: Automatically assign a valid PFE to a specific team without one
  *     tags: [Teams]
  *     security:
  *       - bearerAuth: []
@@ -220,7 +220,7 @@ router.post(
  *                   example: success
  *                 message:
  *                   type: string
- *                   example: PFE successfully assigned to team 123
+ *                   example: PFE assigned to team 123
  *                 assigned:
  *                   type: object
  *                   properties:
@@ -237,13 +237,24 @@ router.post(
  *                       type: string
  *                       example: 3CS
  *       400:
- *         description: Bad request (missing team ID, already assigned, or invalid data)
- *       404:
- *         description: No matching PFEs found or team not found
+ *         description: Bad request – missing team ID, team already has PFE, team has no members, or invalid data
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: fail
+ *                 message:
+ *                   type: string
+ *                   example: Team id is required
  *       401:
  *         description: Unauthorized – token missing or invalid
  *       403:
- *         description: Forbidden – only admin can access
+ *         description: Forbidden – only accessible to admin users
+ *       404:
+ *         description: Not found – team not found or no available PFEs match the team's year/specialization
  */
 
 
