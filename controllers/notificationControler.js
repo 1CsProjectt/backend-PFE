@@ -1,4 +1,6 @@
-import { Notification } from "../models";
+import  Notification  from "../models/notificationModel.js";
+import { Op } from "sequelize";
+
 
 
 
