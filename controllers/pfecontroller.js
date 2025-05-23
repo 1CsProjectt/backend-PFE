@@ -404,7 +404,7 @@ const downloadfile=(req, res) => {
                 [Op.and]: [literal(`EXTRACT(YEAR FROM "PFE"."createdAt") = ${currentYear}`)],
             },
             include: [
-                { model: User, as: "creator", attributes: ["id", "username", "email"] },
+                { model: User, as: "creator", attributes: ["id", "username", "email","role"] },
                 { model: teacher, as: "supervisors", attributes: ["id", "name"], through: { attributes: [] } }
             ],
         });
@@ -437,7 +437,7 @@ const downloadfile=(req, res) => {
                 [Op.and]: [literal(`EXTRACT(YEAR FROM "createdAt") = ${currentYear}`)]
             },
             include: [
-                { model: User, as: "creator", attributes: ["id", "username", "email"] },
+                { model: User, as: "creator", attributes: ["id", "username", "email","role"] },
                 { model: teacher, as: "supervisors", attributes: ["id", "name"], through: { attributes: [] } }
             ],
         });
@@ -456,7 +456,7 @@ const downloadfile=(req, res) => {
                 [Op.and]: [literal(`EXTRACT(YEAR FROM "PFE"."createdAt") = ${currentYear}`)]
             },
             include: [
-                { model: User, as: "creator", attributes: ["id", "username", "email"] },
+                { model: User, as: "creator", attributes: ["id", "username", "email","role"] },
                 { model: teacher, as: "supervisors", attributes: ["id", "name"], through: { attributes: [] } }
             ],
         });
@@ -475,7 +475,7 @@ const downloadfile=(req, res) => {
                 [Op.and]: [literal(`EXTRACT(YEAR FROM "PFE"."createdAt") = ${currentYear}`)]
             },
             include: [
-                { model: User, as: "creator", attributes: ["id", "username", "email"] },
+                { model: User, as: "creator", attributes: ["id", "username", "email","role"] },
                 { model: teacher, as: "supervisors", attributes: ["id", "firstname","lastname"], through: { attributes: [] } }
             ],
         });
