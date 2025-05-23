@@ -4,8 +4,12 @@ import csv from 'csv-parser';
 import fs from 'fs'; 
 import {catchAsync} from '../utils/catchAsync.js'; 
 import AppError from '../utils/appError.js'; 
-import { User, Student, Teacher, Company, Admin, sequelize } from '../models'; 
-
+import Company from '../models/companyModel.js';
+import Student from '../models/studenModel.js';
+import User from '../models/UserModel.js';
+import Admin from '../models/adminModel.js'; 
+import teacher from '../models/teacherModel.js';
+import sequelize from "../config/database.js";
 // Configure Multer for file storage (e.g., in memory or to disk)
 const uploadDir = path.join(__dirname, '../uploads'); // Adjust path if needed
 if (!fs.existsSync(uploadDir)) {
@@ -116,7 +120,7 @@ export const createUsersFromFile = [
                         await t.rollback();
                         continue;
                     }
-                    await Teacher.create({ // Assuming 'Teacher' is your model name
+                    await teacher.create({ // Assuming 'Teacher' is your model name
                         id: newUser.id,
                         firstname,
                         lastname
