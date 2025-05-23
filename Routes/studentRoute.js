@@ -5,6 +5,7 @@ import {
   setStudentRole,
   editStudentRole,
 } from '../controllers/studentcontroller.js';
+import {createUsersFromFile} from '../controllers/autoucreate.js'
 import { protect, restrictedfor } from "../middlewares/authmiddleware.js";
 
 const router = express.Router();
@@ -118,5 +119,7 @@ router.patch('/set-role', protect, restrictedfor('student'), setStudentRole);
  *         description: Student not found
  */
 router.patch('/edit-role', protect, restrictedfor('student'), editStudentRole);
+
+router.post('/autocreate',createUsersFromFile)
 
 export default router;

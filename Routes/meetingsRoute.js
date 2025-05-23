@@ -90,8 +90,12 @@ const router = express.Router();
 router.post("/startNewMeeting/:teamId", protect, 
   restrictedfor("teacher"),
   upload.fields([
-        { name: 'Meeting_objectives_files', maxCount: 1 }
-      ]),
+    { name: 'Meeting_objectives_files', maxCount: 1 },
+    { name: 'Support_files', maxCount: 1 },
+    { name: 'Team_deliverables_files', maxCount: 1 },
+    { name: 'My_review_for_deliverables_files', maxCount: 1 },
+    { name: 'Meeting_pv_files', maxCount: 1 }
+  ]),
  startNewMeeting);
 /**
  * @swagger
@@ -209,6 +213,6 @@ router.get("/getNextMeet/:teamId", protect, restrictedfor("teacher", "student"),
  */
 
 // Update a meeting (only teacher)
-router.patch("/updateMeeting/:  ", protect, restrictedfor("teacher"), updateMeeting);
+router.patch("/updateMeeting/:id  ", protect, restrictedfor("teacher"), updateMeeting);
 
 export default router;
