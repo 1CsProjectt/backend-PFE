@@ -5,7 +5,7 @@ import {
   setStudentRole,
   editStudentRole,
 } from '../controllers/studentcontroller.js';
-import createUsersFromFile from '../controllers/autoucreate.js'
+import {createUsersFromFile} from '../controllers/autoucreate.js'
 import { protect, restrictedfor } from "../middlewares/authmiddleware.js";
 
 const router = express.Router();
