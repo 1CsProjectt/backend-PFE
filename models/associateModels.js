@@ -7,7 +7,7 @@ import JoinRequest from './jointeamModel.js';
 import Preflist from './preflistModel.js';
 import SupervisionRequest from './SupervisionRequestModel.js';
 import Meet from './meetingModel.js';
-
+import Notification from './notificationModel.js';
 
 // const { DataTypes } = require("sequelize");
 // const sequelize = require("../database.js");
@@ -108,7 +108,10 @@ Meet.belongsTo(teacher, {
   onDelete: 'CASCADE',
 });
 
-
+Notification.belongsTo(User, {
+  foreignKey: 'user_id',
+  as: 'user',
+});
 
 
 
