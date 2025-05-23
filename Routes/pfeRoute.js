@@ -459,7 +459,7 @@ router.get("/this-year", protect, displaythisyearsPFE);
  *       404:
  *         description: PFE not found
  */
-router.post("/:pfeId/add-supervisor", protect, restrictedfor("teacher", "company"), addSupervisor);
+router.post("/:pfeId/add-supervisor", protect, restrictedfor("admin"), addSupervisor);
 
 
 /**
