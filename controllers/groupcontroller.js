@@ -476,6 +476,38 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
     whereClause.specialite = specialite;
   }
 
+
+   // Step 2: Clean weak teams
+   const teamsToCheck = await Team.findAll({
+    include: [{
+      model: Student,
+      as: 'members',
+      attributes: ['id'],
+      required: true,
+      where: {
+        year: year.toUpperCase(),
+        ...(specialite ? { specialite } : {}),
+      },
+    }],
+  });
+
+  const weakTeams = teamsToCheck.filter(team => {
+    const threshold = Math.round(team.maxNumber / 2) + 1;
+    return (team.members || []).length < threshold;
+  });
+
+  for (const team of weakTeams) {
+    const members = await Student.findAll({ where: { team_id: team.id } });
+    for (const student of members) {
+      student.team_id = null;
+      student.status = 'available';
+      await student.save();
+    }
+    await JoinRequest.destroy({ where: { team_id: team.id } });
+    await team.destroy();
+  }
+
+
   // Step 1: Get students without a team
   let studentsWithoutATeam = await Student.findAll({ where: whereClause });
 
@@ -515,36 +547,7 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
     });
   }
 
-  // Step 2: Clean weak teams
-  const teamsToCheck = await Team.findAll({
-    include: [{
-      model: Student,
-      as: 'members',
-      attributes: ['id'],
-      required: true,
-      where: {
-        year: year.toUpperCase(),
-        ...(specialite ? { specialite } : {}),
-      },
-    }],
-  });
-
-  const weakTeams = teamsToCheck.filter(team => {
-    const threshold = Math.round(team.maxNumber / 2) + 1;
-    return (team.members || []).length < threshold;
-  });
-
-  for (const team of weakTeams) {
-    const members = await Student.findAll({ where: { team_id: team.id } });
-    for (const student of members) {
-      student.team_id = null;
-      student.status = 'available';
-      await student.save();
-    }
-    await JoinRequest.destroy({ where: { team_id: team.id } });
-    await team.destroy();
-  }
-
+ 
   // Step 3: Refresh data
   studentsWithoutATeam = await Student.findAll({ where: whereClause });
 
@@ -562,8 +565,9 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
       },
     ],
   });
-
-  allTeams = allTeams.filter(team => (team.members?.length || 0) < 7);
+// Filter out teams with more than 6 members
+  // ❗ On ne garde que les équipes avec moins de 8 membres
+  allTeams = allTeams.filter(team => (team.members?.length || 0) < 8);
   const maxNumber = allTeams[0]?.maxNumber || 5;
   const overflowThreshold = Math.round(maxNumber / 2) + 1;
 
@@ -580,7 +584,7 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
   };
 
   // Step 4: Assign students to compatible teams
-  for (const student of studentsWithoutATeam) {
+  for (const student of studentsWithoutATeam) { 
     const compatibleTeams = allTeams.filter(team => isCompatible(team, student));
     const nonFullCompatibleTeams = compatibleTeams.filter(team => (team.members?.length || 0) < maxNumber);
 
@@ -604,8 +608,8 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
 
       chosenTeam.members.push(student);
 
-      // ❗ Si l'équipe a maintenant ≥ 7 membres, on la retire de allTeams
-      if ((chosenTeam.members?.length || 0) >= 7) {
+      // ❗ Si l'équipe a maintenant ≥ 8 membres, on la retire de allTeams
+      if ((chosenTeam.members?.length || 0) >= 8) {
         allTeams = allTeams.filter(team => team.id !== chosenTeam.id);
       }
     }
@@ -682,7 +686,7 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
         availableTeams.push(newTeam);
 
         // ❗ On peut même vérifier ici si >= 7 et ne plus utiliser cette team après
-        if ((newTeam.members?.length || 0) >= 7) {
+        if ((newTeam.members?.length || 0) >= 8) {
           allTeams = allTeams.filter(team => team.id !== newTeam.id);
         }
       }
