@@ -12,7 +12,8 @@ import Admin from '../models/adminModel.js';
 import teacher from '../models/teacherModel.js';
 import sequelize from "../config/database.js";
 // Configure Multer for file storage (e.g., in memory or to disk)
-const upload = multer({ dest: '../uploads/' }); // Or use memoryStorage
+const upload = multer({ storage: multer.memoryStorage() });
+ 
 
 export const createUsersFromFile = [
     upload.single('usersFile'), // 'usersFile' should be the name attribute of your file input in the form
