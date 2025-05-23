@@ -116,7 +116,7 @@ export const createUsersFromFile = [
                         await t.rollback();
                         continue;
                     }
-                    await Teacher.create({
+                    await teacher.create({
                         id: newUser.id,
                         firstname,
                         lastname
