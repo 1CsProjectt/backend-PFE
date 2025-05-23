@@ -95,7 +95,7 @@ export const sendInvitations = catchAsync(async (req, res, next) => {
         continue;
       }
       await Invitation.create({ sender_id: senderId, receiver_email: email });
-      try {
+      
         const newNotification = await Notification.create({
           user_id: receiverUser.id,
           type: "invitation",
@@ -118,13 +118,7 @@ export const sendInvitations = catchAsync(async (req, res, next) => {
             receiver: receiverUser.email,
           },
         });
-      } catch (error) {
-        console.error("Failed to create notification:", error);
-        return res.status(500).json({
-          message: "Failed to create notification",
-          error: error.message,
-        });
-      }
+      
       
       
       io.to(receiverUser.id).emit("invitation", {
@@ -137,10 +131,10 @@ export const sendInvitations = catchAsync(async (req, res, next) => {
       results.push({ email, status: "failed", reason: "Unexpected error" });
     }
   }
-  res.status(201).json({
-    message: "Invitations processed",
-    results,
-  });
+  // res.status(201).json({
+  //   message: "Invitations processed",
+  //   results,
+  // });
 });
 
 
