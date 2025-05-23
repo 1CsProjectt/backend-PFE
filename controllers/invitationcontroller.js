@@ -6,7 +6,7 @@ import jwt from "jsonwebtoken";
 import appError from "../utils/appError.js";
 import { catchAsync  } from "../utils/catchAsync.js";
 import Team from "../models/groupModel.js";
-
+import Notification from "../models/notificationModel.js";
 
 
 export const sendInvitations = catchAsync(async (req, res, next) => {
