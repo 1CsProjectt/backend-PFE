@@ -3,7 +3,7 @@ import Meet from "../models/meetingModel.js";
 import Team from "../models/groupModel.js";
 import {catchAsync} from "../utils/catchAsync.js";
 import appError from "../utils/appError.js";
-import {cloudinary} from "cloudinary"
+import { v2 as cloudinary } from 'cloudinary';
 
 export const startNewMeeting = catchAsync(async (req, res, next) => {
     const { date, time, room} = req.body;
