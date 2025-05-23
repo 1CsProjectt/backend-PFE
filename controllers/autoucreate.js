@@ -20,6 +20,7 @@ export const createUsersFromFile = [
         if (!req.file) {
             return next(new AppError('No file uploaded.', 400));
         }
+        console.log(req.file)
 
         const results = {
             success: [],
