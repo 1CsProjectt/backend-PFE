@@ -8,7 +8,8 @@ import { Op } from "sequelize";
 
 
 const setEvent = catchAsync(async (req, res, next) => {
-    const { name, startTime, endTime, maxNumber, targeted = 'students' } = req.body;
+    const { name, startTime, endTime, maxNumber } = req.body;
+    let targeted = 'students'
     const year = req.body.year?.toUpperCase();
 
     const allowedNames = ['PFE_SUBMISSION', 'PFE_VALIDATION', 'TEAM_CREATION', 'PFE_ASSIGNMENT', 'WORK_STARTING'];
@@ -81,7 +82,7 @@ const setEvent = catchAsync(async (req, res, next) => {
         }
     }
 
-    // === Check for existing event with same name and target/year ===
+    
     const existingEvent = await Event.findOne({
         where: {
             name,
