@@ -5,7 +5,7 @@ import {
   getMyNotifications,
   markNotificationAsRead,
   getUnreadNotificationCount,
-} from "../controllers/notificationController.js";
+} from "../controllers/notificationControler.js";
 
 import { protect } from '../middlewares/authmiddleware.js';
 
