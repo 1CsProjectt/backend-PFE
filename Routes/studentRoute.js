@@ -120,6 +120,6 @@ router.patch('/set-role', protect, restrictedfor('student'), setStudentRole);
  */
 router.patch('/edit-role', protect, restrictedfor('student'), editStudentRole);
 
-router.post('/autocreate',createUsersFromFile)
+router.post('/autocreate',protect,createUsersFromFile)
 
 export default router;
