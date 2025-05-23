@@ -2,7 +2,7 @@ import multer from 'multer';
 import xlsx from  'xlsx';
 import csv from 'csv-parser'; 
 import fs from 'fs'; 
-import path from 'path'
+import { Readable } from 'stream';
 import {catchAsync} from '../utils/catchAsync.js'; 
 import AppError from '../utils/appError.js'; 
 import Company from '../models/companyModel.js';
@@ -16,7 +16,7 @@ const upload = multer({ storage: multer.memoryStorage() });
  
 
 export const createUsersFromFile = [
-    upload.single('usersFile'), // 'usersFile' should be the name attribute of your file input in the form
+    upload.single('usersFile'), 
     catchAsync(async (req, res, next) => {
         if (!req.file) {
             return next(new AppError('No file uploaded.', 400));
@@ -32,19 +32,24 @@ export const createUsersFromFile = [
         // 1. Parse the file
         try {
             if (req.file.mimetype === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' || req.file.mimetype === 'application/vnd.ms-excel') {
-                const workbook = xlsx.readFile(req.file.path);
+                const workbook = xlsx.read(req.file.buffer, { type: 'buffer' }); 
                 const sheetName = workbook.SheetNames[0];
                 const sheet = workbook.Sheets[sheetName];
                 usersData = xlsx.utils.sheet_to_json(sheet);
             } else if (req.file.mimetype === 'text/csv') {
-                usersData = await new Promise((resolve, reject) => {
-                    const data = [];
-                    fs.createReadStream(req.file.path)
-                        .pipe(csv())
-                        .on('data', (row) => data.push(row))
-                        .on('end', () => resolve(data))
-                        .on('error', (error) => reject(error));
-                });
+        usersData = await new Promise((resolve, reject) => {
+          const data = [];
+          const readable = new Readable();
+          readable._read = () => {};
+          readable.push(req.file.buffer);
+          readable.push(null);
+
+          readable
+            .pipe(csv())
+            .on('data', (row) => data.push(row))
+            .on('end', () => resolve(data))
+            .on('error', (error) => reject(error));
+        });
             } else {
                 fs.unlinkSync(req.file.path); // Clean up uploaded file
                 return next(new AppError('Unsupported file type. Please upload an Excel or CSV file.', 400));
