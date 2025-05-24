@@ -289,6 +289,10 @@ export const declineInvitation = catchAsync(async (req, res, next) => {
   if (invitation.receiver_email !== user.email) {
     return next(new appError("You are not authorized to decline this invitation", 403));
   }
+  const sender = await Student.findByPk(invitation.sender_id);
+  if (!sender) {
+    return next(new appError("Sender not found", 404));
+  }
 
   if (invitation.status !== "pending") {
     return next(new appError(`This invitation has already been ${invitation.status}`, 400));
