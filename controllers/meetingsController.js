@@ -9,89 +9,93 @@ import User from "../models/UserModel.js";
 import Notification from "../models/notificationModel.js";
 
 export const startNewMeeting = catchAsync(async (req, res, next) => {
-    const { date, time, room} = req.body;
+    const { date, time, room } = req.body;
     const Meeting_objectives_files = req.files?.Meeting_objectives_files?.[0]?.path;
     const Support_files = req.files?.Support_files?.[0]?.path;
     const Team_deliverables_files = req.files?.Team_deliverables_files?.[0]?.path;
     const My_review_for_deliverables_files = req.files?.My_review_for_deliverables_files?.[0]?.path;
     const Meeting_pv_files = req.files?.Meeting_pv_files?.[0]?.path;
-
-    const teamId = req.params.teamId;
-    const { id } = req.user; 
-    const supervisorId = id;
-    const isSupervisorOfTeam = await Team.findOne({
-        where: {
-            id: teamId,
-            supervisorId: id,
-        },
-    });
-    if (!isSupervisorOfTeam) {
-        return next(new appError("You are not authorized to start a meeting for this team", 403));  
-    }
-    // Check if the team exists
-    const team = await Team.findByPk(teamId);
-    const priviousMeet = await Meet.findOne({
-        where: {
-            teamId: teamId,
-            nextMeeting: true,
-        },
-    });
-
-    if (priviousMeet) {
-        await priviousMeet.update({
-            nextMeeting: false,
-        });
-    }
-    if (!team) {
-        return next(new appError("Team not found", 404));
-    }
-    const team_name = team.groupName;
-
-    const mymeet = await Meet.create({
-        date,
-        time,
-        room,
-        Meeting_objectives_files,
-        Support_files,
-        Team_deliverables_files,
-        My_review_for_deliverables_files,
-        Meeting_pv_files,
-        teamId, 
-        supervisorId: supervisorId,
-        nextMeeting: true,
-        pfeId: team.pfe_id,
-    });
-    const members = await Student.findAll({
-        where: { team_id: teamId },
-        include: [{ model: User, as: "user" }],
-      });
   
-      for (const member of members) {
-        if (member.user?.id) {
-          await Notification.create({
-            user_id: member.user.id,
-            type: "new_meeting",
-            content: `A new meeting has been scheduled on ${date} at ${time} in room ${room}.`,
-            is_read: false,
-            metadata: {
-                teamId: teamId,
-                meetingId: mymeet.id,
-                supervisorId: supervisorId,
-                room: room,
-             
-            },
-          });
-        }
-      }
-
-    return res.status(201).json({
-        status: `success starting new meeting for team ${team_name} and pfe_id ${team.pfe_id}`,
-        data: {
-            mymeet,
+    const teamId = req.params.teamId;
+    const supervisorId = req.user.id;
+  
+    // Vérifier si l'utilisateur est bien un superviseur de cette équipe (relation N:N via TeamSupervisors)
+    const team = await Team.findByPk(teamId, {
+      include: [
+        {
+          model: teacher,
+          as: 'supervisor',
+          where: { id: supervisorId },
+          through: { attributes: [] },
+          required: false,
         },
+      ],
     });
-
-});
+  
+    if (!team) {
+      return next(new appError("Team not found or you are not a supervisor of this team", 403));
+    }
+  
+    // Rendre les anciennes réunions nextMeeting = false
+    const priviousMeet = await Meet.findOne({
+      where: {
+        teamId: teamId,
+        nextMeeting: true,
+      },
+    });
+  
+    if (priviousMeet) {
+      await priviousMeet.update({ nextMeeting: false });
+    }
+  
+    const team_name = team.groupName;
+  
+    const mymeet = await Meet.create({
+      date,
+      time,
+      room,
+      Meeting_objectives_files,
+      Support_files,
+      Team_deliverables_files,
+      My_review_for_deliverables_files,
+      Meeting_pv_files,
+      teamId,
+      supervisorId,
+      nextMeeting: true,
+      pfeId: team.pfe_id,
+    });
+  
+    // Notifier les membres de l’équipe
+    const members = await Student.findAll({
+      where: { team_id: teamId },
+      include: [{ model: User, as: "user" }],
+    });
+  
+    for (const member of members) {
+      if (member.user?.id) {
+        await Notification.create({
+          user_id: member.user.id,
+          type: "new_meeting",
+          content: `A new meeting has been scheduled on ${date} at ${time} in room ${room}.`,
+          is_read: false,
+          metadata: {
+            teamId: teamId,
+            meetingId: mymeet.id,
+            supervisorId: supervisorId,
+            room: room,
+          },
+        });
+      }
+    }
+  
+    return res.status(201).json({
+      status: `success starting new meeting for team ${team_name} and pfe_id ${team.pfe_id}`,
+      data: {
+        mymeet,
+      },
+    });
+  });
+  
 
 
 
