@@ -7,6 +7,8 @@ import { v2 as cloudinary } from 'cloudinary';
 import Student from "../models/studenModel.js";
 import User from "../models/UserModel.js";
 import Notification from "../models/notificationModel.js";
+import teacher from "../models/teacherModel.js";
+
 
 export const startNewMeeting = catchAsync(async (req, res, next) => {
     const { date, time, room } = req.body;
@@ -182,6 +184,7 @@ export const cancelMeeting = catchAsync(async (req, res, next) => {
     where: { team_id: meeting.teamId },
     include: [{ model: User, as: "user" }],
   });
+  
 
   for (const member of members) {
     if (member.user?.id) {
@@ -229,16 +232,78 @@ export const getNextMeet = catchAsync(async (req, res, next) => {
 
 export const updateMeeting = catchAsync(async (req, res, next) => {
     const meetingId = req.params.meetingId;
-    const { date, time, room, Meeting_objectives_files } = req.body;
+    const { date, time, room } = req.body;
+    const Meeting_objectives_files = req.files?.Meeting_objectives_files?.[0]?.path;
+    const Support_files = req.files?.Support_files?.[0]?.path;
+    const Team_deliverables_files = req.files?.Team_deliverables_files?.[0]?.path;
+    const My_review_for_deliverables_files = req.files?.My_review_for_deliverables_files?.[0]?.path;
+    const Meeting_pv_files = req.files?.Meeting_pv_files?.[0]?.path;
+
     const meeting = await Meet.findByPk(meetingId);
     if (!meeting) {
         return next(new appError("Meeting not found", 404));
     }
+     const deleteCloudinaryFile = async (url) => {
+            if (!url) return;
+          
+            try {
+              const uploadIndex = url.indexOf('/upload/');
+              if (uploadIndex === -1) {
+                console.error('Invalid Cloudinary URL format');
+                return;
+              }
+          
+              const pathAfterUpload = url.substring(uploadIndex + 8);
+              const parts = pathAfterUpload.split('/');
+          
+              // Remove version if present
+              if (parts[0].startsWith('v')) {
+                parts.shift();
+              }
+          
+              const fileWithExtension = parts.pop();
+              let fileNameWithoutExtension = fileWithExtension;
+          
+              // Remove .jpg or .pdf extension if present
+              if (fileWithExtension.endsWith('.jpg')) {
+                fileNameWithoutExtension = fileWithExtension.slice(0, -4);
+              } else if (fileWithExtension.endsWith('.pdf')) {
+                fileNameWithoutExtension = fileWithExtension.slice(0, -4);
+              }
+          
+              parts.push(fileNameWithoutExtension);
+              const publicId = parts.join('/');
+              console.log(`Public ID: ${publicId}`);
+          
+              const resourceType = url.includes('/raw/') ? 'raw' : 'image';
+          
+              await cloudinary.uploader.destroy(publicId, {
+                resource_type: resourceType,
+                invalidate: true,
+              });
+          
+              console.log(`Deleted ${resourceType} from Cloudinary: ${publicId}`);
+            } catch (err) {
+              console.error(`Error deleting file from Cloudinary: ${err.message}`);
+            }
+          };
+          
+    
+        await deleteCloudinaryFile(meeting.Meeting_objectives_files);
+        await deleteCloudinaryFile(meeting.Support_files);
+        await deleteCloudinaryFile(meeting.Team_deliverables_files);
+        await deleteCloudinaryFile(meeting.My_review_for_deliverables_files);
+        await deleteCloudinaryFile(meeting.Meeting_pv_files);
+        
     await meeting.update({
         date,
         time,
         room,
         Meeting_objectives_files,
+        Support_files,
+        Team_deliverables_files,
+        My_review_for_deliverables_files,
+        Meeting_pv_files
     });
     return res.status(200).json({
         status: "success",
