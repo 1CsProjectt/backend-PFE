@@ -29,14 +29,10 @@ Team.hasMany(Student, { foreignKey: 'team_id' , as: 'members'});
 
 
 // Teacher - Group
-Team.belongsToMany(teacher, {
-  through: 'TeamSupervisors',  
-  foreignKey: 'teamId',
-  otherKey: 'teacherId',
-  as: 'supervisor'
-});
-teacher.hasMany(Team, { foreignKey: 'supervisorId', as: 'groups' });
 
+
+Team.belongsToMany(teacher, { through: 'TeamSupervisors', as: 'supervisor', foreignKey: 'teamId', otherKey: 'teacherId' });
+teacher.belongsToMany(Team, { through: 'TeamSupervisors', as: 'supervisedTeams', foreignKey: 'teacherId', otherKey: 'teamId' });
 
 PFE.belongsTo(User, { foreignKey: "createdBy", as: "creator" });
 PFE.belongsToMany(teacher, { through: "PFE_Teachers", as: "supervisors" });

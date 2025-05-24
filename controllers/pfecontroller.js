@@ -991,7 +991,10 @@ export const autoAssignPfesToTeamWithoutPfe = catchAsync(async (req, res, next) 
   }
 
   team.pfe_id = selectedPfe.id;
-  team.supervisorId = (await selectedPfe.getSupervisors())[0].id; 
+  const supervisors = await selectedPfe.getSupervisors();
+  const supervisorIds = supervisors.map(s => s.id);
+  await team.setSupervisor(supervisorIds);
+
   await team.save();
 
   res.status(200).json({
@@ -1002,51 +1005,55 @@ export const autoAssignPfesToTeamWithoutPfe = catchAsync(async (req, res, next) 
 });
 
 
-export const changePfeForTeam = catchAsync(async (req, res, next) => {
-    const { teamId, newPfeId } = req.body;
+  export const changePfeForTeam = catchAsync(async (req, res, next) => {
+      const { teamId, newPfeId } = req.body;
 
-    if (!teamId || !newPfeId) {
-        return next(new appError('Team ID and new PFE ID are required', 400));
-    }
+      if (!teamId || !newPfeId) {
+          return next(new appError('Team ID and new PFE ID are required', 400));
+      }
 
-    // Find the team by its ID
-    const team = await Team.findByPk(teamId);
-    if (!team) {
-        return next(new appError('Team not found', 404));
-    }
+      // Find the team by its ID
+      const team = await Team.findByPk(teamId);
+      if (!team) {
+          return next(new appError('Team not found', 404));
+      }
 
-    // Find the new PFE by its ID
-    const newPfe = await PFE.findByPk(newPfeId);
-    if (!newPfe) {
-        return next(new appError('New PFE not found', 404));
-    }
+      // Find the new PFE by its ID
+      const newPfe = await PFE.findByPk(newPfeId);
+      if (!newPfe) {
+          return next(new appError('New PFE not found', 404));
+      }
 
-    // Get the year of the team by fetching the first student (assuming all team members have the same year)
-    const students = await Student.findAll({
-        where: { team_id: team.id },
-    });
+      // Get the year of the team by fetching the first student (assuming all team members have the same year)
+      const students = await Student.findAll({
+          where: { team_id: team.id },
+      });
 
-    if (students.length === 0) {
-        return next(new appError('No students found in the team', 404));
-    }
+      if (students.length === 0) {
+          return next(new appError('No students found in the team', 404));
+      }
 
-    const teamYear = students[0].year.toUpperCase();  // Assumes all students in the team have the same year
+      const teamYear = students[0].year.toUpperCase();  // Assumes all students in the team have the same year
 
-    // Check if the PFE's year matches the team's year
-    if (newPfe.year !== teamYear) {
-        return next(new appError(`PFE year (${newPfe.year}) does not match the team's year (${teamYear})`, 400));
-    }
+      // Check if the PFE's year matches the team's year
+      if (newPfe.year !== teamYear) {
+          return next(new appError(`PFE year (${newPfe.year}) does not match the team's year (${teamYear})`, 400));
+      }
 
-    // Assign the new PFE to the team
-    team.pfe_id = newPfe.id;
-    await team.save();
+      // Assign the new PFE to the team
+      team.pfe_id = newPfe.id;
+      const supervisors = await newPfe.getSupervisors();              // <- récupérer les superviseurs du NOUVEAU PFE
+      const supervisorIds = supervisors.map(s => s.id);               // <- tu extrais leurs IDs
+      await team.setSupervisor(supervisorIds);                        // <- tu lies ces superviseurs à l’équipe
 
-    res.status(200).json({
-        status: 'success',
-        message: 'PFE successfully changed for the team',
-        team,
-    });
-});
+      await team.save();
+
+      res.status(200).json({
+          status: 'success',
+          message: 'PFE successfully changed for the team',
+          team,
+      });
+  });
 
 
 export const getPFEByID = catchAsync(async (req, res, next) => {
