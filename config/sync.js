@@ -8,9 +8,10 @@ import Company from "../models/companyModel.js";
 import Admin from "../models/adminModel.js";
 import JoinRequest from "../models/jointeamModel.js";
 import invitation from "../models/invitationModel.js";
-import preflistroute from '../Routes/preflistRoute.js'
-import meetingsroute from '../Routes/meetingsRoute.js'
-
+import Notification from "../models/notificationModel.js";
+import Preflist from "../models/preflistModel.js";
+import SupervisionRequest from "../models/SupervisionRequestModel.js";
+import Meet from "../models/meetingModel.js";
 
 
 (async () => {

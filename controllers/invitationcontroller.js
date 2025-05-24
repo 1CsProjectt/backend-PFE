@@ -6,7 +6,7 @@ import jwt from "jsonwebtoken";
 import appError from "../utils/appError.js";
 import { catchAsync  } from "../utils/catchAsync.js";
 import Team from "../models/groupModel.js";
-
+import Notification from "../models/notificationModel.js";
 
 
 export const sendInvitations = catchAsync(async (req, res, next) => {
@@ -14,10 +14,7 @@ export const sendInvitations = catchAsync(async (req, res, next) => {
     return next(new appError("Unauthorized: No user found in request", 401));
   }
 
-  let year = req.user.year;
-
   const userId = req.user.id;
-
   const student = await Student.findOne({ where: { id: userId } });
   if (!student) {
     return next(new appError("Student profile not found", 404));
@@ -26,19 +23,16 @@ export const sendInvitations = catchAsync(async (req, res, next) => {
   if (!student.team_id) {
     return next(new appError("You must be in a team to send invitations", 403));
   }
+
   const team = await Team.findByPk(student.team_id);
   if (!team) {
     await Student.update(
       { team_id: null, status: 'available' },
-      { where: { id: student.team_id } }
+      { where: { team_id: student.team_id } }
     );
-    return next(
-      new appError(
-        'Team not found. All students previously assigned to this team have been made available.',
-        404
-      )
-    );
+    return next(new appError('Team not found. Students made available.', 404));
   }
+
   const teamMembers = await Student.count({ where: { team_id: student.team_id } });
   const remainingSlots = 6 - teamMembers;
 
@@ -49,8 +43,8 @@ export const sendInvitations = catchAsync(async (req, res, next) => {
   if (receiver_emails.length > remainingSlots) {
     return next(new appError(`You can only invite ${remainingSlots} more student(s)`, 400));
   }
+
   const senderId = student.id;
-  const io = req.app.get("socketio");
   const results = [];
 
   for (const email of receiver_emails) {
@@ -58,18 +52,17 @@ export const sendInvitations = catchAsync(async (req, res, next) => {
       const receiverUser = await User.findOne({
         where: { email, role: "student" },
       });
-
       if (!receiverUser) {
         results.push({ email, status: "failed", reason: "User not found" });
         continue;
       }
-      const receiverStudent = await Student.findOne({
-        where: { id: receiverUser.id },
-      });
+
+      const receiverStudent = await Student.findOne({ where: { id: receiverUser.id } });
       if (!receiverStudent) {
         results.push({ email, status: "failed", reason: "Student profile not found" });
         continue;
       }
+
       if (receiverStudent.team_id !== null) {
         results.push({ email, status: "failed", reason: "Student already in a team" });
         continue;
@@ -77,12 +70,12 @@ export const sendInvitations = catchAsync(async (req, res, next) => {
       if (receiverStudent.year !== student.year) {
         results.push({ email, status: "failed", reason: "Student is not from the same year" });
         continue;
-      }if (student.specialite!== null) {
-        if (receiverStudent.specialite!== student.specialite) {
-          results.push({ email, status: "failed", reason: "Student deosn't have the same specialite" });
-          continue;
-        }
       }
+      if (student.specialite !== null && receiverStudent.specialite !== student.specialite) {
+        results.push({ email, status: "failed", reason: "Student doesn't have the same specialite" });
+        continue;
+      }
+
       const existingInvitation = await Invitation.findOne({
         where: {
           sender_id: senderId,
@@ -94,11 +87,13 @@ export const sendInvitations = catchAsync(async (req, res, next) => {
         results.push({ email, status: "failed", reason: "Invitation already sent" });
         continue;
       }
+
       await Invitation.create({ sender_id: senderId, receiver_email: email });
+
       await Notification.create({
         user_id: receiverUser.id,
         type: "invitation",
-        content: `You received a team invitation from ${student.name}`,
+        content: `You received a team invitation from ${student.name} to join their team.`,
         is_read: false,
         metadata: {
           senderId: student.id,
@@ -106,17 +101,13 @@ export const sendInvitations = catchAsync(async (req, res, next) => {
           teamId: team.id,
         },
       });
-      
-      io.to(receiverUser.id).emit("invitation", {
-        sender: student.name,
-        message: "i have invited you to join my team",
-      });
-      results.push({ email, status: "success"});
 
+      results.push({ email, status: "success" });
     } catch (err) {
       results.push({ email, status: "failed", reason: "Unexpected error" });
     }
   }
+
   res.status(201).json({
     message: "Invitations processed",
     results,
@@ -245,6 +236,18 @@ export const acceptInvitation = catchAsync(async (req, res, next) => {
   receiver.team_id = sender.team_id;
   receiver.status = "in a team";
   await receiver.save();
+  await Notification.create({
+    user_id: sender.id,
+    type: "invitation-accepted",
+    content: `${receiver.first_name} ${receiver.last_name} has accepted your invitation and joined your team.`,
+    is_read: false,
+    metadata: {
+      receiverId: receiver.id,
+      receiverName: `${receiver.first_name} ${receiver.last_name}`,
+      teamId: sender.team_id,
+    },
+  });
+  
 
   // Reject other invitations sent to this user
   await Invitation.update(
@@ -278,6 +281,7 @@ export const declineInvitation = catchAsync(async (req, res, next) => {
   const { invitationId } = req.body;
   const user = req.user;
 
+
   const invitation = await Invitation.findByPk(invitationId);
   if (!invitation) {
     return next(new appError("Invitation not found", 404));
@@ -286,6 +290,11 @@ export const declineInvitation = catchAsync(async (req, res, next) => {
   if (invitation.receiver_email !== user.email) {
     return next(new appError("You are not authorized to decline this invitation", 403));
   }
+  const receiver = await Student.findOne({ where: { id: user.id } });
+  const sender = await Student.findByPk(invitation.sender_id);
+  if (!sender) {
+    return next(new appError("Sender not found", 404));
+  }
 
   if (invitation.status !== "pending") {
     return next(new appError(`This invitation has already been ${invitation.status}`, 400));
@@ -293,6 +302,18 @@ export const declineInvitation = catchAsync(async (req, res, next) => {
 
   invitation.status = "rejected";
   await invitation.save();
+  await Notification.create({
+    user_id: sender.id, 
+    type: "invitation-declined",
+    content: `${receiver.first_name} ${receiver.last_name} has declined your team invitation.`,
+    is_read: false,
+    metadata: {
+      receiverId: receiver.id,
+      receiverName: `${receiver.first_name} ${receiver.last_name}`,
+      teamId: receiver.team_id,
+    },
+  });
+  
 
   res.status(200).json({ message: "Invitation declined successfully" });
 });

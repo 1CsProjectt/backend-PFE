@@ -1,4 +1,6 @@
-import { Notification } from "../models";
+import  Notification  from "../models/notificationModel.js";
+import { Op } from "sequelize";
+
 
 
 
@@ -15,7 +17,7 @@ export const sendNotification = async (req, res) => {
   };
   
 
-exports.getMyNotifications = async (req, res) => {
+export const getMyNotifications = async (req, res) => {
   const notifications = await Notification.findAll({
     where: { user_id: req.user.id },
     order: [["createdAt", "DESC"]],
@@ -23,7 +25,7 @@ exports.getMyNotifications = async (req, res) => {
   res.status(200).json({ notifications });
 };
 
-exports.markNotificationAsRead = async (req, res) => {
+export const markNotificationAsRead = async (req, res) => {
   const { id } = req.params;
   const notification = await Notification.findOne({
     where: { id, user_id: req.user.id },
@@ -39,7 +41,7 @@ exports.markNotificationAsRead = async (req, res) => {
   res.status(200).json({ message: "Notification marked as read" });
 };
 
-exports.getUnreadNotificationCount = async (req, res) => {
+export const getUnreadNotificationCount = async (req, res) => {
   const count = await Notification.count({
     where: { user_id: req.user.id, is_read: false },
   });
