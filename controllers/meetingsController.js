@@ -7,7 +7,6 @@ import { v2 as cloudinary } from 'cloudinary';
 import Student from "../models/studenModel.js";
 import User from "../models/UserModel.js";
 import Notification from "../models/notificationModel.js";
-import teacher from "../models/teacherModel.js";
 
 export const startNewMeeting = catchAsync(async (req, res, next) => {
     const { date, time, room } = req.body;
