@@ -8,7 +8,7 @@ const Notification = sequelize.define('Notification', {
     allowNull: false,
   },
   type: {
-    type: DataTypes.ENUM('invitation', 'message', 'info', 'alert'),
+    type: DataTypes.ENUM('invitation', 'message', 'info', 'alert','invitation-declined', 'invitation-accepted'),
     defaultValue: 'info',
   },
   content: {
