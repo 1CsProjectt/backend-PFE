@@ -35,32 +35,32 @@ const io = new Server(server, {
 });
 
 
-app.set("socketio", io);
+// app.set("socketio", io);
 
 // Gestion des connexions socket
-io.on("connection", (socket) => {
-  console.log(`⚡ New client connected: ${socket.id}`);
+// io.on("connection", (socket) => {
+//   console.log(`⚡ New client connected: ${socket.id}`);
 
-  socket.on("register", (userId) => {
-    socket.join(userId);
-    console.log(`✅ User ${userId} joined room ${userId}`);
-  });
+//   socket.on("register", (userId) => {
+//     socket.join(userId);
+//     console.log(`✅ User ${userId} joined room ${userId}`);
+//   });
 
-  socket.on("disconnect", () => {
-    console.log(`⚡ Client disconnected: ${socket.id}`);
-  });
-});
+//   socket.on("disconnect", () => {
+//     console.log(`⚡ Client disconnected: ${socket.id}`);
+//   });
+// });
 
 
-app.get("/test-notification", (req, res) => {
-  const io = req.app.get("socketio");
-  io.to("123").emit("invitation", {
-    sender: "TestUser",
-    message: "Test invitation from backend route"
-  });
+// app.get("/test-notification", (req, res) => {
+//   const io = req.app.get("socketio");
+//   io.to("123").emit("invitation", {
+//     sender: "TestUser",
+//     message: "Test invitation from backend route"
+//   });
 
-  res.send("📤 Invitation sent to user 123");
-});
+//   res.send("📤 Invitation sent to user 123");
+// });
 
 // io.on("connection", (socket) => {
 //   console.log(`⚡ New client connected: ${socket.id}`);

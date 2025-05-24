@@ -476,9 +476,13 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
     whereClause.specialite = specialite;
   }
 
+  //Tracking des changements
+  const createdTeams = [];
+  const deletedTeams = [];
+  const studentAssignments = [];
 
-   // Step 2: Clean weak teams
-   const teamsToCheck = await Team.findAll({
+  // Step 2: Clean weak teams
+  const teamsToCheck = await Team.findAll({
     include: [{
       model: Student,
       as: 'members',
@@ -497,6 +501,7 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
   });
 
   for (const team of weakTeams) {
+    deletedTeams.push({ id: team.id, name: team.groupName });
     const members = await Student.findAll({ where: { team_id: team.id } });
     for (const student of members) {
       student.team_id = null;
@@ -506,7 +511,6 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
     await JoinRequest.destroy({ where: { team_id: team.id } });
     await team.destroy();
   }
-
 
   // Step 1: Get students without a team
   let studentsWithoutATeam = await Student.findAll({ where: whereClause });
@@ -535,19 +539,24 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
         maxNumber: 1,
         full: true,
       });
+      createdTeams.push({ id: newTeam.id, name: newTeam.groupName });
 
       student.team_id = newTeam.id;
       student.status = 'in a team';
       await student.save();
+
+      studentAssignments.push({ studentId: student.id, teamId: newTeam.id, teamName: newTeam.groupName });
     }
 
     return res.status(200).json({
       status: 'success',
       message: '3CS students have been assigned to individual teams',
+      createdTeams,
+      studentAssignments,
+      deletedTeams,
     });
   }
 
- 
   // Step 3: Refresh data
   studentsWithoutATeam = await Student.findAll({ where: whereClause });
 
@@ -565,8 +574,8 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
       },
     ],
   });
-// Filter out teams with more than 6 members
-  // ❗ On ne garde que les équipes avec moins de 8 membres
+
+  //On ne garde que les équipes avec moins de 8 membres
   allTeams = allTeams.filter(team => (team.members?.length || 0) < 8);
   const maxNumber = allTeams[0]?.maxNumber || 5;
   const overflowThreshold = Math.round(maxNumber / 2) + 1;
@@ -584,7 +593,7 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
   };
 
   // Step 4: Assign students to compatible teams
-  for (const student of studentsWithoutATeam) { 
+  for (const student of studentsWithoutATeam) {
     const compatibleTeams = allTeams.filter(team => isCompatible(team, student));
     const nonFullCompatibleTeams = compatibleTeams.filter(team => (team.members?.length || 0) < maxNumber);
 
@@ -600,6 +609,8 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
       student.status = 'in a team';
       await student.save();
 
+      studentAssignments.push({ studentId: student.id, teamId: chosenTeam.id, teamName: chosenTeam.groupName });
+
       const count = await Student.count({ where: { team_id: chosenTeam.id } });
       if (count >= maxNumber && !chosenTeam.full) {
         chosenTeam.full = true;
@@ -608,7 +619,7 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
 
       chosenTeam.members.push(student);
 
-      // ❗ Si l'équipe a maintenant ≥ 8 membres, on la retire de allTeams
+      //Si l'équipe a maintenant ≥ 8 membres, on la retire de allTeams
       if ((chosenTeam.members?.length || 0) >= 8) {
         allTeams = allTeams.filter(team => team.id !== chosenTeam.id);
       }
@@ -628,11 +639,14 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
         maxNumber,
         full: true,
       });
+      createdTeams.push({ id: newTeam.id, name: newTeam.groupName });
 
       for (const student of group) {
         student.team_id = newTeam.id;
         student.status = 'in a team';
         await student.save();
+
+        studentAssignments.push({ studentId: student.id, teamId: newTeam.id, teamName: newTeam.groupName });
       }
 
       newTeam.members = group;
@@ -660,6 +674,8 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
         student.status = 'in a team';
         await student.save();
 
+        studentAssignments.push({ studentId: student.id, teamId: chosenTeam.id, teamName: chosenTeam.groupName });
+
         const count = await Student.count({ where: { team_id: chosenTeam.id } });
         if (count >= maxNumber && !chosenTeam.full) {
           chosenTeam.full = true;
@@ -668,8 +684,8 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
 
         chosenTeam.members.push(student);
 
-        // ❗ Même vérification ici
-        if ((chosenTeam.members?.length || 0) >= 7) {
+        // Même vérification ici
+        if ((chosenTeam.members?.length || 0) >= 8) {
           allTeams = allTeams.filter(team => team.id !== chosenTeam.id);
         }
       } else {
@@ -677,15 +693,18 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
           groupName: `Group-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
           maxNumber,
         });
+        createdTeams.push({ id: newTeam.id, name: newTeam.groupName });
 
         student.team_id = newTeam.id;
         student.status = 'in a team';
         await student.save();
 
+        studentAssignments.push({ studentId: student.id, teamId: newTeam.id, teamName: newTeam.groupName });
+
         newTeam.members = [student];
         availableTeams.push(newTeam);
 
-        // ❗ On peut même vérifier ici si >= 7 et ne plus utiliser cette team après
+        // On peut même vérifier ici si >= 8 et ne plus utiliser cette team après
         if ((newTeam.members?.length || 0) >= 8) {
           allTeams = allTeams.filter(team => team.id !== newTeam.id);
         }
@@ -696,8 +715,13 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
   return res.status(200).json({
     status: 'success',
     message: 'Students have been automatically organized into teams',
+    createdTeams,
+    studentAssignments,
+    deletedTeams,
   });
 });
+
+
 
 
 
