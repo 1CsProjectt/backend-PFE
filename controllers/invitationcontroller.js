@@ -281,6 +281,7 @@ export const declineInvitation = catchAsync(async (req, res, next) => {
   const { invitationId } = req.body;
   const user = req.user;
 
+
   const invitation = await Invitation.findByPk(invitationId);
   if (!invitation) {
     return next(new appError("Invitation not found", 404));
@@ -289,6 +290,7 @@ export const declineInvitation = catchAsync(async (req, res, next) => {
   if (invitation.receiver_email !== user.email) {
     return next(new appError("You are not authorized to decline this invitation", 403));
   }
+  const receiver = await Student.findOne({ where: { id: user.id } });
   const sender = await Student.findByPk(invitation.sender_id);
   if (!sender) {
     return next(new appError("Sender not found", 404));
