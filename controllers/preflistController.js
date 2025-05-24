@@ -413,25 +413,25 @@ export const respondToRequest = catchAsync(async (req, res, next) => {
   request.status = status;
   await request.save();
 
-    if (status === 'ACCEPTED') {
-
-      const pfe = await PFE.findByPk(request.pfeId);
-      if (!pfe) {
-        return next(new appError('PFE not found', 404));
-      }
-    
-      const creatorTeacher = await teacher.findOne({ where: { id: pfe.createdBy } });
-      if (!creatorTeacher) {
-        return next(new appError('Creator of the PFE is not a teacher', 400));
-      }
-      await Team.update(
-        {
-          pfe_id: pfe.id,
-          supervisorId: creatorTeacher.id
-        },
-        { where: { id: request.teamId } }
-      );
+  if (status === 'ACCEPTED') {
+    const pfe = await PFE.findByPk(request.pfeId, {
+      include: [{ model: teacher, as: 'supervisors' }]
+    });
+    if (!pfe) {
+      return next(new appError('PFE not found', 404));
     }
+
+    const team = await Team.findByPk(request.teamId);
+    if (!team) {
+      return next(new appError('Team not found', 404));
+    }
+
+    await team.update({ pfe_id: pfe.id });
+
+    await team.setSupervisor(pfe.supervisors); 
+
+  }
+
   if (status === 'REJECTED') {
     const preflist = await Preflist.findAll({
       where: { teamId: request.teamId },
@@ -450,6 +450,7 @@ export const respondToRequest = catchAsync(async (req, res, next) => {
       });
     }
   }
+
   res.status(200).json({
     status: 'success',
     message: `Request ${status.toLowerCase()} successfully.`
@@ -480,9 +481,25 @@ export const acceptRandomRequestsForMultiplePFEs = catchAsync(async (req, res, n
     const toAccept = pendingRequests.slice(0, numberToAccept);
     const toReject = pendingRequests.slice(numberToAccept);
 
-    await Promise.all(toAccept.map(req => {
+    await Promise.all(toAccept.map(async (req) => {
       req.status = 'ACCEPTED';
-      return req.save();
+      await req.save();
+
+      const team = await Team.findByPk(req.teamId);
+      const pfe = await PFE.findByPk(req.pfeId, {
+        include: [{ model: teacher, as: 'supervisors' }]
+      });
+
+      if (!team || !pfe) return;
+
+      if (!team.pfe_id) {
+        team.pfe_id = pfe.id;
+        await team.save();
+      }
+
+      if (pfe.supervisors && pfe.supervisors.length > 0) {
+        await team.addSupervisors(pfe.supervisors);
+      }
     }));
 
     await Promise.all(toReject.map(req => {

@@ -25,15 +25,7 @@
       allowNull: true,
       
     },
-    supervisorId: {
-      type: DataTypes.INTEGER,
-      allowNull: true,
-      references: {
-        model: teacher,
-        key: 'id',
-      },
-      onDelete: 'SET NULL', 
-    },maxNumber:{
+    maxNumber:{
       type:DataTypes.INTEGER,
       allowNull:false
     },
