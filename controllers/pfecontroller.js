@@ -27,7 +27,7 @@ export const createPFE = catchAsync(async (req, res, next) => {
     const userId = req.user.id;
     const role = req.user.role;
     const createdBy = req.user.id;
-
+console.log("this is supervisor ================>",supervisor)
     if (!pdfFile) {
         return next(new appError("PDF file is required", 400));
     }
