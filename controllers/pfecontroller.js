@@ -78,6 +78,7 @@ export const createPFE = catchAsync(async (req, res, next) => {
         photo,
         createdBy
     });
+    console.log("this is the array ----------------->",supervisorsArray)
 
     await pfe.setSupervisors(supervisorsArray);
 
