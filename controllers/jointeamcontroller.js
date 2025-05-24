@@ -21,7 +21,7 @@ export const sendJoinRequest = async (req, res) => {
     const { id } = req.body;
 
     const group = await Team.findByPk(id);
-    if (!group) return res.status(404).json({ message: "Team not found" });
+    if (!group) return res.status(404).json({ message: `team with id :${id} is not found ` });
 
     if (student.team_id) {
       return res.status(400).json({ message: "You are already in a group" });
