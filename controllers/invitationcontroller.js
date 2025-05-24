@@ -238,9 +238,14 @@ export const acceptInvitation = catchAsync(async (req, res, next) => {
   await receiver.save();
   await Notification.create({
     user_id: sender.id,
-    title: "Invitation Accepted",
-    message: `${receiver.firstname} ${receiver.lastname} has accepted your invitation and joined your team.`,
+    type: "invitation-accepted",
+    content: `${receiver.first_name} ${receiver.last_name} has accepted your invitation and joined your team.`,
     is_read: false,
+    metadata: {
+      receiverId: receiver.id,
+      receiverName: `${receiver.first_name} ${receiver.last_name}`,
+      teamId: sender.team_id,
+    },
   });
   
 
@@ -292,11 +297,17 @@ export const declineInvitation = catchAsync(async (req, res, next) => {
   invitation.status = "rejected";
   await invitation.save();
   await Notification.create({
-    user_id: invitation.sender_id,
-    title: "Invitation Declined",
-    message: `${user.firstname} ${user.lastname} has declined your invitation.`,
+    user_id: sender.id, 
+    type: "invitation-declined",
+    content: `${receiver.first_name} ${receiver.last_name} has declined your team invitation.`,
     is_read: false,
+    metadata: {
+      receiverId: receiver.id,
+      receiverName: `${receiver.first_name} ${receiver.last_name}`,
+      teamId: sender.team_id,
+    },
   });
+  
 
   res.status(200).json({ message: "Invitation declined successfully" });
 });
