@@ -69,32 +69,36 @@ export const createTeam = catchAsync(async (req, res, next) => {
 });
 
 export const listAllTeams = catchAsync(async (req, res, next) => {
-
-
-    const teams = await Team.findAll({
+  const teams = await Team.findAll({
+    include: [
+      {
+        model: Student,
+        as: 'members',
+        attributes: ['id', 'firstname', 'lastname', 'year', 'specialite'],
         include: [
-            {
-                model: Student,
-                as: 'members',
-                attributes: ['id', 'firstname', 'lastname','year','specialite'],
-                include: [
-                    {
-                        model: User,
-                        as: 'user',
-                        attributes: ['email'],
-                    }
-                ]
-            }
-        ],
-        attributes: ['id', 'groupName', 'supervisorId', 'maxNumber', 'createdAt']
-    });
+          {
+            model: User,
+            as: 'user',
+            attributes: ['email'],
+          }
+        ]
+      },
+      {
+        model: teacher,
+        as: 'supervisors',
+        attributes: ['id', 'firstname', 'lastname']
+      }
+    ],
+    attributes: ['id', 'groupName', 'maxNumber', 'createdAt']
+  });
 
-    return res.status(200).json({
-        status: 'success',
-        results: teams.length,
-        teams
-    });
+  return res.status(200).json({
+    status: 'success',
+    results: teams.length,
+    teams
+  });
 });
+
 
 export const listAllTeamsforstudent = catchAsync(async (req, res, next) => {
         if (!req.user || !req.user.id) {
