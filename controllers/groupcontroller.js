@@ -85,7 +85,7 @@ export const listAllTeams = catchAsync(async (req, res, next) => {
       },
       {
         model: teacher,
-        as: 'supervisors',
+        as: 'supervisor',
         attributes: ['id', 'firstname', 'lastname']
       }
     ],
