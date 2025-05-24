@@ -9,7 +9,7 @@ import {
 
 import { protect } from '../middlewares/authmiddleware.js';
 
-router.use(protect); // Protect all routes
+router.use(protect); 
 
 router.get("/getMyNotifications", getMyNotifications);
 router.patch("/:id/read", markNotificationAsRead);
