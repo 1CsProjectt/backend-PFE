@@ -31,19 +31,6 @@ Team.hasMany(Student, { foreignKey: 'team_id' , as: 'members'});
 // Teacher - Group
 Team.belongsToMany(teacher, { through: 'TeamSupervisors', as: 'supervisor', foreignKey: 'teamId', otherKey: 'teacherId' });
 teacher.belongsToMany(Team, { through: 'TeamSupervisors', as: 'supervisedTeams', foreignKey: 'teacherId', otherKey: 'teamId' });
-// models/Team.js
-Team.belongsToMany(Supervisor, {
-  through: 'TeamSupervisors',
-  foreignKey: 'teamId',
-  otherKey: 'supervisorId'
-});
-
-// models/Supervisor.js
-Supervisor.belongsToMany(Team, {
-  through: 'TeamSupervisors',
-  foreignKey: 'supervisorId',
-  otherKey: 'teamId'
-});
 
 
 
