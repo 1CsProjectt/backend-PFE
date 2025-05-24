@@ -85,7 +85,7 @@ export const listAllTeams = catchAsync(async (req, res, next) => {
       },
       {
         model: teacher,
-        as: 'supervisors',
+        as: 'supervisor',
         attributes: ['id', 'firstname', 'lastname']
       }
     ],
@@ -735,16 +735,21 @@ export const getAllTeams_supervisedByMe = catchAsync(async (req, res, next) => {
   }
 
   const teacherID = req.user.id;
+
   const myTeacher = await teacher.findByPk(teacherID);
   if (!myTeacher) {
-    return next(new appError('Teacher was not found, login again or contact the administration', 401));
+    return next(new appError('Teacher not found. Please log in again or contact administration.', 401));
   }
 
   const teams = await Team.findAll({
-    where: {
-      supervisorId: teacherID  
-    },
     include: [
+      {
+        model: teacher,
+        as: 'supervisor',
+        where: { id: teacherID }, 
+        attributes: [],           
+        through: { attributes: [] } 
+      },
       {
         model: Student,
         as: 'members',
@@ -766,7 +771,7 @@ export const getAllTeams_supervisedByMe = catchAsync(async (req, res, next) => {
         attributes: ['ML']
       }
     ],
-    attributes: ['id', 'groupName', 'supervisorId', 'maxNumber', 'createdAt']
+    attributes: ['id', 'groupName', 'maxNumber', 'createdAt']
   });
 
   return res.status(200).json({
