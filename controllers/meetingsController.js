@@ -4,6 +4,9 @@ import Team from "../models/groupModel.js";
 import {catchAsync} from "../utils/catchAsync.js";
 import appError from "../utils/appError.js";
 import { v2 as cloudinary } from 'cloudinary';
+import Student from "../models/studenModel.js";
+import User from "../models/UserModel.js";
+import Notification from "../models/notificationModel.js";
 
 export const startNewMeeting = catchAsync(async (req, res, next) => {
     const { date, time, room} = req.body;
@@ -58,6 +61,28 @@ export const startNewMeeting = catchAsync(async (req, res, next) => {
         nextMeeting: true,
         pfeId: team.pfe_id,
     });
+    const members = await Student.findAll({
+        where: { team_id: teamId },
+        include: [{ model: User, as: "user" }],
+      });
+  
+      for (const member of members) {
+        if (member.user?.id) {
+          await Notification.create({
+            user_id: member.user.id,
+            type: "new_meeting",
+            content: `A new meeting has been scheduled on ${date} at ${time} in room ${room}.`,
+            is_read: false,
+            metadata: {
+                teamId: teamId,
+                meetingId: mymeet.id,
+                supervisorId: supervisorId,
+                room: room,
+             
+            },
+          });
+        }
+      }
 
     return res.status(201).json({
         status: `success starting new meeting for team ${team_name} and pfe_id ${team.pfe_id}`,
@@ -148,6 +173,27 @@ export const cancelMeeting = catchAsync(async (req, res, next) => {
         await deleteCloudinaryFile(meeting.Team_deliverables_files);
         await deleteCloudinaryFile(meeting.My_review_for_deliverables_files);
         await deleteCloudinaryFile(meeting.Meeting_pv_files);
+        // Send notification to all team members
+  const members = await Student.findAll({
+    where: { team_id: meeting.teamId },
+    include: [{ model: User, as: "user" }],
+  });
+
+  for (const member of members) {
+    if (member.user?.id) {
+      await Notification.create({
+        user_id: member.user.id,
+        type: "meeting_cancelled",
+        content: `The meeting scheduled on ${meeting.date} at ${meeting.time} in room ${meeting.room} has been cancelled.`,
+        is_read: false,
+        metadata: {
+          meetingId: meeting.id,
+          teamId: meeting.teamId,
+          supervisorId: meeting.supervisorId,
+        },
+      });
+    }
+  }
         
     await meeting.destroy();
     return res.status(200).json({
