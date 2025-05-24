@@ -310,7 +310,7 @@ export const declineInvitation = catchAsync(async (req, res, next) => {
     metadata: {
       receiverId: receiver.id,
       receiverName: `${receiver.first_name} ${receiver.last_name}`,
-      teamId: sender.team_id,
+      teamId: receiver.team_id,
     },
   });
   
