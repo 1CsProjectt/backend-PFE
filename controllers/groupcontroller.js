@@ -745,7 +745,7 @@ export const getAllTeams_supervisedByMe = catchAsync(async (req, res, next) => {
     include: [
       {
         model: teacher,
-        as: 'supervisors',
+        as: 'supervisor',
         where: { id: teacherID }, 
         attributes: [],           
         through: { attributes: [] } 
