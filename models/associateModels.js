@@ -34,9 +34,6 @@ teacher.belongsToMany(Team, { through: 'TeamSupervisors', as: 'supervisedTeams',
 
 
 
-Team.belongsToMany(teacher, { through: 'TeamSupervisors', as: 'supervisor', foreignKey: 'teamId', otherKey: 'teacherId' });
-teacher.belongsToMany(Team, { through: 'TeamSupervisors', as: 'supervisedTeams', foreignKey: 'teacherId', otherKey: 'teamId' });
-
 PFE.belongsTo(User, { foreignKey: "createdBy", as: "creator" });
 PFE.belongsToMany(teacher, { through: "PFE_Teachers", as: "supervisors" });
 
