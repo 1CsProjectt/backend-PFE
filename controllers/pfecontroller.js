@@ -991,6 +991,7 @@ export const autoAssignPfesToTeamWithoutPfe = catchAsync(async (req, res, next) 
   }
 
   team.pfe_id = selectedPfe.id;
+  team.supervisorId = (await selectedPfe.getSupervisors())[0].id; 
   await team.save();
 
   res.status(200).json({

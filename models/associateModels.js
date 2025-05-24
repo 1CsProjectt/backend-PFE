@@ -29,7 +29,12 @@ Team.hasMany(Student, { foreignKey: 'team_id' , as: 'members'});
 
 
 // Teacher - Group
-Team.belongsTo(teacher, { foreignKey: 'supervisorId', as: 'supervisor' });
+Team.belongsToMany(teacher, {
+  through: 'TeamSupervisors',  
+  foreignKey: 'teamId',
+  otherKey: 'teacherId',
+  as: 'supervisor'
+});
 teacher.hasMany(Team, { foreignKey: 'supervisorId', as: 'groups' });
 
 
