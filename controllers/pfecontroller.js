@@ -873,9 +873,10 @@ export const getIsiPfes = async (req, res) => {
   
       // Assign the selected PFE to the team
       team.pfe_id = selectedPfe.id;
-      const supervisors = await selectedPfe.getSupervisors(); // because you used alias "supervisors"
-      const supervisor_id = supervisors[0].id;
-      team.supervisorId = supervisor_id
+      const supervisors = await selectedPfe.getSupervisors();
+      const supervisorIds = supervisors.map(s => s.id);
+      await team.setSupervisor(supervisorIds); // Link supervisors to the team
+    
       await team.save();
   
       // Log the assignment to return in the response
