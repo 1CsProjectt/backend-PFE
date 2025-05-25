@@ -556,7 +556,7 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
       student.status = 'in a team';
       await student.save();
 
-      studentAssignments.push({ studentId: student.id, teamId: newTeam.id, teamName: newTeam.groupName });
+      studentAssignments.push({ studentId: student.id, teamId: newTeam.id, teamName: newTeam.groupName,studentName: `${student.firstname} ${student.lastname}`,year: student.year, specialite: student.specialite });
     }
 
     return res.status(200).json({
@@ -620,7 +620,7 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
       student.status = 'in a team';
       await student.save();
 
-      studentAssignments.push({ studentId: student.id, teamId: chosenTeam.id, teamName: chosenTeam.groupName });
+      studentAssignments.push({ studentId: student.id, teamId: chosenTeam.id, teamName: chosenTeam.groupName, studentName: `${student.firstname} ${student.lastname}`, year: student.year, specialite: student.specialite });
 
       const count = await Student.count({ where: { team_id: chosenTeam.id } });
       if (count >= maxNumber && !chosenTeam.full) {
@@ -657,7 +657,7 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
         student.status = 'in a team';
         await student.save();
 
-        studentAssignments.push({ studentId: student.id, teamId: newTeam.id, teamName: newTeam.groupName });
+        studentAssignments.push({ studentId: student.id, teamId: newTeam.id, teamName: newTeam.groupName, studentName: `${student.firstname} ${student.lastname}`, year: student.year, specialite: student.specialite });
       }
 
       newTeam.members = group;
@@ -685,7 +685,7 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
         student.status = 'in a team';
         await student.save();
 
-        studentAssignments.push({ studentId: student.id, teamId: chosenTeam.id, teamName: chosenTeam.groupName });
+        studentAssignments.push({ studentId: student.id, teamId: chosenTeam.id, teamName: chosenTeam.groupName , studentName: `${student.firstname} ${student.lastname}`, year: student.year, specialite: student.specialite });
 
         const count = await Student.count({ where: { team_id: chosenTeam.id } });
         if (count >= maxNumber && !chosenTeam.full) {
@@ -710,7 +710,7 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
         student.status = 'in a team';
         await student.save();
 
-        studentAssignments.push({ studentId: student.id, teamId: newTeam.id, teamName: newTeam.groupName });
+        studentAssignments.push({ studentId: student.id, teamId: newTeam.id, teamName: newTeam.groupName , studentName: `${student.firstname} ${student.lastname}`, year: student.year, specialite: student.specialite });
 
         newTeam.members = [student];
         availableTeams.push(newTeam);
