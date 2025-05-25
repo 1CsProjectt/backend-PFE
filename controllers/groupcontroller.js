@@ -209,7 +209,8 @@ export const getAllTeams = catchAsync(async (req, res, next) => {
       },{
         model: teacher,         
         as: 'supervisor',
-        attributes: ['id', 'firstname', 'lastname']
+        attributes: ['id', 'firstname', 'lastname'],
+        through: { attributes: [] }
       },
       {
         model: PFE,             
