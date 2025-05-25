@@ -24,8 +24,7 @@ import { removeFromPreflist } from '../controllers/preflistController.js';
     },
     work_Status: {
       type: DataTypes.ENUM('Approved', 'Unfinished', 'Rejected'),
-      allowNull: false,
-      defaultValue: 'Unfinished',
+      allowNull: true,
     },
     Meeting_objectives_files: {
        type: DataTypes.STRING,
