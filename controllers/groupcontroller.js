@@ -16,6 +16,7 @@ const checkAndDestroyEmptyTeam = async (teamId) => {
     if (currentMembers === 0) {
       const team = await Team.findByPk(teamId);
       if (team) {
+        await JoinRequest.destroy({ where: { team_id: teamId } });
         await team.destroy();
         console.log(`Team with ID ${teamId} has been destroyed due to no members.`);
       }
@@ -233,34 +234,35 @@ export const getAllTeams = catchAsync(async (req, res, next) => {
 
 
 export const leaveTeam = catchAsync(async (req, res, next) => {
-    
-        const user = req.user;
-        if(!user){
-            return next(new appError('user not found',400));
-        }
-        const student = await Student.findOne({ where: { id: user.id } });
+  const user = req.user;
+  if (!user) {
+    return next(new appError('User not found', 400));
+  }
 
-        if (!student) {
-            return next(new appError("Student not found", 404));
-        }
+  const student = await Student.findOne({ where: { id: user.id } });
 
-        await invitation.destroy({where:{sender_id:student.id}});
-        const teamId = student.team_id;
-        student.team_id = null;
-        student.status="available";
-        await student.save();
+  if (!student) {
+    return next(new appError("Student not found", 404));
+  }
 
-        const remainingMembers = await Student.count({ where: { team_id: teamId } });
+  const teamId = student.team_id;
 
-    if (remainingMembers === 0 && teamId) {
+  
+  await invitation.destroy({ where: { sender_id: student.id } });
+  const remainingMembers = await Student.count({ where: { team_id: teamId } });
 
-        
-        await Team.destroy({ where: { id: teamId } });
-    }
+  student.team_id = null;
+  student.status = "available";
+  await student.save();
 
-        res.status(200).json({ message: "You have left the team successfully" });
-    
+  if (remainingMembers === 1 && teamId) { 
+    await JoinRequest.destroy({ where: { team_id: teamId } });
+    await Team.destroy({ where: { id: teamId } });
+  }
+
+  res.status(200).json({ message: "You have left the team successfully" });
 });
+
 
 
 export const destroyTeam = catchAsync(async (req, res, next) => {
@@ -275,10 +277,12 @@ export const destroyTeam = catchAsync(async (req, res, next) => {
     if (!team) {
       return next(new appError("Team not found", 404));
     }
-    await Student.update(
+    const students = await Student.update(
       { team_id: null, status: 'available' },
       { where: { team_id } }
     );
+    await invitation.destroy({ where: { sender_id: students.id } });
+    await JoinRequest.destroy({ where: { team_id: team_id } });
     await team.destroy();
     res.status(200).json({
       status: 'success',
@@ -407,6 +411,7 @@ export const destroyTeam = catchAsync(async (req, res, next) => {
           )
         );
       }
+      await invitation.destroy({ where: { sender_id: student.id } });
   
       const oldTeamId = student.team_id;
   
