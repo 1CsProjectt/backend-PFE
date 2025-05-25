@@ -32,7 +32,7 @@ console.log("this is supervisor ================>",supervisor)
         return next(new appError("PDF file is required", 400));
     }
     let supervisorsArray = [];
-    let specialite;
+    let specialite=null;
 
     let supervisorList = supervisor;
     if (typeof supervisor === 'string') {
