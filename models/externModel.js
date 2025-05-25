@@ -51,7 +51,7 @@ const Extern = sequelize.define('Extern', {
 
 
 User.hasOne(Extern, { foreignKey: 'id',as: 'extern' });
-Company.belongsTo(User, { foreignKey: 'id' });
+Extern.belongsTo(User, { foreignKey: 'id' });
 
 export default Extern;
 

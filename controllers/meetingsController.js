@@ -288,7 +288,7 @@ export const updateMeeting = catchAsync(async (req, res, next) => {
     const newFile = req.files?.[field]?.[0]?.path;
     updatedFiles[field] = newFile ?? meeting[field];
 
-    // Delete old file only if a new one was uploaded
+    
     if (newFile && meeting[field]) {
       await deleteCloudinaryFile(meeting[field]);
     }

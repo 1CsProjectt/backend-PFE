@@ -8,7 +8,7 @@ import Preflist from './preflistModel.js';
 import SupervisionRequest from './SupervisionRequestModel.js';
 import Meet from './meetingModel.js';
 import Notification from './notificationModel.js';
-
+import Extern from './externModel.js';
 // const { DataTypes } = require("sequelize");
 // const sequelize = require("../database.js");
 // const User = require("./UserModel.js");
