@@ -5,6 +5,7 @@ import {
   cancelMeeting,
   getNextMeet,
   updateMeeting,
+  update_Work_Status,
 } from "../controllers/meetingsController.js";
 import {
   protect,
@@ -220,5 +221,66 @@ router.patch("/updateMeeting/:meetingId", protect, restrictedfor("teacher"),uplo
     { name: 'My_review_for_deliverables_files', maxCount: 1 },
     { name: 'Meeting_pv_files', maxCount: 1 }
   ]), updateMeeting);
+
+
+
+/**
+ * @swagger
+ * tags:
+ *   name: MEETINGS
+ *   description: MEETINGS-related operations
+ *
+ * /api/v1/mettings/work-status/{meetingId}:
+ *   patch:
+ *     summary: Update the work status of a meeting
+ *     tags: [MEETINGS]
+ *     parameters:
+ *       - in: path
+ *         name: meetingId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the meeting to update
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               work_Status:
+ *                 type: string
+ *                 description: New work status for the meeting
+ *                 example: "In Progress"
+ *     responses:
+ *       200:
+ *         description: Work status updated successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success updating work status to In Progress
+ *                 data:
+ *                   type: object
+ *                   properties:
+ *                     meeting:
+ *                       type: object
+ *                       description: Updated meeting object
+ *       404:
+ *         description: Meeting not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Meeting not found
+ */
+
+  router.patch("/work-status/{meetingId}",protect,restrictedfor('teacher'),update_Work_Status);
 
 export default router;
