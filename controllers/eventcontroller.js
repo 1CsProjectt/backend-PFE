@@ -157,38 +157,17 @@ const setEvent = catchAsync(async (req, res, next) => {
 
 
 
-export const deleteEvent = catchAsync(async (req, res, next) => {
-    const { id } = req.params;
-  
-    // 1) Find the event by its primary key
-    const event = await Event.findByPk(id);
-    if (!event) {
-      return next(new appError('No event found with that ID', 404));
-    }
-  
-    // 2) Remove it from the database
-    await event.destroy();
-  
-    // 3) Send a 204 No Content response
-    res.status(204).json({
-      status: 'success',
-      data: null
-    });
-  });
-
 export const updateEvent = catchAsync(async (req, res, next) => {
-    const { name, year, startTime, endTime, maxNumber } = req.body;
+    const { id } = req.params;
+    const { startTime, endTime, maxNumber } = req.body;
 
-    if (!name || !year) {
-        return next(new appError("Event name and year are required", 400));
-    }
-
-    const event = await Event.findOne({ where: { name, year: year.toUpperCase() } });
-
+    // 1) Validate ID and fetch the event
+    const event = await Event.findByPk(id);
     if (!event) {
         return next(new appError("Event not found", 404));
     }
 
+    // 2) Parse and validate date range
     const parsedStartTime = new Date(startTime);
     const parsedEndTime = new Date(endTime);
     parsedStartTime.setUTCHours(0, 0, 0, 0);
@@ -198,21 +177,23 @@ export const updateEvent = catchAsync(async (req, res, next) => {
         return next(new appError("Start time must be before end time", 400));
     }
 
-    // Apply updates
-    event.startTime = parsedStartTime;
-    event.endTime = parsedEndTime;
-
-    if (name === "TEAM_CREATION") {
+    // 3) Special validation for TEAM_CREATION
+    if (event.name === "TEAM_CREATION") {
         if (maxNumber === undefined || isNaN(maxNumber) || maxNumber <= 0) {
             return next(new appError("Max number must be a positive number", 400));
         }
         event.maxNumber = maxNumber;
     }
 
+    // 4) Update values
+    event.startTime = parsedStartTime;
+    event.endTime = parsedEndTime;
+
     await event.save();
 
+    // 5) Notify via socket
     const io = req.app.get("socketio");
-    io.emit("notification", { message: `Event updated: ${name}` });
+    io.emit("notification", { message: `Event updated: ${event.name}` });
 
     res.status(200).json({
         status: "success",
