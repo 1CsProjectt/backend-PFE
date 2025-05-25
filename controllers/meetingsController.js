@@ -109,6 +109,13 @@ export const getAllMeetings = catchAsync(async (req, res, next) => {
     const meetings = await Meet.findAll({
         where: {
             teamId: req.params.teamId,
+            [Op.not]: [
+              {work_Status:null}
+                
+            ]
+                
+                 
+            
         },
     });
     if (!meetings) {
