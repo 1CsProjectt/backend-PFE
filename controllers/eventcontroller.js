@@ -7,7 +7,6 @@ import { Op } from "sequelize";
 
 
 
-const { Op } = require("sequelize");
 
 const setEvent = catchAsync(async (req, res, next) => {
     let { name, startTime, endTime, maxNumber, targeted = 'students' } = req.body;
