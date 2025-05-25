@@ -226,10 +226,6 @@ router.patch("/updateMeeting/:meetingId", protect, restrictedfor("teacher"),uplo
 
 /**
  * @swagger
- * tags:
- *   name: MEETINGS
- *   description: MEETINGS-related operations
- *
  * /api/v1/mettings/work-status/{meetingId}:
  *   patch:
  *     summary: Update the work status of a meeting
