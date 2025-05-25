@@ -9,6 +9,7 @@ import User from "../models/UserModel.js";
 import Notification from "../models/notificationModel.js";
 import teacher from "../models/teacherModel.js";
 
+
 export const startNewMeeting = catchAsync(async (req, res, next) => {
     const { date, time, room } = req.body;
     const Meeting_objectives_files = req.files?.Meeting_objectives_files?.[0]?.path;
@@ -183,6 +184,7 @@ export const cancelMeeting = catchAsync(async (req, res, next) => {
     where: { team_id: meeting.teamId },
     include: [{ model: User, as: "user" }],
   });
+  
 
   for (const member of members) {
     if (member.user?.id) {
@@ -229,25 +231,83 @@ export const getNextMeet = catchAsync(async (req, res, next) => {
 
 
 export const updateMeeting = catchAsync(async (req, res, next) => {
-    const meetingId = req.params.meetingId;
-    const { date, time, room, Meeting_objectives_files } = req.body;
-    const meeting = await Meet.findByPk(meetingId);
-    if (!meeting) {
-        return next(new appError("Meeting not found", 404));
+  const meetingId = req.params.meetingId;
+  const { date, time, room } = req.body;
+
+  const fileFields = [
+    "Meeting_objectives_files",
+    "Support_files",
+    "Team_deliverables_files",
+    "My_review_for_deliverables_files",
+    "Meeting_pv_files"
+  ];
+
+  const meeting = await Meet.findByPk(meetingId);
+  if (!meeting) {
+    return next(new appError("Meeting not found", 404));
+  }
+
+  const deleteCloudinaryFile = async (url) => {
+    if (!url) return;
+
+    try {
+      const uploadIndex = url.indexOf('/upload/');
+      if (uploadIndex === -1) {
+        console.error('Invalid Cloudinary URL format');
+        return;
+      }
+
+      const pathAfterUpload = url.substring(uploadIndex + 8);
+      const parts = pathAfterUpload.split('/');
+
+      if (parts[0].startsWith('v')) {
+        parts.shift(); // remove version
+      }
+
+      const fileWithExtension = parts.pop();
+      const fileNameWithoutExtension = fileWithExtension.replace(/\.(jpg|pdf)$/, '');
+      parts.push(fileNameWithoutExtension);
+
+      const publicId = parts.join('/');
+      const resourceType = url.includes('/raw/') ? 'raw' : 'image';
+
+      await cloudinary.uploader.destroy(publicId, {
+        resource_type: resourceType,
+        invalidate: true,
+      });
+
+      console.log(`Deleted ${resourceType} from Cloudinary: ${publicId}`);
+    } catch (err) {
+      console.error(`Error deleting file from Cloudinary: ${err.message}`);
     }
-    await meeting.update({
-        date,
-        time,
-        room,
-        Meeting_objectives_files,
-    });
-    return res.status(200).json({
-        status: "success",
-        data: {
-            meeting,
-        },
-    });
-}) 
+  };
+
+  const updatedFiles = {};
+
+  for (const field of fileFields) {
+    const newFile = req.files?.[field]?.[0]?.path;
+    updatedFiles[field] = newFile ?? meeting[field];
+
+    // Delete old file only if a new one was uploaded
+    if (newFile && meeting[field]) {
+      await deleteCloudinaryFile(meeting[field]);
+    }
+  }
+
+  await meeting.update({
+    date,
+    time,
+    room,
+    ...updatedFiles
+  });
+
+  return res.status(200).json({
+    status: "success",
+    data: {
+      meeting,
+    },
+  });
+});
 
 
 export const update_Work_Status = catchAsync(async (req, res, next) => {
