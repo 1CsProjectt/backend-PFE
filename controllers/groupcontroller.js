@@ -129,7 +129,7 @@ export const listAllTeamsforstudent = catchAsync(async (req, res, next) => {
             where: {
                 '$members.year$': userYear 
             },
-            attributes: ['id', 'groupName', 'supervisorId', 'maxNumber', 'createdAt']
+            attributes: ['id', 'groupName', 'maxNumber', 'createdAt']
         });
     
         return res.status(200).json({
@@ -181,7 +181,7 @@ export const showMyTeam = catchAsync(async (req, res, next) => {
                 ]
             }
         ],
-        attributes: ['id', 'groupName', 'supervisorId', 'maxNumber', 'createdAt']
+        attributes: ['id', 'groupName', 'maxNumber', 'createdAt']
     });
     if (!team){
         return next(new appError('no team found , there must be an error',404));
@@ -219,7 +219,7 @@ export const getAllTeams = catchAsync(async (req, res, next) => {
         attributes: ['id', 'title'] 
       }
     ],
-    attributes: ['id', 'groupName', 'supervisorId', 'maxNumber', 'createdAt','pfe_id']
+    attributes: ['id', 'groupName', 'maxNumber', 'createdAt','pfe_id']
   });
 
   return res.status(200).json({
