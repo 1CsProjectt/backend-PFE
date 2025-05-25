@@ -13,7 +13,7 @@ import teacher from "../models/teacherModel.js";
 import Student from "../models/studenModel.js";
 import { Op, fn, col,literal } from "sequelize"; 
 import User from "../models/UserModel.js";
-import Company from "../models/companyModel.js";
+import Extern from "../models/externModel.js";
 import Team from "../models/groupModel.js";
 import { v2 as cloudinary } from 'cloudinary';
 import { count } from "console";
@@ -62,7 +62,7 @@ console.log("this is supervisor ================>",supervisor)
           specialite = specialization;
         };
          
-    } else if (role === 'company') {
+    } else if (role === 'extern') {
         supervisorsArray = [];
         specialite = null;
     } else {
@@ -253,8 +253,8 @@ export const getAllPFE = catchAsync(async (req, res, next) => {
                         required: false
                     },
                     {
-                        model: Company,
-                        as: "company",
+                        model: Extern,
+                        as: "extern",
                         attributes: ["name"],
                         required: false
                     }
@@ -317,16 +317,16 @@ export const getMyPfe = catchAsync(async (req, res, next) => {
                         required: false
                     },
                     {
-                        model: Company,
-                        as: 'company',
+                        model: Extern,
+                        as: 'extern',
                         required: false
                     }
                 ]
             }
         ]
     }); }else{
-        const mycompany = await Company.findOne({ where: { id: userId } });
-        if (!mycompany) return next(new appError("User is not a Company", 403));
+        const myextern = await Extern.findOne({ where: { id: userId } });
+        if (!myextern) return next(new appError("User is not a Extern", 403));
          pfes = await PFE.findAll({
             where: { createdBy: req.user.id },
             include: [
@@ -353,8 +353,8 @@ export const getMyPfe = catchAsync(async (req, res, next) => {
                     attributes: ['firstname', 'lastname'],
                   },
                   {
-                    model: Company,
-                    as: 'company',
+                    model: Extern,
+                    as: 'extern',
                   },
                 ],
               },
@@ -655,7 +655,7 @@ export const displayPFEforstudents = catchAsync(async (req, res, next) => {
                     firstname: supervisor.firstname,
                     lastname: supervisor.lastname,
                 }
-                : "Company or Other Entity",
+                : "Extern or Other Entity",
             pdfFile: pfe.pdfFile || null,
             photo: pfe.photo || null,
         };
@@ -1075,8 +1075,8 @@ export const getPFEByID = catchAsync(async (req, res, next) => {
               required: false,
             },
             {
-              model: Company,
-              as: 'company',
+              model: Extern,
+              as: 'extern',
               attributes: ['name'],
               required: false,
             },

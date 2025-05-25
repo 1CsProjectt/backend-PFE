@@ -2,7 +2,7 @@ import { DataTypes } from "sequelize";
 import sequelize from "../config/database.js";
 import User from "./UserModel.js";
 import teacher from "./teacherModel.js";
-import Company from "./companyModel.js";
+import Extern from "./externModel.js";
 
 const PFE = sequelize.define("PFE", {
     id: {
@@ -25,11 +25,11 @@ const PFE = sequelize.define("PFE", {
         allowNull: false
     },
     description: {
-        type: DataTypes.STRING,
+        type: DataTypes.STRING,  
         allowNull: true, 
     },
     pdfFile: {
-        type: DataTypes.STRING,
+        type: DataTypes.STRING,   
         allowNull: false,
     },
     status: {

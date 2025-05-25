@@ -4,7 +4,7 @@ import PFE from "../models/PFEmodel.js";
 import Event from "../models/eventModel.js";
 import Student from "../models/studenModel.js";
 import teacher from "../models/teacherModel.js";
-import Company from "../models/companyModel.js";
+import Extern from "../models/externModel.js";
 import Admin from "../models/adminModel.js";
 import JoinRequest from "../models/jointeamModel.js";
 import invitation from "../models/invitationModel.js";

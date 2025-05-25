@@ -88,7 +88,7 @@ const router = express.Router();
 router.post(
     '/depositPFE',
     protect,
-    restrictedfor('teacher', 'company'),
+    restrictedfor('teacher', 'extern'),
     upload.fields([
         { name: 'pdfFile', maxCount: 1 },
         { name: 'photo', maxCount: 1 },
@@ -290,7 +290,7 @@ router.post(
  *       404:
  *         description: PFE not found
  */
-router.delete("/delete/:id", protect, restrictedfor('teacher','company'), deletePFEforcreator);
+router.delete("/delete/:id", protect, restrictedfor('teacher','extern'), deletePFEforcreator);
 
 /**
  * @swagger
@@ -344,7 +344,7 @@ router.get("/download/:filename", downloadfile);
  * @swagger
  * /api/v1/pfe/:
  *   get:
- *     summary: Display all PFEs (teacher & company view)
+ *     summary: Display all PFEs (teacher & extern view)
  *     tags: [PFE]
  *     security:
  *       - bearerAuth: []
@@ -352,7 +352,7 @@ router.get("/download/:filename", downloadfile);
  *       200:
  *         description: A list of PFEs
  */
-router.get("/", protect, restrictedfor("teacher", "company"), getAllPFE);
+router.get("/", protect, restrictedfor("teacher", "extern"), getAllPFE);
 
 /**
  * @swagger
@@ -549,7 +549,7 @@ router.patch("/:id/validate", protect, restrictedfor("admin"), validatePFE);
  *       404:
  *         description: You have not created any PFEs.
  */
-router.get("/my-pfes", protect,restrictedfor('teacher','company'), getMyPfe);
+router.get("/my-pfes", protect,restrictedfor('teacher','extern'), getMyPfe);
 
 /**
  * @swagger
@@ -842,7 +842,7 @@ router.get('/:id',protect,getPFEByID)
 
 //     protect,
 
-//     restrictedfor('teacher', 'company'),
+//     restrictedfor('teacher', 'extern'),
 
 //     uploadFiles,
 
@@ -872,9 +872,9 @@ router.get('/:id',protect,getPFEByID)
 
 //  
 
-//   // ✅ Display all PFEs (teacher & company view)
+//   // ✅ Display all PFEs (teacher & extern view)
 
-//   router.get("/", protect, restrictedfor("teacher","company"), getAllPFE);
+//   router.get("/", protect, restrictedfor("teacher","extern"), getAllPFE);
 
 //  
 
@@ -902,7 +902,7 @@ router.get('/:id',protect,getPFEByID)
 
 //   // ✅ Add Supervisor to a PFE
 
-//   router.post("/:pfeId/add-supervisor", protect, restrictedfor("teacher", "company"), addSupervisor);
+//   router.post("/:pfeId/add-supervisor", protect, restrictedfor("teacher", "extern"), addSupervisor);
 
 //  
 

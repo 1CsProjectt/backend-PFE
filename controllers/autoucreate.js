@@ -5,7 +5,7 @@ import fs from 'fs';
 import stream from 'stream';
 import {catchAsync} from '../utils/catchAsync.js'; 
 import AppError from '../utils/appError.js'; 
-import Company from '../models/companyModel.js';
+import Extern from '../models/externModel.js';
 import Student from '../models/studenModel.js';
 import User from '../models/UserModel.js';
 import Admin from '../models/adminModel.js'; 
@@ -64,7 +64,7 @@ export const createUsersFromFile = [
             try {
                 const {
                     username, firstname, lastname, email, password,
-                    year, role, specialite, companyName, phone,
+                    year, role, specialite, externName, phone,
                     address, website, admin_level, permissions
                 } = userData;
 
@@ -122,15 +122,15 @@ export const createUsersFromFile = [
                         lastname
                     }, { transaction: t });
 
-                } else if (currentRole === 'company') {
-                    if (!companyName || !email) {
-                        results.errors.push({ user: username, error: "Company name and user email are required for company role." });
+                } else if (currentRole === 'extern') {
+                    if (!externName || !email) {
+                        results.errors.push({ user: username, error: "extern name and user email are required for extern role." });
                         await t.rollback();
                         continue;
                     }
-                    await Company.create({
+                    await Extern.create({
                         id: newUser.id,
-                        name: companyName.trim(),
+                        name: externName.trim(),
                         phone: phone ? phone.toString().trim() : null,
                         address: address ? address.toString().trim() : null,
                         website: website ? website.toString().trim() : null

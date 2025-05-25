@@ -5,7 +5,7 @@ import { DATE, Op } from "sequelize";
 import Student from "../models/studenModel.js";
 import sequelize from "../config/database.js";
 import teacher from "../models/teacherModel.js";
-import Company from "../models/companyModel.js";
+import Extern from "../models/externModel.js";
 import Admin from "../models/adminModel.js";
 import bcrypt from "bcryptjs";
 
@@ -16,7 +16,7 @@ const createUser = catchAsync(async (req, res, next) => {
     const t = await sequelize.transaction(); 
 
     try {
-        const { username, firstname, lastname, email, password, year, role, specialite, companyName, phone, address, website, admin_level, permissions } = req.body;
+        const { username, firstname, lastname, email, password, year, role, specialite, externName, phone, address, website, admin_level, permissions } = req.body;
 
         const newUser = await User.create({
             username,
@@ -66,21 +66,21 @@ const createUser = catchAsync(async (req, res, next) => {
             await teacher.create(teacherData, { transaction: t });
         }
 
-        if (role.toLowerCase() === 'company') {
-            if (!companyName || !email) {
+        if (role.toLowerCase() === 'extern') {
+            if (!externName || !email) {
                 await t.rollback();
-                return next(new appError("Company name and email are required for company", 400));
+                return next(new appError("Extern name and email are required for extern", 400));
             }
 
-            const companyData = {
+            const externData = {
                 id: newUser.id,
-                name: companyName.trim(),
+                name: externName.trim(),
                 phone: phone ? phone.trim() : null,
                 address: address ? address.trim() : null,
                 website: website ? website.trim() : null
             };
 
-            await Company.create(companyData, { transaction: t });
+            await Extern.create(externData, { transaction: t });
         }
 
         if (role.toLowerCase() === 'admin') {
@@ -127,7 +127,7 @@ export const updateUserByAdmin = catchAsync(async (req, res, next) => {
             password,
             year,
             specialite,
-            companyName,
+            externName,
             phone,
             address,
             website,
@@ -200,19 +200,20 @@ export const updateUserByAdmin = catchAsync(async (req, res, next) => {
 
             await Teacher.save({ transaction: t });
 
-        } else if (currentRole === "company") {
-            const company = await Company.findByPk(user.id);
-            if (!company) {
+        } else if (currentRole === "extern") {
+            const extern = await Extern.findByPk(user.id);
+            if (!extern) {
                 await t.rollback();
-                return next(new appError("Company record not found", 404));
+                return next(new appError("extern record not found", 404));
             }
 
-            company.name = companyName || company.name;
-            company.phone = phone || company.phone;
-            company.address = address || company.address;
-            company.website = website || company.website;
+            extern.name = externName || extern.name;
+            extern.phone = phone || extern.phone;
+            extern.address = address || extern.address;
+            extern.website = website || extern.website;
 
-            await company.save({ transaction: t });
+
+            await extern.save({ transaction: t });
 
         } else if (currentRole === "admin") {
             const admin = await Admin.findOne({ where: { id: user.id } });
@@ -336,7 +337,7 @@ export const getAllteachers = catchAsync(async (req, res,next) => {
 
 export const getAllcompanies =catchAsync( async (req, res) => {
     
-        const companies = await Company.findAll({include:{
+        const companies = await Extern.findAll({include:{
             model:User,
             as:"user",
             attributes:["email"]

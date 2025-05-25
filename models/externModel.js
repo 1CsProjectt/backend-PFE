@@ -17,7 +17,7 @@ import User from './UserModel.js';
 // const sequelize = require("../config/db");
 // const User = require("./user");
 
-const Company = sequelize.define('Company', {
+const Extern = sequelize.define('Extern', {
     id: {
         type: DataTypes.INTEGER,
         primaryKey: true,
@@ -46,16 +46,16 @@ const Company = sequelize.define('Company', {
         allowNull: true
     }
 }, {
-    tableName: 'companies'
+    tableName: 'externs',
 });
 
 
-User.hasOne(Company, { foreignKey: 'id',as: 'company' });
+User.hasOne(Extern, { foreignKey: 'id',as: 'extern' });
 Company.belongsTo(User, { foreignKey: 'id' });
 
-export default Company;
+export default Extern;
 
-//module.exports = Company;
+//module.exports = Extern;
 
 
 

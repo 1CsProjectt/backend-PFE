@@ -219,7 +219,7 @@ const checkEventTime = (eventName, targetedParam = null) => {
                     return next(new appError('Student year is missing', 400));
                 }
 
-            } else if (["teacher", "company"].includes(req.user.role)) {
+            } else if (["teacher", "extern"].includes(req.user.role)) {
                 targeted = "teachers";
             } else {
                 return next(new appError("Invalid user role", 400));
@@ -301,7 +301,7 @@ export const getCurrentSession = catchAsync(async (req, res, next) => {
   let targeted = null;
   let year = null;
 
-  if (rolee === 'teacher' || rolee === 'company') {
+  if (rolee === 'teacher' || rolee === 'extern') {
     targeted = 'teachers';
   } else if (rolee === 'student') {
     targeted = 'students';

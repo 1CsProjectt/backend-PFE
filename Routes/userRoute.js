@@ -58,7 +58,7 @@ const router = express.Router();
  *                 type: string
  *               specialite:
  *                 type: string
- *               companyName:
+ *               externName:
  *                 type: string
  *               phone:
  *                 type: string
@@ -139,7 +139,7 @@ router.post("/create", createUser);
  *               specialite:
  *                 type: string
  *                 example: ISIL
- *               companyName:
+ *               externName:
  *                 type: string
  *                 example: Tech Corp
  *               phone:
@@ -295,7 +295,7 @@ router.get("/teachers", protect, getAllteachers);
  * @swagger
  * /api/v1/users/companies:
  *   get:
- *     summary: Get all company records
+ *     summary: Get all extern records
  *     tags: [Users]
  *     security:
  *       - bearerAuth: []
