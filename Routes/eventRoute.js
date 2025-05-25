@@ -120,7 +120,7 @@ router.post("/some-protected-route", checkEventTime("MY_EVENT"), (req, res) => {
  *       404:
  *         description: Event not found
  */
-router.patch("/update", protect, restrictedfor("admin"), updateEvent);
+router.patch("/update/:id", protect, restrictedfor("admin"), updateEvent);
 
 /**
  * @swagger
