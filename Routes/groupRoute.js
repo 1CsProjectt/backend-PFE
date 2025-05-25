@@ -10,7 +10,8 @@ import {
   moveStudentsToAnotherTeam,
   createTeamByAdmin,autoOrganizeTeams,
   getAllTeams,
-  getAllTeams_supervisedByMe
+  getAllTeams_supervisedByMe,
+  getAllTeams_supervisedByMe_withPFE
 } from '../controllers/groupcontroller.js';
 import { getStudentsByTeam } from '../controllers/studentcontroller.js';
 import { protect, restrictedfor } from "../middlewares/authmiddleware.js";
@@ -333,5 +334,6 @@ router.get('/all-teams', protect, restrictedfor('admin', 'teacher'), getAllTeams
  */
 router.get('/supervised-by-me', protect,restrictedfor('teacher'), getAllTeams_supervisedByMe);
 
+router.get('/getAllTeams_supervisedByMe_withPFE', protect,restrictedfor('teacher'), getAllTeams_supervisedByMe_withPFE);
 
 export default router;

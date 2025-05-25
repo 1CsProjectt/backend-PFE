@@ -729,6 +729,11 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
 
 
 
+
+
+
+
+
 export const getAllTeams_supervisedByMe = catchAsync(async (req, res, next) => {
   if (!req.user) {
     return next(new appError('Forbidden: you are not logged in', 403));
@@ -780,3 +785,53 @@ export const getAllTeams_supervisedByMe = catchAsync(async (req, res, next) => {
     teams,
   });
 });
+
+
+export const getAllTeams_supervisedByMe_withPFE = catchAsync(async (req, res, next) => {
+  if (!req.user) {
+    return next(new appError('Forbidden: you are not logged in', 403));
+  }
+
+  const teacherID = req.user.id;
+
+  const myTeacher = await teacher.findByPk(teacherID);
+  if (!myTeacher) {
+    return next(new appError('Teacher not found. Please log in again or contact administration.', 401));
+  }
+
+  const teams = await Team.findAll({
+    include: [
+      {
+        model: teacher,
+        as: 'supervisor',
+        where: { id: teacherID }, 
+        attributes: [],           
+        through: { attributes: [] } 
+      },
+      {
+        model: Student,
+        as: 'members',
+        attributes: ['id', 'firstname', 'lastname', 'year'],
+        include: [
+          {
+            model: User,
+            as: 'user',
+            attributes: ['email'],
+          }
+        ]
+      },
+      {
+        model: PFE,
+        as: 'assignedPFE',
+        attributes: ['id', 'title'] 
+      }
+    ],
+    attributes: ['id', 'groupName', 'maxNumber', 'createdAt']
+  });
+
+  return res.status(200).json({
+    status: 'success',
+    total: teams.length,
+    teams,
+  });
+}); 
