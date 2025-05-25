@@ -8,6 +8,7 @@ import { Op } from "sequelize";
 
 
 
+
 const setEvent = catchAsync(async (req, res, next) => {
     let { name, startTime, endTime, maxNumber, targeted = 'students' } = req.body;
     const year = req.body.year?.toUpperCase();
@@ -157,6 +158,32 @@ const setEvent = catchAsync(async (req, res, next) => {
 
 
 
+export const deleteEvent = catchAsync(async (req, res, next) => {
+    const { id } = req.params;
+
+    // 1) Find the event by its primary key
+    const event = await Event.findByPk(id);
+    if (!event) {
+        return next(new appError('No event found with that ID', 404));
+    }
+
+    // 2) Delete the event from the database
+    await event.destroy();
+
+    // 3) Notify clients and send response
+    const io = req.app.get("socketio");
+    io.emit("notification", { message: `Event deleted: ${event.name}` });
+
+    res.status(204).json({
+        status: 'success',
+        data: null
+    });
+});
+
+
+
+
+
 export const updateEvent = catchAsync(async (req, res, next) => {
     const { id } = req.params;
     const { startTime, endTime, maxNumber } = req.body;
@@ -201,6 +228,7 @@ export const updateEvent = catchAsync(async (req, res, next) => {
         event
     });
 });
+
 
 
 
