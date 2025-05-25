@@ -277,6 +277,6 @@ router.patch("/updateMeeting/:meetingId", protect, restrictedfor("teacher"),uplo
  *                   example: Meeting not found
  */
 
-  router.patch("/work-status/{meetingId}",protect,restrictedfor('teacher'),update_Work_Status);
+  router.patch("/work-status/:meetingId",protect,restrictedfor('teacher'),update_Work_Status);
 
 export default router;
