@@ -10,7 +10,8 @@ import {
   moveStudentsToAnotherTeam,
   createTeamByAdmin,autoOrganizeTeams,
   getAllTeams,
-  getAllTeams_supervisedByMe
+  getAllTeams_supervisedByMe,
+  getAllTeams_supervisedByMe_withPFE
 } from '../controllers/groupcontroller.js';
 import { getStudentsByTeam } from '../controllers/studentcontroller.js';
 import { protect, restrictedfor } from "../middlewares/authmiddleware.js";
@@ -332,6 +333,100 @@ router.get('/all-teams', protect, restrictedfor('admin', 'teacher'), getAllTeams
  *                               example: "Machine Learning"
  */
 router.get('/supervised-by-me', protect,restrictedfor('teacher'), getAllTeams_supervisedByMe);
-
+/**
+ * @swagger
+ * /teams/supervised:
+ *   get:
+ *     summary: Get all teams supervised by the authenticated teacher with optional filters
+ *     tags: [Teams]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: year
+ *         schema:
+ *           type: string
+ *         description: Optional year to filter teams by assigned PFE year and members year
+ *       - in: query
+ *         name: speciality
+ *         schema:
+ *           type: string
+ *         description: Optional speciality to filter team members
+ *     responses:
+ *       200:
+ *         description: List of teams supervised by the authenticated teacher
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: success
+ *                 total:
+ *                   type: integer
+ *                   example: 2
+ *                 teams:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       id:
+ *                         type: integer
+ *                         example: 1
+ *                       groupName:
+ *                         type: string
+ *                         example: Team Alpha
+ *                       maxNumber:
+ *                         type: integer
+ *                         example: 5
+ *                       createdAt:
+ *                         type: string
+ *                         format: date-time
+ *                         example: '2024-11-15T10:30:00.000Z'
+ *                       members:
+ *                         type: array
+ *                         items:
+ *                           type: object
+ *                           properties:
+ *                             id:
+ *                               type: integer
+ *                               example: 101
+ *                             firstname:
+ *                               type: string
+ *                               example: Alice
+ *                             lastname:
+ *                               type: string
+ *                               example: Smith
+ *                             year:
+ *                               type: string
+ *                               example: 3CS
+ *                             speciality:
+ *                               type: string
+ *                               example: 2CS
+ *                             user:
+ *                               type: object
+ *                               properties:
+ *                                 email:
+ *                                   type: string
+ *                                   format: email
+ *                                   example: alice@example.com
+ *                       assignedPFE:
+ *                         type: object
+ *                         properties:
+ *                           id:
+ *                             type: integer
+ *                             example: 201
+ *                           title:
+ *                             type: string
+ *                             example: Machine Learning Project
+ *       401:
+ *         description: Teacher not found or invalid token
+ *       403:
+ *         description: Forbidden - user not logged in
+ *       500:
+ *         description: Internal server error
+ */
+router.get('/getAllTeams_supervisedByMe_withPFE', protect,restrictedfor('teacher'), getAllTeams_supervisedByMe_withPFE);
 
 export default router;

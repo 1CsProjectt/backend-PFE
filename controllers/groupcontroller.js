@@ -729,6 +729,11 @@ export const autoOrganizeTeams = catchAsync(async (req, res, next) => {
 
 
 
+
+
+
+
+
 export const getAllTeams_supervisedByMe = catchAsync(async (req, res, next) => {
   if (!req.user) {
     return next(new appError('Forbidden: you are not logged in', 403));
@@ -769,6 +774,68 @@ export const getAllTeams_supervisedByMe = catchAsync(async (req, res, next) => {
         limit: 1,
         order: [['order', 'ASC']],
         attributes: ['ML']
+      }
+    ],
+    attributes: ['id', 'groupName', 'maxNumber', 'createdAt']
+  });
+
+  return res.status(200).json({
+    status: 'success',
+    total: teams.length,
+    teams,
+  });
+});
+
+
+export const getAllTeams_supervisedByMe_withPFE = catchAsync(async (req, res, next) => {
+  const { year, speciality } = req.query;
+
+  if (!req.user || !req.user.id) {
+    return next(new appError('Forbidden: you are not logged in', 403));
+  }
+
+  const teacherID = req.user.id;
+  const myTeacher = await teacher.findByPk(teacherID);
+  if (!myTeacher) {
+    return next(new appError('Teacher not found. Please log in again or contact administration.', 401));
+  }
+
+  // Build where clause for members dynamically
+  const membersWhere = {};
+  if (year) membersWhere.year = year;
+  if (speciality) membersWhere.speciality = speciality;
+
+  // Build where clause for PFE dynamically (only filter if year provided)
+  const pfeWhere = {};
+  if (year) pfeWhere.year = year;
+
+  const teams = await Team.findAll({
+    include: [
+      {
+        model: teacher,
+        as: 'supervisor',
+        where: { id: teacherID },
+        attributes: [],
+        through: { attributes: [] }
+      },
+      {
+        model: Student,
+        as: 'members',
+        attributes: ['id', 'firstname', 'lastname', 'year', 'speciality'],
+        ...(Object.keys(membersWhere).length ? { where: membersWhere } : {}), 
+        include: [
+          {
+            model: User,
+            as: 'user',
+            attributes: ['email'],
+          }
+        ]
+      },
+      {
+        model: PFE,
+        as: 'assignedPFE',
+        ...(Object.keys(pfeWhere).length ? { where: pfeWhere } : {}),
+        attributes: ['id', 'title']
       }
     ],
     attributes: ['id', 'groupName', 'maxNumber', 'createdAt']
