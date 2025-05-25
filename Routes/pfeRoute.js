@@ -27,8 +27,8 @@ import {
     getPFEByID,
     addSpecialization
 } from "../controllers/pfecontroller.js";
-import { getCurrentSession } from "./controllers/eventcontroller.js";
-import { injectCurrentSession } from "./middlewares/injectCurrentSession.js";
+import { getCurrentSession } from "../controllers/eventcontroller.js";
+import { injectCurrentSession } from "../middlewares/injectCurrentSession.js";
 
 const router = express.Router();
 

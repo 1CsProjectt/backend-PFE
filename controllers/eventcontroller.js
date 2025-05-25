@@ -7,6 +7,8 @@ import { Op } from "sequelize";
 
 
 
+const { Op } = require("sequelize");
+
 const setEvent = catchAsync(async (req, res, next) => {
     let { name, startTime, endTime, maxNumber, targeted = 'students' } = req.body;
     const year = req.body.year?.toUpperCase();
@@ -18,7 +20,8 @@ const setEvent = catchAsync(async (req, res, next) => {
     if (!allowedNames.includes(name)) {
         return next(new appError("Invalid event name", 400));
     }
-    if(name==='PFE_SUBMISSION'){
+
+    if (name === 'PFE_SUBMISSION') {
         targeted = 'teachers';
     }
 
@@ -46,14 +49,29 @@ const setEvent = catchAsync(async (req, res, next) => {
     parsedEndTime.setUTCHours(0, 0, 0, 0);
 
     const now = new Date();
+    const currentYear = now.getFullYear();
+    const yearStart = new Date(Date.UTC(currentYear, 0, 1)); 
+    const yearEnd = new Date(Date.UTC(currentYear, 11, 31, 23, 59, 59)); 
 
     if (targeted === 'students') {
         const conditions = { targeted, year };
 
         if (name === "PFE_ASSIGNMENT") {
-            
-            const pfeSubmission = await Event.findOne({ where: { name: "PFE_SUBMISSION", targeted: 'teachers' } });
-            const teamCreation = await Event.findOne({ where: { ...conditions, name: "TEAM_CREATION" } });
+            const pfeSubmission = await Event.findOne({
+                where: {
+                    name: "PFE_SUBMISSION",
+                    targeted: 'teachers',
+                    createdAt: { [Op.between]: [yearStart, yearEnd] }
+                }
+            });
+
+            const teamCreation = await Event.findOne({
+                where: {
+                    ...conditions,
+                    name: "TEAM_CREATION",
+                    createdAt: { [Op.between]: [yearStart, yearEnd] }
+                }
+            });
 
             if (!pfeSubmission || !teamCreation) {
                 return next(new appError(`TEAM_CREATION for ${year} and global PFE_SUBMISSION must exist before creating PFE_ASSIGNMENT`, 400));
@@ -69,7 +87,13 @@ const setEvent = catchAsync(async (req, res, next) => {
         }
 
         if (name === "WORK_STARTING") {
-            const assignmentEvent = await Event.findOne({ where: { ...conditions, name: "PFE_ASSIGNMENT" } });
+            const assignmentEvent = await Event.findOne({
+                where: {
+                    ...conditions,
+                    name: "PFE_ASSIGNMENT",
+                    createdAt: { [Op.between]: [yearStart, yearEnd] }
+                }
+            });
 
             if (!assignmentEvent) {
                 return next(new appError(`PFE_ASSIGNMENT must exist for ${year} before creating WORK_STARTING`, 400));
@@ -78,21 +102,32 @@ const setEvent = catchAsync(async (req, res, next) => {
             if (new Date(assignmentEvent.endTime) > now) {
                 return next(new appError(`PFE_ASSIGNMENT for ${year} must be finished before creating WORK_STARTING`, 400));
             }
-            const worksessionforteachers = await Event.create({
-                 name,
-                 targeted:"teachers",
-                 startTime: parsedStartTime,
-                 endTime: parsedEndTime,
-            })
+
+            const existingTeacherWorkStart = await Event.findOne({
+                where: {
+                    name,
+                    targeted: "teachers",
+                    createdAt: { [Op.between]: [yearStart, yearEnd] }
+                }
+            });
+
+            if (!existingTeacherWorkStart) {
+                await Event.create({
+                    name,
+                    targeted: "teachers",
+                    startTime: parsedStartTime,
+                    endTime: parsedEndTime,
+                });
+            }
         }
     }
 
-    
     const existingEvent = await Event.findOne({
         where: {
             name,
             targeted,
-            ...(targeted === 'students' ? { year } : {})
+            ...(targeted === 'students' ? { year } : {}),
+            createdAt: { [Op.between]: [yearStart, yearEnd] }
         }
     });
 
@@ -120,6 +155,7 @@ const setEvent = catchAsync(async (req, res, next) => {
         event
     });
 });
+
 
 
 export const deleteEvent = catchAsync(async (req, res, next) => {
