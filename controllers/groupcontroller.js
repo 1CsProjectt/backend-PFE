@@ -788,30 +788,41 @@ export const getAllTeams_supervisedByMe = catchAsync(async (req, res, next) => {
 
 
 export const getAllTeams_supervisedByMe_withPFE = catchAsync(async (req, res, next) => {
-  if (!req.user) {
+  const { year, speciality } = req.query;
+
+  if (!req.user || !req.user.id) {
     return next(new appError('Forbidden: you are not logged in', 403));
   }
 
   const teacherID = req.user.id;
-
   const myTeacher = await teacher.findByPk(teacherID);
   if (!myTeacher) {
     return next(new appError('Teacher not found. Please log in again or contact administration.', 401));
   }
+
+  // Build where clause for members dynamically
+  const membersWhere = {};
+  if (year) membersWhere.year = year;
+  if (speciality) membersWhere.speciality = speciality;
+
+  // Build where clause for PFE dynamically (only filter if year provided)
+  const pfeWhere = {};
+  if (year) pfeWhere.year = year;
 
   const teams = await Team.findAll({
     include: [
       {
         model: teacher,
         as: 'supervisor',
-        where: { id: teacherID }, 
-        attributes: [],           
-        through: { attributes: [] } 
+        where: { id: teacherID },
+        attributes: [],
+        through: { attributes: [] }
       },
       {
         model: Student,
         as: 'members',
-        attributes: ['id', 'firstname', 'lastname', 'year'],
+        attributes: ['id', 'firstname', 'lastname', 'year', 'speciality'],
+        ...(Object.keys(membersWhere).length ? { where: membersWhere } : {}), 
         include: [
           {
             model: User,
@@ -823,7 +834,8 @@ export const getAllTeams_supervisedByMe_withPFE = catchAsync(async (req, res, ne
       {
         model: PFE,
         as: 'assignedPFE',
-        attributes: ['id', 'title'] 
+        ...(Object.keys(pfeWhere).length ? { where: pfeWhere } : {}),
+        attributes: ['id', 'title']
       }
     ],
     attributes: ['id', 'groupName', 'maxNumber', 'createdAt']
@@ -834,4 +846,4 @@ export const getAllTeams_supervisedByMe_withPFE = catchAsync(async (req, res, ne
     total: teams.length,
     teams,
   });
-}); 
+});
