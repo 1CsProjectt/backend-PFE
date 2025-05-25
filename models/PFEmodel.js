@@ -17,9 +17,9 @@ const PFE = sequelize.define("PFE", {
         unique: true,
     },
     specialization: {
-  type: DataTypes.ARRAY(DataTypes.ENUM("ISI", "SIW", "IASD")),
-  allowNull: true,
-},
+        type: DataTypes.ENUM("ISI", "SIW", "IASD"),
+        allowNull: true
+    },
     year: {
         type: DataTypes.ENUM('2CP', '1CS', '2CS', '3CS'),
         allowNull: false
