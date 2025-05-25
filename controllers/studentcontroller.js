@@ -79,6 +79,7 @@ export const listAllStudents = catchAsync(async (req, res, next) => {
 
   const students = await Student.findAll({
     where: { year: userYear,
+      specialite:mystudentinfo.specialite,
       id: { [Op.ne]: id }
      },
     include: [
