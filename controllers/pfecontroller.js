@@ -32,7 +32,7 @@ console.log("this is supervisor ================>",supervisor)
         return next(new appError("PDF file is required", 400));
     }
     let supervisorsArray = [];
-    let specialite;
+    let specialite=null;
 
     let supervisorList = supervisor;
     if (typeof supervisor === 'string') {
@@ -406,7 +406,9 @@ const downloadfile=(req, res) => {
             },
             include: [
                 { model: User, as: "creator", attributes: ["id", "username", "email","role"] },
-                { model: teacher, as: "supervisors", attributes: ["id", "name"], through: { attributes: [] } }
+                { model: teacher, as: "supervisors", attributes: ["id", "firstname","lastname"],include: [
+                { model: User, as: "user", attributes: ["id", "email","role"] }
+                ], through: { attributes: [] } }
             ],
         });
     
@@ -458,7 +460,9 @@ const downloadfile=(req, res) => {
             },
             include: [
                 { model: User, as: "creator", attributes: ["id", "username", "email","role"] },
-                { model: teacher, as: "supervisors", attributes: ["id", "name"], through: { attributes: [] } }
+                { model: teacher, as: "supervisors", attributes: ["id", "firstname","lastname"],include: [
+                { model: User, as: "user", attributes: ["id", "email","role"] }
+                ], through: { attributes: [] } }
             ],
         });
     
