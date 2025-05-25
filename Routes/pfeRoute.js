@@ -27,6 +27,8 @@ import {
     getPFEByID,
     addSpecialization
 } from "../controllers/pfecontroller.js";
+import { getCurrentSession } from "./controllers/eventcontroller.js";
+import { injectCurrentSession } from "./middlewares/injectCurrentSession.js";
 
 const router = express.Router();
 
@@ -408,7 +410,7 @@ router.get("/rejectedpfe", protect, restrictedfor('admin'), displayrejectedPFE);
  *       200:
  *         description: A list of validated PFEs for students
  */
-router.get("/for-students", protect, restrictedfor("student"), displayPFEforstudents);
+router.get("/for-students", protect, restrictedfor("student"),getCurrentSession,injectCurrentSession, displayPFEforstudents);  
 
 /**
  * @swagger
@@ -549,7 +551,7 @@ router.patch("/:id/validate", protect, restrictedfor("admin"), validatePFE);
  *       404:
  *         description: You have not created any PFEs.
  */
-router.get("/my-pfes", protect,restrictedfor('teacher','extern'), getMyPfe);
+router.get("/my-pfes", protect,restrictedfor('teacher','extern'),getCurrentSession,injectCurrentSession, getMyPfe);
 
 /**
  * @swagger

@@ -78,6 +78,12 @@ const setEvent = catchAsync(async (req, res, next) => {
             if (new Date(assignmentEvent.endTime) > now) {
                 return next(new appError(`PFE_ASSIGNMENT for ${year} must be finished before creating WORK_STARTING`, 400));
             }
+            const worksessionforteachers = await Event.create({
+                 name,
+                 targeted:"teachers",
+                 startTime: parsedStartTime,
+                 endTime: parsedEndTime,
+            })
         }
     }
 
@@ -134,18 +140,6 @@ export const deleteEvent = catchAsync(async (req, res, next) => {
       data: null
     });
   });
-
-
-
-
-
-
-
-
-
-
-
-
 
 export const updateEvent = catchAsync(async (req, res, next) => {
     const { name, year, startTime, endTime, maxNumber } = req.body;

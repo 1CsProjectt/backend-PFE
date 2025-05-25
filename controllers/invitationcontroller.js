@@ -114,14 +114,6 @@ export const sendInvitations = catchAsync(async (req, res, next) => {
   });
 });
 
-
-
-
-
-
-
-
-
 export const cancelInvitation = catchAsync(async (req,res)=>{
   const { invitationId } = req.body;
   if(!req.user || !req.user.id ){
@@ -273,8 +265,6 @@ export const acceptInvitation = catchAsync(async (req, res, next) => {
 
   res.status(200).json({ message: "Invitation accepted successfully" });
 });
-
-
 
 
 export const declineInvitation = catchAsync(async (req, res, next) => {

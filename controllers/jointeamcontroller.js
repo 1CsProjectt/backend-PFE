@@ -7,6 +7,8 @@ import jwt from "jsonwebtoken";
 import { catchAsync } from "../utils/catchAsync.js";
 import appError from "../utils/appError.js";
 import Notification from "../models/notificationModel.js";
+
+
 export const sendJoinRequest = async (req, res) => {
   try {
     const userId = req.user.id;
