@@ -114,7 +114,7 @@ export const sendInvitations = catchAsync(async (req, res, next) => {
   });
 });
 
-export const cancelInvitation = catchAsync(async (req,res)=>{
+export const cancelInvitation = catchAsync(async (req,res,next)=>{
   const { invitationId } = req.body;
   if(!req.user || !req.user.id ){
     return next(new appError("Unauthorized: No user found in request", 401));
