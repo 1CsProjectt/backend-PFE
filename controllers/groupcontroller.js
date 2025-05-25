@@ -788,7 +788,7 @@ export const getAllTeams_supervisedByMe = catchAsync(async (req, res, next) => {
 
 
 export const getAllTeams_supervisedByMe_withPFE = catchAsync(async (req, res, next) => {
-  const { year, speciality } = req.query;
+  const { year, specialite } = req.query;
 
   if (!req.user || !req.user.id) {
     return next(new appError('Forbidden: you are not logged in', 403));
@@ -803,7 +803,7 @@ export const getAllTeams_supervisedByMe_withPFE = catchAsync(async (req, res, ne
   // Build where clause for members dynamically
   const membersWhere = {};
   if (year) membersWhere.year = year;
-  if (speciality) membersWhere.speciality = speciality;
+  if (specialite) membersWhere.specialite = specialite;
 
   // Build where clause for PFE dynamically (only filter if year provided)
   const pfeWhere = {};
@@ -821,7 +821,7 @@ export const getAllTeams_supervisedByMe_withPFE = catchAsync(async (req, res, ne
       {
         model: Student,
         as: 'members',
-        attributes: ['id', 'firstname', 'lastname', 'year', 'speciality'],
+        attributes: ['id', 'firstname', 'lastname', 'year', 'specialite'],
         ...(Object.keys(membersWhere).length ? { where: membersWhere } : {}), 
         include: [
           {
