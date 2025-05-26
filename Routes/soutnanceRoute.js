@@ -1,6 +1,6 @@
 import express from 'express';
 import { uploadGlobalPlanning,getGlobalPlanningforstudent,getGlobalPlanningforteachers } from '../controllers/Soutnancecontroller.js';
-import { protect } from '../middlewares/authmiddleware.js';
+import { protect,restrictedfor } from '../middlewares/authmiddleware.js';
 import { upload } from '../utils/cloudinary.js';
 
 const router = express.Router();
@@ -15,14 +15,14 @@ router.post(
 router.get(
   '/teacher',
   protect,
-  restrictedFor('teacher'),
+  restrictedfor('teacher'),
   getGlobalPlanningforteachers
 );
 
 router.get(
   '/student',
   protect,
-  restrictedFor('student'),
+  restrictedfor('student'),
   getGlobalPlanningforstudent
 );
 
