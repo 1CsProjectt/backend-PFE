@@ -98,7 +98,7 @@ import { Op } from 'sequelize';
 // });
 
 
-export const createOrUpdatePreflist = catchAsync(async (req, res, next) => {
+export const createPreflist = catchAsync(async (req, res, next) => {
   let { pfeIds } = req.body;
 
   console.log("Raw pfeIds:", pfeIds);
