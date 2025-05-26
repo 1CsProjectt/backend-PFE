@@ -116,6 +116,27 @@ Notification.belongsTo(User, {
   as: 'user',
 });
 
+Team.hasOne(SoutenanceAuthorization, {
+  foreignKey: 'teamId',
+  onDelete: 'CASCADE',
+});
+
+
+SoutenanceAuthorization.belongsTo(Team, {
+  foreignKey: 'teamId',
+  onDelete: 'CASCADE',
+});
+
+
+teacher.hasMany(SoutenanceAuthorization, {
+  foreignKey: 'supervisorId',
+  onDelete: 'CASCADE',
+});
+
+SoutenanceAuthorization.belongsTo(teacher, {
+  foreignKey: 'supervisorId',
+  onDelete: 'CASCADE',
+});
  Soutenance.belongsToMany(teacher, {
     through: 'SoutenanceJuries',  
     foreignKey: 'soutenanceId',
