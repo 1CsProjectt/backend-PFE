@@ -8,6 +8,10 @@ import sequelize from '../config/database.js';
       autoIncrement: true,
       primaryKey: true,
     },
+    soutplanning: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
     date: {
       type: DataTypes.DATEONLY,
       allowNull: false,
