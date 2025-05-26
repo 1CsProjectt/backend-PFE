@@ -6,7 +6,6 @@ import app from "../index.js";
 import { Op } from "sequelize";
 import Notification from "../models/notificationModel.js";
 import Teacher from "../models/teacherModel.js";
-import Notification from "../models/notificationModel.js";
 
 
 
@@ -120,7 +119,6 @@ const setEvent = catchAsync(async (req, res, next) => {
             endTime: parsedEndTime,
         });
         } else {
-        // Compare and update the end time to the later one
         const existingEndTime = new Date(existingTeacherWorkStart.endTime);
         const laterEndTime = parsedEndTime > existingEndTime ? parsedEndTime : existingEndTime;
 
