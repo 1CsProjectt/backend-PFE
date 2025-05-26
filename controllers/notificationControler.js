@@ -19,7 +19,7 @@ export const sendNotification = async (req, res) => {
 
 export const getMyNotifications = async (req, res) => {
   const notifications = await Notification.findAll({
-    where: { user_id: req.user.id },
+    where: { user_id: req.user.id , is_read: false },
     order: [["createdAt", "DESC"]],
   });
   res.status(200).json({ notifications });
