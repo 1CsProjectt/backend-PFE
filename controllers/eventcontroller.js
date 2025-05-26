@@ -5,7 +5,8 @@ import Student from "../models/studenModel.js";
 import app from "../index.js";
 import { Op } from "sequelize";
 
-
+import Teacher from "../models/teacherModel.js";
+import Notification from "../models/notificationModel.js";
 
 
 
