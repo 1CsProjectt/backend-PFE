@@ -397,7 +397,7 @@ router.get("/validpfe", protect, restrictedfor('admin'), displayvalidePFE);
  *       200:
  *         description: A list of validated PFEs
  */
-router.get("/validallpfe", protect, restrictedfor('teacher','student'), displayallvalidePFE);
+router.get("/validallpfe", protect, restrictedfor('teacher','student','extern'), displayallvalidePFE);
 
 
 /**
