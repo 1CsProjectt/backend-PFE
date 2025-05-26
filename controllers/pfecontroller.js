@@ -17,7 +17,7 @@ import Extern from "../models/externModel.js";
 import Team from "../models/groupModel.js";
 import { v2 as cloudinary } from 'cloudinary';
 import { count } from "console";
-
+import Notification from "../models/notificationModel.js";
 
 
 export const createPFE = catchAsync(async (req, res, next) => {
@@ -551,49 +551,91 @@ const downloadfile=(req, res) => {
   
 
 
-export  const validatePFE = catchAsync(async (req, res, next) => {
-
-    const { id } = req.params; 
+    export const validatePFE = catchAsync(async (req, res, next) => {
+      const { id } = req.params;
     
-    const pfe = await PFE.findByPk(id);
-    if (!pfe) {
+      const pfe = await PFE.findByPk(id);
+      if (!pfe) {
         return next(new appError('PFE not found', 404));
-    }
-
-    pfe.status = 'VALIDE';
-    await pfe.save();
-
-    res.status(200).json({
+      }
+    
+      // Update PFE status
+      pfe.status = 'VALIDE';
+      await pfe.save();
+    
+      // Get associated supervisors (teachers)
+      const supervisors = await pfe.getSupervisors(); // thanks to belongsToMany with alias 'supervisors'
+    
+      // Send a notification to each supervisor
+      await Promise.all(
+        supervisors.map(async (teacher) => {
+          await Notification.create({
+            user_id: teacher.id, // assuming teacher.id matches user_id in Notification
+            type: "pfe-validated",
+            content: `The PFE titled "${pfe.title}" has been validated.`,
+            is_read: false,
+            metadata: {
+              pfeId: pfe.id,
+              title: pfe.title,
+              validatedAt: new Date(),
+            },
+          });
+        })
+      );
+    
+      res.status(200).json({
         message: "PFE validated successfully",
-        pfe
+        pfe,
+      });
     });
-});
+    
 
 
 
-export const rejectPFE = catchAsync(async (req, res, next) => {
-    const { id } = req.params;
-    const { reason } = req.body;
-  
-    const pfe = await PFE.findByPk(id);
-    if (!pfe) {
-      return next(new appError('PFE not found', 404));
-    }
-  
-    pfe.status = 'REJECTED';
-    pfe.reason = reason || null;
-  
-    if (req.files?.resonfile?.[0]) {
-      pfe.resonfile = req.files.resonfile[0].path; 
-    }
-  
-    await pfe.save();
-  
-    res.status(200).json({
-      message: 'PFE rejected successfully',
-      pfe,
+    export const rejectPFE = catchAsync(async (req, res, next) => {
+      const { id } = req.params;
+      const { reason } = req.body;
+    
+      const pfe = await PFE.findByPk(id);
+      if (!pfe) {
+        return next(new appError('PFE not found', 404));
+      }
+    
+      pfe.status = 'REJECTED';
+      pfe.reason = reason || null;
+    
+      if (req.files?.resonfile?.[0]) {
+        pfe.resonfile = req.files.resonfile[0].path;
+      }
+    
+      await pfe.save();
+    
+      // Notify all supervisors
+      const supervisors = await pfe.getSupervisors(); // belongsToMany alias
+    
+      await Promise.all(
+        supervisors.map(async (teacher) => {
+          await Notification.create({
+            user_id: teacher.id,
+            type: "pfe-rejected",
+            content: `The PFE titled "${pfe.title}" has been rejected.${reason ? ` Reason: ${reason}` : ''}`,
+            is_read: false,
+            metadata: {
+              pfeId: pfe.id,
+              title: pfe.title,
+              rejectedAt: new Date(),
+              reason: reason || null,
+            },
+          });
+        })
+      );
+    
+      res.status(200).json({
+        message: 'PFE rejected successfully',
+        pfe,
+      });
     });
-  });
+    
   
 
 
