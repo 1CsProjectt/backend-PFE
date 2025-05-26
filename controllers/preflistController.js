@@ -98,7 +98,7 @@ import { Op } from 'sequelize';
 // });
 
 
-export const createPreflist = catchAsync(async (req, res, next) => {
+export const createOrUpdatePreflist = catchAsync(async (req, res, next) => {
   let { pfeIds } = req.body;
 
   console.log("Raw pfeIds:", pfeIds);
@@ -117,7 +117,7 @@ export const createPreflist = catchAsync(async (req, res, next) => {
   // Ensure pfeIds is an array of integers
   if (typeof pfeIds === 'string') {
     try {
-      pfeIds = JSON.parse(pfeIds); // Handle JSON-stringified array from frontend
+      pfeIds = JSON.parse(pfeIds);
     } catch (err) {
       return next(new appError('Invalid pfeIds format', 400));
     }
@@ -127,7 +127,6 @@ export const createPreflist = catchAsync(async (req, res, next) => {
     return next(new appError('You must provide exactly 5 PFE IDs as an array.', 400));
   }
 
-  // Convert to integers and validate
   pfeIds = pfeIds.map(id => parseInt(id, 10));
   if (pfeIds.some(id => isNaN(id))) {
     return next(new appError('All PFE IDs must be valid integers.', 400));
@@ -147,9 +146,11 @@ export const createPreflist = catchAsync(async (req, res, next) => {
     return next(new appError('Student is not in a team', 403));
   }
 
-  const existing = await Preflist.findOne({ where: { teamId } });
-  if (existing) {
-    return next(new appError('This team has already submitted a preflist.', 400));
+  const existingEntries = await Preflist.findAll({ where: { teamId }, order: [['order', 'ASC']] });
+
+  // If preflist already approved, deny changes
+  if (existingEntries.length && existingEntries[0].approved === true) {
+    return next(new appError('Preflist is already approved and cannot be modified.', 403));
   }
 
   const pfes = await PFE.findAll({ where: { id: pfeIds } });
@@ -158,8 +159,6 @@ export const createPreflist = catchAsync(async (req, res, next) => {
   }
 
   const { year: studentYear, specialite: studentSpec } = mystudent;
-  console.log('Student year:', studentYear);
-  console.log('Student specialite:', studentSpec);
 
   for (const pfe of pfes) {
     if (pfe.year !== studentYear) {
@@ -177,11 +176,30 @@ export const createPreflist = catchAsync(async (req, res, next) => {
     }
   }
 
+  const MLPath = req.files?.ML?.[0]?.path || null;
+
+  if (existingEntries.length) {
+    // Update existing preflist
+    for (let i = 0; i < 5; i++) {
+      await existingEntries[i].update({
+        pfeId: pfeIds[i],
+        order: i + 1,
+        ML: MLPath || existingEntries[i].ML
+      });
+    }
+    return res.status(200).json({
+      status: 'success',
+      message: `Preflist updated for team ${teamId}`,
+      data: existingEntries,
+    });
+  }
+
+  // Create new preflist
   const preflistEntries = pfeIds.map((pfeId, index) => ({
     teamId,
     pfeId,
     order: index + 1,
-    ML: req.files?.ML?.[0]?.path || null
+    ML: MLPath
   }));
 
   const created = await Preflist.bulkCreate(preflistEntries);
@@ -194,40 +212,50 @@ export const createPreflist = catchAsync(async (req, res, next) => {
 });
 
 
+
 export const approvePreflist = catchAsync(async (req, res, next) => {
-  if (!req.user){
-    next(new appError('Forbiden : you are not logged in !!!',403))
-  }
-  const mystudent=await Student.findByPk(req.user.id)
-
-  if (!mystudent){
-    next (new appError('student not found ',403))
+  if (!req.user) {
+    return next(new appError('Forbidden: You are not logged in.', 403));
   }
 
+  const mystudent = await Student.findByPk(req.user.id);
+  if (!mystudent) {
+    return next(new appError('Student not found.', 403));
+  }
 
-  const teamId  = mystudent.team_id;
+  const teamId = mystudent.team_id;
+  if (!teamId) {
+    return next(new appError('Student is not in a team.', 403));
+  }
+
   const entries = await Preflist.findAll({
     where: { teamId },
-    order: [['order', 'ASC']]
+    order: [['order', 'ASC']],
   });
+
   if (!entries.length) {
-    return next(new appError('No preflist found to approve', 404));
+    return next(new appError('No preflist found to approve.', 404));
   }
-if (entries[0].approved==false){
+
+  // Check if already approved
+  if (entries[0].approved === true) {
+    return next(new appError('Preflist has already been approved.', 400));
+  }
+
+  // Approve all entries in the list
   await Preflist.update(
     { approved: true },
     { where: { teamId } }
   );
-}
-  
 
+  // Send supervision request for the first PFE
   const firstPfeId = entries[0].pfeId;
   await SupervisionRequest.create({
     teamId,
     pfeId: firstPfeId,
     status: 'PENDING',
     sentAt: new Date(),
-    ML: entries[0].ML 
+    ML: entries[0].ML
   });
 
   res.status(200).json({
@@ -235,6 +263,7 @@ if (entries[0].approved==false){
     message: `Preflist for team ${teamId} approved. Supervision request sent for PFE ${firstPfeId}.`
   });
 });
+
 
 
 
