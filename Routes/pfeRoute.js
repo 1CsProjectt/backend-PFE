@@ -25,7 +25,8 @@ import {
     displayrejectedPFE,
     autoAssignPfesToTeamWithoutPfe,
     getPFEByID,
-    addSpecialization
+    addSpecialization,
+    displayallvalidePFE
 } from "../controllers/pfecontroller.js";
 import { getCurrentSession } from "../controllers/eventcontroller.js";
 import { injectCurrentSession } from "../middlewares/injectCurrentSession.js";
@@ -386,6 +387,21 @@ router.get("/validpfe", protect, restrictedfor('admin'), displayvalidePFE);
 
 /**
  * @swagger
+ * /api/v1/pfe/validallpfe:
+ *   get:
+ *     summary: Display validated PFEs (for admin)
+ *     tags: [PFE]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: A list of validated PFEs
+ */
+router.get("/validallpfe", protect, restrictedfor('teacher','student'), displayallvalidePFE);
+
+
+/**
+ * @swagger
  * /api/v1/pfe/rejectedpfe:
  *   get:
  *     summary: Display rejected PFEs (for admin)
@@ -534,6 +550,8 @@ router.post("/:pfeId/add-specialization", protect, restrictedfor("admin"), addSp
  *         description: PFE not found
  */
 router.patch("/:id/validate", protect, restrictedfor("admin"), validatePFE);
+
+
 
 /**
  * @swagger

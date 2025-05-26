@@ -471,6 +471,30 @@ const downloadfile=(req, res) => {
         res.status(200).json({ status: "success", count: formattedPFEList.length, pfeList: formattedPFEList });
     });
 
+
+    export const displayallvalidePFE = catchAsync(async (req, res, next) => {
+        const currentYear = new Date().getFullYear();
+     const id=req.user.id
+        const pfeList = await PFE.findAll({
+                 where: {
+              status: 'VALIDE',
+              createdBy: {
+                [Op.ne]: id
+              }
+            },
+            include: [
+                { model: User, as: "creator", attributes: ["id", "username", "email","role"] },
+                { model: teacher, as: "supervisors", attributes: ["id", "firstname","lastname"],include: [
+                { model: User, as: "user", attributes: ["id", "email","role"] }
+                ], through: { attributes: [] } }
+            ],
+        });
+    
+        const formattedPFEList = formatPFEUrls(pfeList);
+    
+        res.status(200).json({ status: "success", count: formattedPFEList.length, pfeList: formattedPFEList });
+    });
+
     export const displayrejectedPFE = catchAsync(async (req, res, next) => {
         const currentYear = new Date().getFullYear();
     
