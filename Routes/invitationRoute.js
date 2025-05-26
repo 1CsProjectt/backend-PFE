@@ -142,7 +142,7 @@ router.post("/sendinvitation",protect, sendInvitations);
  *         description: Internal server error
  */
 
-router.post("/cancelInvitation",protect, cancelInvitation);
+router.delete("/cancelInvitation",protect, cancelInvitation);
 /**
  * @swagger
  * /api/v1/invitation/getallmyinvitations:

@@ -114,15 +114,7 @@ export const sendInvitations = catchAsync(async (req, res, next) => {
   });
 });
 
-
-
-
-
-
-
-
-
-export const cancelInvitation = catchAsync(async (req,res)=>{
+export const cancelInvitation = catchAsync(async (req,res,next)=>{
   const { invitationId } = req.body;
   if(!req.user || !req.user.id ){
     return next(new appError("Unauthorized: No user found in request", 401));
@@ -273,8 +265,6 @@ export const acceptInvitation = catchAsync(async (req, res, next) => {
 
   res.status(200).json({ message: "Invitation accepted successfully" });
 });
-
-
 
 
 export const declineInvitation = catchAsync(async (req, res, next) => {
