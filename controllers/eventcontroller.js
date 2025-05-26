@@ -157,27 +157,106 @@ const setEvent = catchAsync(async (req, res, next) => {
         maxNumber: name === "TEAM_CREATION" ? finalMaxNumber : null
     });
     //  Notifications 
-let usersToNotify = [];
-
-if (targeted === 'students') {
-  usersToNotify = await Student.findAll({ where: { year } });
-} else if (targeted === 'teachers') {
-  usersToNotify = await Teacher.findAll(); // adapt if needed
-}
-
-const notifications = usersToNotify.map(user => ({
-  user_id: user.id,
-  type: "session-created",
-  content: `A new session '${name}' has been scheduled.`,
-  is_read: false,
-  metadata: {
-    eventId: event.id,
-    eventName: name,
-    startTime: parsedStartTime,
-    endTime: parsedEndTime
-  }
-}));
-
+    let usersToNotify = [];
+    let notifications = [];
+    
+    if (name === 'PFE_SUBMISSION') {
+      const teachers = await Teacher.findAll();
+      notifications = teachers.map(teacher => ({
+        user_id: teacher.id,
+        type: "session-created",
+        content: `A new session '${name}' has been scheduled for PFE submission.`,
+        is_read: false,
+        metadata: {
+          eventId: event.id,
+          eventName: name,
+          startTime: parsedStartTime,
+          endTime: parsedEndTime
+        }
+      }));
+    } else if (name === 'TEAM_CREATION') {
+      const students = await Student.findAll({ where: { year } });
+      notifications = students.map(student => ({
+        user_id: student.id,
+        type: "session-created",
+        content: `Team creation session has started for your year (${year}).`,
+        is_read: false,
+        metadata: {
+          eventId: event.id,
+          eventName: name,
+          year,
+          startTime: parsedStartTime,
+          endTime: parsedEndTime
+        }
+      }));
+    } else if (name === 'PFE_ASSIGNMENT') {
+      const students = await Student.findAll({ where: { year } });
+      const teachers = await Teacher.findAll();
+    
+      const studentNotifications = students.map(student => ({
+        user_id: student.id,
+        type: "session-created",
+        content: `PFE assignment session has started for your year (${year}).`,
+        is_read: false,
+        metadata: {
+          eventId: event.id,
+          eventName: name,
+          year,
+          startTime: parsedStartTime,
+          endTime: parsedEndTime
+        }
+      }));
+    
+      const teacherNotifications = teachers.map(teacher => ({
+        user_id: teacher.id,
+        type: "session-created",
+        content: `PFE assignment session has started for ${year} students.`,
+        is_read: false,
+        metadata: {
+          eventId: event.id,
+          eventName: name,
+          year,
+          startTime: parsedStartTime,
+          endTime: parsedEndTime
+        }
+      }));
+    
+      notifications = [...studentNotifications, ...teacherNotifications];
+    } else if (name === 'WORK_STARTING') {
+      const students = await Student.findAll({ where: { year } });
+      const teachers = await Teacher.findAll();
+    
+      const studentNotifications = students.map(student => ({
+        user_id: student.id,
+        type: "session-created",
+        content: `Work has officially started for your PFE (${year}).`,
+        is_read: false,
+        metadata: {
+          eventId: event.id,
+          eventName: name,
+          year,
+          startTime: parsedStartTime,
+          endTime: parsedEndTime
+        }
+      }));
+    
+      const teacherNotifications = teachers.map(teacher => ({
+        user_id: teacher.id,
+        type: "session-created",
+        content: `Work has officially started for ${year} students.`,
+        is_read: false,
+        metadata: {
+          eventId: event.id,
+          eventName: name,
+          year,
+          startTime: parsedStartTime,
+          endTime: parsedEndTime
+        }
+      }));
+    
+      notifications = [...studentNotifications, ...teacherNotifications];
+    }
+    
 if (notifications.length > 0) {
   await Notification.bulkCreate(notifications);
 }
