@@ -9,6 +9,8 @@ import SupervisionRequest from './SupervisionRequestModel.js';
 import Meet from './meetingModel.js';
 import Notification from './notificationModel.js';
 import Extern from './externModel.js';
+import SoutenanceAuthorization from './autsoutModel.js';
+import Soutenance from './soutModel.js';
 // const { DataTypes } = require("sequelize");
 // const sequelize = require("../database.js");
 // const User = require("./UserModel.js");
@@ -114,7 +116,20 @@ Notification.belongsTo(User, {
   as: 'user',
 });
 
+ Soutenance.belongsToMany(teacher, {
+    through: 'SoutenanceJuries',  
+    foreignKey: 'soutenanceId',
+    otherKey: 'teacherId',
+    as: 'juries',
+    timestamps: false,  
+  });
 
-
+  teacher.belongsToMany(Soutenance, {
+    through: 'SoutenanceJuries',
+    foreignKey: 'teacherId',
+    otherKey: 'soutenanceId',
+    as: 'soutenances',
+    timestamps: false,
+  });
 
 
