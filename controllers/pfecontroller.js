@@ -574,7 +574,7 @@ const downloadfile=(req, res) => {
         const { specialization } = req.body;
     
         const allowedSpecializations = ['ISI', 'SIW', 'IASD'];
-    
+    console.log('this is specialization =========================>',specialization)
         if (!specialization) {
             return next(new appError('Please provide a valid specialization (ISI, SIW, IASD)', 400));
         }
