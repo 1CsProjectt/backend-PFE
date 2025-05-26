@@ -48,11 +48,11 @@ import { injectCurrentSession } from "./middlewares/injectCurrentSession.js";
 import autosoutroute from './Routes/SoutenanceAuthorizationRoute.js'
 import SoutenanceAuthorization from "./models/autsoutModel.js";
 import Soutenance from "./models/soutModel.js";
-
+import soutnanceRoute from './Routes/soutnanceRoute.js'
 
 (async () => {
   try {
-    await sequelize.sync({  alter: true }); 
+    await sequelize.sync({  force: true }); 
     console.log("✅ Database synced!");
     
   } catch (error) {
@@ -177,6 +177,7 @@ app.use("/api/v1/preflist",preflistroute);
 app.use("/api/v1/mettings",meetingsroute);
 app.use("/api/v1/notification",notificationRoute);
 app.use("/api/v1/autsout",autosoutroute);
+app.use("/api/v1//soutenances",soutnanceRoute);
 
 
 

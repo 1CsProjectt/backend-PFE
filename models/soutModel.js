@@ -12,6 +12,10 @@ import sequelize from '../config/database.js';
       type: DataTypes.STRING,
       allowNull: true,
     },
+     year:{
+        type:DataTypes.ENUM('2CP','1CS','2CS','3CS'),
+         allowNull:true
+    },
     date: {
       type: DataTypes.DATEONLY,
       allowNull: true,
