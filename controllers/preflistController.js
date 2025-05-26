@@ -168,48 +168,44 @@ export const createPreflist = catchAsync(async (req, res, next) => {
       ));
     }
 
-    if (studentSpec && pfe.specialization !== studentSpec) {
-      return next(new appError(
-        `PFE ${pfe.id} specialization (${pfe.specialization}) does not match student's specialization (${studentSpec}).`,
-        400
-      ));
-    }
+    if (
+  studentSpec &&
+  (!Array.isArray(pfe.specialization) || !pfe.specialization.includes(studentSpec))
+) {
+  return next(new appError(
+    `PFE ${pfe.id} specialization (${pfe.specialization}) does not match student's specialization (${studentSpec}).`,
+    400
+  ));
+}
+
+
   }
 
   const MLPath = req.files?.ML?.[0]?.path || null;
 
-  if (existingEntries.length) {
-    // Update existing preflist
-    for (let i = 0; i < 5; i++) {
-      await existingEntries[i].update({
-        pfeId: pfeIds[i],
-        order: i + 1,
-        ML: MLPath || existingEntries[i].ML
-      });
+  // Wrap delete + insert in a transaction
+  await sequelize.transaction(async (t) => {
+    if (existingEntries.length) {
+      await Preflist.destroy({ where: { teamId }, transaction: t });
     }
-    return res.status(200).json({
+
+    const preflistEntries = pfeIds.map((pfeId, index) => ({
+      teamId,
+      pfeId,
+      order: index + 1,
+      ML: MLPath
+    }));
+
+    const created = await Preflist.bulkCreate(preflistEntries, { transaction: t });
+
+    res.status(existingEntries.length ? 200 : 201).json({
       status: 'success',
-      message: `Preflist updated for team ${teamId}`,
-      data: existingEntries,
+      message: `Preflist ${existingEntries.length ? 'updated' : 'created'} for team ${teamId}`,
+      data: created,
     });
-  }
-
-  // Create new preflist
-  const preflistEntries = pfeIds.map((pfeId, index) => ({
-    teamId,
-    pfeId,
-    order: index + 1,
-    ML: MLPath
-  }));
-
-  const created = await Preflist.bulkCreate(preflistEntries);
-
-  res.status(201).json({
-    status: 'success',
-    message: `Preflist created for team ${teamId}`,
-    data: created,
   });
 });
+
 
 
 

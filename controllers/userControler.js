@@ -17,9 +17,9 @@ const createUser = catchAsync(async (req, res, next) => {
 
     try {
         const { username, firstname, lastname, email, password, year, role, specialite, externName, phone, address, website, admin_level, permissions } = req.body;
-
+        const fullname=firstname+' '+lastname
         const newUser = await User.create({
-            username,
+            username:fullname,
             email,
             password,
             role: role.toLowerCase(),
@@ -132,7 +132,7 @@ export const updateUserByAdmin = catchAsync(async (req, res, next) => {
             address,
             website,
             admin_level,
-            permissions
+            permissions,role
         } = req.body;
 
         if (!email) {
@@ -161,7 +161,12 @@ export const updateUserByAdmin = catchAsync(async (req, res, next) => {
         console.log('Password Changed At:', new Date());
         user.passwordChangedAt = new Date(); 
         }
-
+        if (user.role!== role){
+            user.role=role
+        }
+        if(user.username!==username){
+            user.username=username
+        }
 
         await user.save({ transaction: t });
 
@@ -297,15 +302,25 @@ export const getAllUsersfrom_myyear = catchAsync(async (req, res, next) => {
     }
 });
 
-export const getAllUsers =catchAsync( async (req, res) => {
-    
-        const users = await User.findAll();
-        if (!users || users.length === 0) {
-            return next(new appError('No students were found', 400));
-        }
-        res.json(users);
-    
+export const getAllUsers = catchAsync(async (req, res, next) => {
+    const users = await User.findAll({
+        include: [
+            {
+                model: Student,
+                as: 'student',
+                attributes: ['firstname', 'lastname', 'year', 'specialite']
+            }
+        ]
+    });
+
+    if (!users || users.length === 0) {
+        return next(new appError('No users were found', 400));
+    }
+
+    res.json(users);
 });
+
+
 export const getAllStudents =catchAsync( async (req, res) => {
     
         const students = await Student.findAll({include:{

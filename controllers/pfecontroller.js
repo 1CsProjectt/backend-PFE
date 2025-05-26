@@ -22,25 +22,31 @@ import Notification from "../models/notificationModel.js";
 
 export const createPFE = catchAsync(async (req, res, next) => {
     const { title, specialization, supervisor, description, year } = req.body;
-    const pdfFile = req.files?.pdfFile?.[0]?.path; 
-    const photo = req.files?.photo?.[0]?.path; 
+    const pdfFile = req.files?.pdfFile?.[0]?.path;
+    const photo = req.files?.photo?.[0]?.path;
     const userId = req.user.id;
     const role = req.user.role;
     const createdBy = req.user.id;
-console.log("this is supervisor ================>",supervisor)
+
     if (!pdfFile) {
         return next(new appError("PDF file is required", 400));
     }
-    let supervisorsArray = [];
-    let specialite=null;
 
+    let supervisorsArray = [];
+    let specialite = null;
+
+    // Safely parse supervisor input
     let supervisorList = supervisor;
+
     if (typeof supervisor === 'string') {
         try {
-            supervisorList = JSON.parse(supervisor);
+            const parsed = JSON.parse(supervisor);
+            supervisorList = Array.isArray(parsed) ? parsed : [parsed];
         } catch (err) {
-            supervisorList = [supervisor]; 
+            supervisorList = [supervisor];
         }
+    } else if (!Array.isArray(supervisorList)) {
+        supervisorList = [supervisorList];
     }
 
     if (role === 'teacher') {
@@ -49,25 +55,39 @@ console.log("this is supervisor ================>",supervisor)
             return next(new appError('Teacher not found', 404));
         }
 
+        // Include current teacher by default
         supervisorsArray = [myteacher.id];
 
-        if (Array.isArray(supervisorList)) {
-            supervisorList.forEach(id => {
-                if (!supervisorsArray.includes(id)) {
-                    supervisorsArray.push(id);
-                }
-            });
+        // Add any additional valid supervisor IDs
+        supervisorList.forEach(id => {
+            const parsedId = parseInt(id);
+            if (!isNaN(parsedId) && !supervisorsArray.includes(parsedId)) {
+                supervisorsArray.push(parsedId);
+            }
+        });
+
+        // Set specialization only for 2CS or 3CS
+        if (year === "2CS" || year === "3CS") {
+            if (Array.isArray(specialization)) {
+                specialite = specialization;
+            } else if (typeof specialization === 'string') {
+                specialite = [specialization]; // Convert to array
+            } else {
+                specialite = null;
+            }
         }
-        if (year=="2CS" || year=="3CS"){
-          specialite = specialization;
-        };
-         
+
     } else if (role === 'extern') {
-        supervisorsArray = [];
+        supervisorsArray = []; // No supervisors for extern
         specialite = null;
     } else {
         return next(new appError('Invalid role', 403));
     }
+
+    // Debug logs (optional)
+    console.log("Parsed supervisorList:", supervisorList);
+    console.log("Final supervisorsArray:", supervisorsArray);
+    console.log("Specialite (array):", specialite);
 
     const pfe = await PFE.create({
         title,
@@ -78,7 +98,6 @@ console.log("this is supervisor ================>",supervisor)
         photo,
         createdBy
     });
-    console.log("this is the array ----------------->",supervisorsArray)
 
     await pfe.setSupervisors(supervisorsArray);
 
@@ -87,6 +106,7 @@ console.log("this is supervisor ================>",supervisor)
         pfe
     });
 });
+
 
 
 export const deletePFE = catchAsync(async (req, res, next) => {
@@ -471,6 +491,30 @@ const downloadfile=(req, res) => {
         res.status(200).json({ status: "success", count: formattedPFEList.length, pfeList: formattedPFEList });
     });
 
+
+    export const displayallvalidePFE = catchAsync(async (req, res, next) => {
+        const currentYear = new Date().getFullYear();
+     const id=req.user.id
+        const pfeList = await PFE.findAll({
+                 where: {
+              status: 'VALIDE',
+              createdBy: {
+                [Op.ne]: id
+              }
+            },
+            include: [
+                { model: User, as: "creator", attributes: ["id", "username", "email","role"] },
+                { model: teacher, as: "supervisors", attributes: ["id", "firstname","lastname"],include: [
+                { model: User, as: "user", attributes: ["id", "email","role"] }
+                ], through: { attributes: [] } }
+            ],
+        });
+    
+        const formattedPFEList = formatPFEUrls(pfeList);
+    
+        res.status(200).json({ status: "success", count: formattedPFEList.length, pfeList: formattedPFEList });
+    });
+
     export const displayrejectedPFE = catchAsync(async (req, res, next) => {
         const currentYear = new Date().getFullYear();
     
@@ -658,7 +702,7 @@ export const displayPFEforstudents = catchAsync(async (req, res, next) => {
     };
 
     if (!["2CP", "1CS"].includes(currentStudent.year) && currentStudent.specialite) {
-        filterConditions.specialization = currentStudent.specialite;
+        filterConditions.specialization = [currentStudent.specialite];
     }
 
     const pfeList = await PFE.findAll({

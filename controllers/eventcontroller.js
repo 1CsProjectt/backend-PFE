@@ -428,7 +428,7 @@ const checkEventTime = (eventName, targetedParam = null) => {
 export const getAllEvents = catchAsync(async (req, res, next) => {
     const events = await Event.findAll(); 
   
-    if (!events || events.length === 0) {
+    if (!events) {
       return res.status(404).json({
         status: 'fail',
         message: 'No events found',

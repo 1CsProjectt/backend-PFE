@@ -93,9 +93,7 @@ export const listAllStudents = catchAsync(async (req, res, next) => {
     ],
   });
 
-  if (students.length === 0) {
-    return next(new appError(`No students found for year ${userYear}`, 404));
-  }
+  
 
   return res.status(200).json({ status: "success", students });
 });

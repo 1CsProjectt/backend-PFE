@@ -30,10 +30,6 @@ const teacher = sequelize.define('Teacher', {
         type:DataTypes.STRING,
         allowNull:false
     },
-    name: { 
-        type: DataTypes.STRING,
-         allowNull: true
-    },
 }, {
     tableName: 'Teachers'
 });

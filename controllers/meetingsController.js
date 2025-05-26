@@ -13,10 +13,6 @@ import teacher from "../models/teacherModel.js";
 export const startNewMeeting = catchAsync(async (req, res, next) => {
     const { date, time, room } = req.body;
     const Meeting_objectives_files = req.files?.Meeting_objectives_files?.[0]?.path;
-    const Support_files = req.files?.Support_files?.[0]?.path;
-    const Team_deliverables_files = req.files?.Team_deliverables_files?.[0]?.path;
-    const My_review_for_deliverables_files = req.files?.My_review_for_deliverables_files?.[0]?.path;
-    const Meeting_pv_files = req.files?.Meeting_pv_files?.[0]?.path;
   
     const teamId = req.params.teamId;
     const supervisorId = req.user.id;
