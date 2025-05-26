@@ -12,7 +12,7 @@ import Notification from "../models/notificationModel.js";
 import Preflist from "../models/preflistModel.js";
 import SupervisionRequest from "../models/SupervisionRequestModel.js";
 import Meet from "../models/meetingModel.js";
-
+import SoutenanceAuthorization from "../models/SupervisionRequestModel.js";
 
 (async () => {
   try {
