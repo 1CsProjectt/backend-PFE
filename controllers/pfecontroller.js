@@ -703,7 +703,7 @@ export const displayPFEforstudents = catchAsync(async (req, res, next) => {
     };
 
     if (!["2CP", "1CS"].includes(currentStudent.year) && currentStudent.specialite) {
-        filterConditions.specialization = currentStudent.specialite;
+        filterConditions.specialization = [currentStudent.specialite];
     }
 
     const pfeList = await PFE.findAll({
