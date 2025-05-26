@@ -10,27 +10,27 @@ import sequelize from '../config/database.js';
     },
     soutplanning: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     date: {
       type: DataTypes.DATEONLY,
-      allowNull: false,
+      allowNull: true,
     },
     startTime: {
       type: DataTypes.TIME,
-      allowNull: false,
+      allowNull: true,
     },
     endTime: {
       type: DataTypes.TIME,
-      allowNull: false,
+      allowNull: true,
     },
     location: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     teamId: {
       type: DataTypes.INTEGER,
-      allowNull: false,
+      allowNull: true,
       unique: true,
       references: {
             model: Team,
