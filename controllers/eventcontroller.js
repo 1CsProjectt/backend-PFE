@@ -161,7 +161,7 @@ if (targeted === 'students') {
 const notifications = usersToNotify.map(user => ({
   user_id: user.id,
   type: "session-created",
-  content: `A new session "${name}" has been scheduled.`,
+  content: `A new session '${name}' has been scheduled.`,
   is_read: false,
   metadata: {
     eventId: event.id,
