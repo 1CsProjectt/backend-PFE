@@ -32,10 +32,6 @@ const Student = sequelize.define('Student', {
         type: DataTypes.STRING,
         allowNull: false
     },
-    name: { 
-        type: DataTypes.STRING ,
-        allowNull:true
-    },
     year: {
         type: DataTypes.ENUM('2CP', '1CS', '2CS', '3CS'),
         allowNull: false

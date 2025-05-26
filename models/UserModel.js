@@ -15,10 +15,7 @@ import bcrypt from "bcryptjs";
 
 
 const User = sequelize.define("User", {
-  username: {
-    type: DataTypes.STRING,
-    allowNull: false,
-  },id:{
+  id:{
   type:DataTypes.INTEGER,
   autoIncrement:true,
   allowNull:false,

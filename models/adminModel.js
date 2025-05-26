@@ -37,11 +37,7 @@ const Admin = sequelize.define("Admin", {
         type: DataTypes.STRING,
         allowNull: false
     },
-     name: {
-         type: DataTypes.STRING,
-          allowNull: true 
-        },
-
+    
     admin_level:{type:DataTypes.STRING,allowNull:true},
     permissions: { type: DataTypes.STRING, allowNull: true } 
 });
