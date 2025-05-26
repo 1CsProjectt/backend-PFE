@@ -297,15 +297,25 @@ export const getAllUsersfrom_myyear = catchAsync(async (req, res, next) => {
     }
 });
 
-export const getAllUsers =catchAsync( async (req, res) => {
-    
-        const users = await User.findAll();
-        if (!users || users.length === 0) {
-            return next(new appError('No students were found', 400));
-        }
-        res.json(users);
-    
+export const getAllUsers = catchAsync(async (req, res, next) => {
+    const users = await User.findAll({
+        include: [
+            {
+                model: Student,
+                as: 'student',
+                attributes: ['firstname', 'lastname', 'year', 'specialite']
+            }
+        ]
+    });
+
+    if (!users || users.length === 0) {
+        return next(new appError('No users were found', 400));
+    }
+
+    res.json(users);
 });
+
+
 export const getAllStudents =catchAsync( async (req, res) => {
     
         const students = await Student.findAll({include:{
