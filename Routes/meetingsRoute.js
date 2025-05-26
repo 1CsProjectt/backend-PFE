@@ -91,11 +91,7 @@ const router = express.Router();
 router.post("/startNewMeeting/:teamId", protect, 
   restrictedfor("teacher"),
   upload.fields([
-    { name: 'Meeting_objectives_files', maxCount: 1 },
-    { name: 'Support_files', maxCount: 1 },
-    { name: 'Team_deliverables_files', maxCount: 1 },
-    { name: 'My_review_for_deliverables_files', maxCount: 1 },
-    { name: 'Meeting_pv_files', maxCount: 1 }
+    { name: 'Meeting_objectives_files', maxCount: 1 }
   ]),
  startNewMeeting);
 /**
@@ -221,7 +217,6 @@ router.patch("/updateMeeting/:meetingId", protect, restrictedfor("teacher"),uplo
     { name: 'My_review_for_deliverables_files', maxCount: 1 },
     { name: 'Meeting_pv_files', maxCount: 1 }
   ]), updateMeeting);
-
 
 
 /**
