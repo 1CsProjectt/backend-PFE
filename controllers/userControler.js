@@ -132,7 +132,7 @@ export const updateUserByAdmin = catchAsync(async (req, res, next) => {
             address,
             website,
             admin_level,
-            permissions
+            permissions,role
         } = req.body;
 
         if (!email) {
@@ -161,7 +161,12 @@ export const updateUserByAdmin = catchAsync(async (req, res, next) => {
         console.log('Password Changed At:', new Date());
         user.passwordChangedAt = new Date(); 
         }
-
+        if (user.role!== role){
+            user.role=role
+        }
+        if(user.username!==username){
+            user.username=username
+        }
 
         await user.save({ transaction: t });
 
