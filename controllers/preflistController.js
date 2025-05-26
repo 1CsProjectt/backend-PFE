@@ -100,7 +100,7 @@ import { Op } from 'sequelize';
 
 export const createPreflist = catchAsync(async (req, res, next) => {
   const { pfeIds } = req.body;
-
+  console.log("this is the file *****************************",req.files?.ML?.[0]?.path)
   if (!req.user) {
     return next(new appError('User was not found, login and try again', 403));
   }
