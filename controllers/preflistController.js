@@ -213,11 +213,13 @@ export const approvePreflist = catchAsync(async (req, res, next) => {
   if (!entries.length) {
     return next(new appError('No preflist found to approve', 404));
   }
-
+if (entries[0].approved==false){
   await Preflist.update(
     { approved: true },
     { where: { teamId } }
   );
+}
+  
 
   const firstPfeId = entries[0].pfeId;
   await SupervisionRequest.create({
