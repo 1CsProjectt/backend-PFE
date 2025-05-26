@@ -99,20 +99,41 @@ import { Op } from 'sequelize';
 
 
 export const createPreflist = catchAsync(async (req, res, next) => {
-  const { pfeIds } = req.body;
-  console.log("this is the file *****************************",req.files?.ML?.[0]?.path)
+  let { pfeIds } = req.body;
+
+  console.log("Raw pfeIds:", pfeIds);
+  console.log("ML File Path:", req.files?.ML?.[0]?.path);
+
   if (!req.user) {
     return next(new appError('User was not found, login and try again', 403));
   }
 
   const user = req.user;
   const mystudent = await Student.findByPk(user.id); 
-
   if (!mystudent) {
     return next(new appError('Student not found', 403));
   }
 
-  if (!Array.isArray(pfeIds) || pfeIds.length !== 5) {
+  // Ensure pfeIds is an array of integers
+  if (typeof pfeIds === 'string') {
+    try {
+      pfeIds = JSON.parse(pfeIds); // Handle JSON-stringified array from frontend
+    } catch (err) {
+      return next(new appError('Invalid pfeIds format', 400));
+    }
+  }
+
+  if (!Array.isArray(pfeIds)) {
+    return next(new appError('You must provide exactly 5 PFE IDs as an array.', 400));
+  }
+
+  // Convert to integers and validate
+  pfeIds = pfeIds.map(id => parseInt(id, 10));
+  if (pfeIds.some(id => isNaN(id))) {
+    return next(new appError('All PFE IDs must be valid integers.', 400));
+  }
+
+  if (pfeIds.length !== 5) {
     return next(new appError('You must provide exactly 5 PFE IDs.', 400));
   }
 
@@ -122,7 +143,6 @@ export const createPreflist = catchAsync(async (req, res, next) => {
   }
 
   const teamId = mystudent.team_id;
-
   if (!teamId) {
     return next(new appError('Student is not in a team', 403));
   }
@@ -131,6 +151,7 @@ export const createPreflist = catchAsync(async (req, res, next) => {
   if (existing) {
     return next(new appError('This team has already submitted a preflist.', 400));
   }
+
   const pfes = await PFE.findAll({ where: { id: pfeIds } });
   if (pfes.length !== 5) {
     return next(new appError('One or more selected PFEs do not exist.', 400));
@@ -142,20 +163,17 @@ export const createPreflist = catchAsync(async (req, res, next) => {
 
   for (const pfe of pfes) {
     if (pfe.year !== studentYear) {
-      return next(
-        new appError(
-          `PFE ${pfe.id} year (${pfe.year}) does not match student's year (${studentYear}).`,
-          400
-        )
-      );
+      return next(new appError(
+        `PFE ${pfe.id} year (${pfe.year}) does not match student's year (${studentYear}).`,
+        400
+      ));
     }
+
     if (studentSpec && pfe.specialization !== studentSpec) {
-      return next(
-        new appError(
-          `PFE ${pfe.id} specialite (${pfe.specialization}) does not match student's specialite (${studentSpec}).`,
-          400
-        )
-      );
+      return next(new appError(
+        `PFE ${pfe.id} specialization (${pfe.specialization}) does not match student's specialization (${studentSpec}).`,
+        400
+      ));
     }
   }
 
@@ -168,13 +186,13 @@ export const createPreflist = catchAsync(async (req, res, next) => {
 
   const created = await Preflist.bulkCreate(preflistEntries);
 
-
   res.status(201).json({
     status: 'success',
     message: `Preflist created for team ${teamId}`,
     data: created,
   });
 });
+
 
 export const approvePreflist = catchAsync(async (req, res, next) => {
   if (!req.user){
