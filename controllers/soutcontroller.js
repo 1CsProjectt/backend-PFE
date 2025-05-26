@@ -1,8 +1,8 @@
-import SoutenanceAuthorization from "../models/autsoutModel";
-import appError from "../utils/appError";
-import teacher from "../models/teacherModel";
-import Team from "../models/groupModel";
-import { catchAsync } from "../utils/catchAsync";
+import SoutenanceAuthorization from "../models/autsoutModel.js";
+import appError from "../utils/appError.js";
+import teacher from "../models/teacherModel.js";
+import Team from "../models/groupModel.js";
+import { catchAsync } from "../utils/catchAsync.js";
 
 
 export const createSoutenanceAuthorization = catchAsync(async (req, res, next) => {
