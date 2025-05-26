@@ -45,6 +45,7 @@ import meetingsroute from './Routes/meetingsRoute.js'
 import { getCurrentSession } from "./controllers/eventcontroller.js";
 import { protect } from "./middlewares/authmiddleware.js";
 import { injectCurrentSession } from "./middlewares/injectCurrentSession.js";
+import autosoutroute from './Routes/SoutenanceAuthorizationRoute.js'
 
 
 
@@ -174,6 +175,7 @@ app.use("/api/v1/jointeam",jointeamRoutes);
 app.use("/api/v1/preflist",preflistroute);
 app.use("/api/v1/mettings",meetingsroute);
 app.use("/api/v1/notification",notificationRoute);
+app.use("/api/v1/autsout",autosoutroute);
 
 
 
