@@ -46,7 +46,7 @@ import { getCurrentSession } from "./controllers/eventcontroller.js";
 import { protect } from "./middlewares/authmiddleware.js";
 import { injectCurrentSession } from "./middlewares/injectCurrentSession.js";
 import autosoutroute from './Routes/SoutenanceAuthorizationRoute.js'
-
+import SoutenanceAuthorization from "./models/autsoutModel.js";
 
 
 (async () => {
