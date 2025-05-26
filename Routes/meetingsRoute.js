@@ -210,7 +210,7 @@ router.get("/getNextMeet/:teamId", protect, restrictedfor("teacher", "student"),
  */
 
 // Update a meeting (only teacher)
-router.patch("/updateMeeting/:meetingId", protect, restrictedfor("teacher"),upload.fields([
+router.patch("/updateMeeting/:meetingId", protect, restrictedfor("teacher","student"),upload.fields([
     { name: 'Meeting_objectives_files', maxCount: 1 },
     { name: 'Support_files', maxCount: 1 },
     { name: 'Team_deliverables_files', maxCount: 1 },
