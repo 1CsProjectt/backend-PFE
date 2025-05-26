@@ -2,10 +2,9 @@
 import { DataTypes } from 'sequelize';
 import Team from './groupModel.js';
 import teacher from './teacherModel.js';
+import sequelize from '../config/database.js';
 
-
-const SoutenanceAuthorization = (sequelize) => {
-  return sequelize.define('SoutenanceAuthorization', {
+const SoutenanceAuthorization = sequelize.define('SoutenanceAuthorization', {
     id: {
        type: DataTypes.INTEGER, 
         primaryKey: true, 
@@ -50,6 +49,5 @@ const SoutenanceAuthorization = (sequelize) => {
     tableName: 'soutenance_authorizations',
     timestamps: true,
   });
-};
 
 export default SoutenanceAuthorization;
