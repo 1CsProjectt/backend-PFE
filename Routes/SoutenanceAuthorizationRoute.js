@@ -3,7 +3,7 @@ import {
   createSoutenanceAuthorization,
   updateSoutenanceAuthorization,
   deleteSoutenanceAuthorization
-} from '../controllers/soutenanceAuthController.js';
+} from '../controllers/soutcontroller.js';
 import { protect } from '../middlewares/authmiddleware.js';
 
 const router = express.Router();
