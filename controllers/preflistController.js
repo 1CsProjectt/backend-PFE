@@ -168,12 +168,16 @@ export const createPreflist = catchAsync(async (req, res, next) => {
       ));
     }
 
-    if (studentSpec && !pfe.specialization.includes(studentSpec)) {
+    if (
+  studentSpec &&
+  (!Array.isArray(pfe.specialization) || !pfe.specialization.includes(studentSpec))
+) {
   return next(new appError(
     `PFE ${pfe.id} specialization (${pfe.specialization}) does not match student's specialization (${studentSpec}).`,
     400
   ));
 }
+
 
   }
 
