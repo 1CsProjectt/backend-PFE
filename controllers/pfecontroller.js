@@ -339,7 +339,6 @@ export const getMyPfe = catchAsync(async (req, res, next) => {
                     {
                         model: Extern,
                         as: 'extern',
-                        attributes: ['firstname', 'lastname'],
                         required: false
                     }
                 ]
