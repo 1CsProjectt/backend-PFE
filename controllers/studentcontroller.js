@@ -12,46 +12,48 @@ import Preflist from '../models/preflistModel.js';
 // const { catchAsync } = require('../utils/catchAsync.js');
 
 
-export const getStudentsByTeam =catchAsync( async (req, res,next) => {
-  
-    const { team_id } = req.params;
-    console.log(team_id);
+export const getStudentsByTeam = catchAsync(async (req, res, next) => {
+  const { team_id } = req.params;
 
-    if (!team_id) {
-      return next (new appError('Team id is required',400) );
-    }
+  if (!team_id) {
+    return next(new appError('Team id is required', 400));
+  }
 
-    const students = await Student.findAll({
-      where: { team_id },
-      include: [
-        {
-          model: User,
-          as: "user", 
-          attributes: ['email', 'username']
-        },{
-          model: Team, 
-          as: 'team',
-          include: [
-            {
-              model: Preflist,
-              as: 'preflists',
-              separate: true,  
-              limit: 1,          
-              order: [['order', 'ASC']],
-              attributes: ['ML']
-            }
-          ]
-        }
-      ]
-    });
+  const team = await Team.findOne({
+    where: { id: team_id },
+    include: [
+      {
+        model: Student,
+        as: 'members',
+        include: [
+          {
+            model: User,
+            as: 'user',
+            attributes: ['email', 'username']
+          }
+        ]
+      },
+      {
+        model: Preflist,
+        as: 'preflists',
+        separate: true,  
+        limit: 1,
+        order: [['order', 'ASC']],
+        attributes: ['ML']
+      }
+    ]
+  });
 
-    return res.status(200).json({
-      message: 'Students retrieved successfully',
-      students
-    });
+  if (!team) {
+    return next(new appError('Team not found', 404));
+  }
 
-
+  return res.status(200).json({
+    message: 'Team and its students retrieved successfully',
+    team
+  });
 });
+
 
 
 export const listAllStudents = catchAsync(async (req, res, next) => {
