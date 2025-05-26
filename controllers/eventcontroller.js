@@ -107,6 +107,32 @@ const setEvent = catchAsync(async (req, res, next) => {
         endTime: parsedEndTime,
         maxNumber: name === "TEAM_CREATION" ? finalMaxNumber : null
     });
+    //  Notifications 
+let usersToNotify = [];
+
+if (targeted === 'students') {
+  usersToNotify = await Student.findAll({ where: { year } });
+} else if (targeted === 'teachers') {
+  usersToNotify = await Teacher.findAll(); // adapt if needed
+}
+
+const notifications = usersToNotify.map(user => ({
+  user_id: user.id,
+  type: "session-created",
+  content: `A new session "${name}" has been scheduled.`,
+  is_read: false,
+  metadata: {
+    eventId: event.id,
+    eventName: name,
+    startTime: parsedStartTime,
+    endTime: parsedEndTime
+  }
+}));
+
+if (notifications.length > 0) {
+  await Notification.bulkCreate(notifications);
+}
+
 
     res.status(201).json({
         status: "success",
