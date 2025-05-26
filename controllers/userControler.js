@@ -17,9 +17,9 @@ const createUser = catchAsync(async (req, res, next) => {
 
     try {
         const { username, firstname, lastname, email, password, year, role, specialite, externName, phone, address, website, admin_level, permissions } = req.body;
-
+        const fullname=firstname+' '+lastname
         const newUser = await User.create({
-            username,
+            username:fullname,
             email,
             password,
             role: role.toLowerCase(),
