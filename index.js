@@ -178,7 +178,7 @@ app.use("/api/v1/preflist",preflistroute);
 app.use("/api/v1/mettings",meetingsroute);
 app.use("/api/v1/notification",notificationRoute);
 app.use("/api/v1/autsout",autosoutroute);
-app.use("/api/v1//soutenances",soutnanceRoute);
+app.use("/api/v1/soutenances",soutnanceRoute);
 
 
 
