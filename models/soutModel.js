@@ -1,7 +1,7 @@
 // models/soutenance.model.js
 import { DataTypes } from 'sequelize';
 import Team from './groupModel.js';
-
+import sequelize from '../config/database.js';
   const Soutenance = sequelize.define('Soutenance', {
     id: {
       type: DataTypes.INTEGER,
