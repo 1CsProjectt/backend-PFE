@@ -79,7 +79,7 @@ const router = express.Router();
  */
 router.post('/create', protect, restrictedfor('student'),upload.fields([{ name: 'ML', maxCount: 1 },]), createPreflist);
 
-/**
+/** 
  * @swagger
  * /api/v1/preflist/update:
  *   patch:

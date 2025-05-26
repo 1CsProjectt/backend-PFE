@@ -119,7 +119,6 @@ const setEvent = catchAsync(async (req, res, next) => {
             endTime: parsedEndTime,
         });
         } else {
-        // Compare and update the end time to the later one
         const existingEndTime = new Date(existingTeacherWorkStart.endTime);
         const laterEndTime = parsedEndTime > existingEndTime ? parsedEndTime : existingEndTime;
 
