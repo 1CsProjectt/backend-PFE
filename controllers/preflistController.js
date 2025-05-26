@@ -168,12 +168,13 @@ export const createPreflist = catchAsync(async (req, res, next) => {
       ));
     }
 
-    if (studentSpec && pfe.specialization !== studentSpec) {
-      return next(new appError(
-        `PFE ${pfe.id} specialization (${pfe.specialization}) does not match student's specialization (${studentSpec}).`,
-        400
-      ));
-    }
+    if (studentSpec && !pfe.specialization.includes(studentSpec)) {
+  return next(new appError(
+    `PFE ${pfe.id} specialization (${pfe.specialization}) does not match student's specialization (${studentSpec}).`,
+    400
+  ));
+}
+
   }
 
   const MLPath = req.files?.ML?.[0]?.path || null;
