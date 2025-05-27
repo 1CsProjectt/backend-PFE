@@ -65,7 +65,7 @@ export const forgotPassword = catchAsync(async (req, res, next) => {
     user.resetTokenExpiry = Date.now() + parseInt(process.env.RESET_TOKEN_EXPIRY);
     await user.save();
 
-    const resetUrl = `http://localhost:3001/api/v1/auth/reset-password/${resetToken}`;
+    const resetUrl = `http://localhost:3001/auth/reset-password/${resetToken}`;
 
     await transporter.sendMail({
         from: process.env.EMAIL_USER,
