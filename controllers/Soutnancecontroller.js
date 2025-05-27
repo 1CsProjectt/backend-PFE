@@ -82,7 +82,6 @@ export const getGlobalPlanningforstudent = catchAsync(async (req, res, next) => 
 
 export const getGlobalPlanningforteachers = catchAsync(async (req, res, next) => {
   const planning = await Soutenance.findAll({
-    where: {  },
     order: [['createdAt', 'DESC']], 
   });
 
