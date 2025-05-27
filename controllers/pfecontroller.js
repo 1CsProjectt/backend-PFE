@@ -1098,7 +1098,9 @@ export const autoAssignPfesToTeamWithoutPfe = catchAsync(async (req, res, next) 
 
   team.pfe_id = selectedPfe.id;
   const supervisors = await selectedPfe.getSupervisors();
-  
+  if (!Array.isArray(supervisors)) {
+  return next(new appError('Supervisors must be an array', 500));
+}
   await team.setSupervisors(supervisors); // Link supervisors to the team
 
   await team.save();
@@ -1162,7 +1164,7 @@ export const autoAssignPfesToTeamWithoutPfe = catchAsync(async (req, res, next) 
       // Assign the new PFE to the team
       team.pfe_id = newPfe.id;
       const supervisors = await newPfe.getSupervisors(); 
-      await team.setSupervisors(supervisors); // ✅ correct plural method with instances
+      await team.setSupervisors(supervisors); 
 
       await team.save();
 
