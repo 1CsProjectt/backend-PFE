@@ -81,9 +81,7 @@ export const getGlobalPlanningforstudent = catchAsync(async (req, res, next) => 
 });
 
 export const getGlobalPlanningforteachers = catchAsync(async (req, res, next) => {
-  const planning = await Soutenance.findAll({
-    order: [['createdAt', 'DESC']], 
-  });
+  const planning = await Soutenance.findAll();
 
   if (!planning || !planning.soutplanning) {
     return next(new appError('No global soutenance planning found.', 404));
