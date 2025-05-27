@@ -1135,8 +1135,7 @@ export const autoAssignPfesToTeamWithoutPfe = catchAsync(async (req, res, next) 
       // Assign the new PFE to the team
       team.pfe_id = newPfe.id;
       const supervisors = await newPfe.getSupervisors(); 
-      
-      await team.setSupervisor(supervisorIds);                        // <- tu lies ces superviseurs à l’équipe
+      await team.setSupervisors(supervisors); // ✅ correct plural method with instances
 
       await team.save();
 
