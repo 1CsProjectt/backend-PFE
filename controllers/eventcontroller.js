@@ -128,6 +128,43 @@ const setEvent = catchAsync(async (req, res, next) => {
         }
 
         }
+                if (name === "SOUTENANCE") {
+            const workStartingEvent = await Event.findOne({
+                where: {
+                    ...conditions,
+                    name: "WORK_STARTING",
+                    createdAt: { [Op.between]: [yearStart, yearEnd] }
+                }
+            });
+
+            if (!workStartingEvent) {
+                return next(new appError(`WORK_STARTING must exist for ${year} before creating SOUTENANCE`, 400));
+            }
+
+            if (new Date(workStartingEvent.endTime) > now) {
+                return next(new appError(`WORK_STARTING for ${year} must be finished before creating SOUTENANCE`, 400));
+            }
+
+            const existingTeacherSoutenance = await Event.findOne({
+                where: {
+                    name,
+                    targeted: "teachers",
+                    year,
+                    createdAt: { [Op.between]: [yearStart, yearEnd] }
+                }
+            });
+
+            if (!existingTeacherSoutenance) {
+                await Event.create({
+                    name,
+                    targeted: "teachers",
+                    year,
+                    startTime: parsedStartTime,
+                    endTime: parsedEndTime
+                });
+            }
+        }
+
     }
 
     const existingEvent = await Event.findOne({
@@ -156,7 +193,6 @@ const setEvent = catchAsync(async (req, res, next) => {
         endTime: parsedEndTime,
         maxNumber: name === "TEAM_CREATION" ? finalMaxNumber : null
     });
-    //  Notifications 
     let usersToNotify = [];
     let notifications = [];
     
