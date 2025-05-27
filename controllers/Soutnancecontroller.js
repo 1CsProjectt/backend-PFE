@@ -68,8 +68,9 @@ export const uploadGlobalPlanning = catchAsync(async (req, res, next) => {
 export const getGlobalPlanningforstudent = catchAsync(async (req, res, next) => {
 
     const mystudent=await Student.findByPk(req.user.id)
+    let planning;
     if (mystudent){
-  const planning = await Soutenance.findOne({
+   planning = await Soutenance.findOne({
     where: { year: mystudent.year },
     order: [['createdAt', 'DESC']], 
   })
