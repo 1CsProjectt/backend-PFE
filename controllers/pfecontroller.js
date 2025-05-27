@@ -919,13 +919,22 @@ export const getIsiPfes = async (req, res) => {
     }
   
     // Get all PFE IDs already used in other teams
-   let usedPfeIds = new Set();
+  // Get all PFE IDs already used in other teams
+const usedPfeRecords = await Team.findAll({
+  attributes: ['pfe_id'],
+  where: {
+    pfe_id: { [Op.ne]: null },
+  },
+});
+
+let usedPfeIds = new Set();
 
 if (Array.isArray(usedPfeRecords)) {
   usedPfeIds = new Set(usedPfeRecords.map(record => record.pfe_id));
 } else {
   return next(new appError('Error retrieving used PFE records', 500));
 }
+
 
     const assignmentLog = [];
   
