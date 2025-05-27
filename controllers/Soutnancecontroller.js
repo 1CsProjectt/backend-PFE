@@ -69,7 +69,7 @@ export const getGlobalPlanningforstudent = catchAsync(async (req, res, next) => 
     order: [['createdAt', 'DESC']], 
   });
 
-  if (!planning || !planning.soutplanning) {
+  if (!planning ) {
     return next(new appError('No global soutenance planning found.', 404));
   }
 
