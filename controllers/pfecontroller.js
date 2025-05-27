@@ -1041,6 +1041,7 @@ export const autoAssignPfesToTeamWithoutPfe = catchAsync(async (req, res, next) 
     attributes: ['pfe_id'],
     where: { pfe_id: { [Op.ne]: null } },
   });
+  console.log(assignedTeams)
   const assignedPfeIds = new Set(assignedTeams.map(t => t.pfe_id));
 
   let selectedPfe;
