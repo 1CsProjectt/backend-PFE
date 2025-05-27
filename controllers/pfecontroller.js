@@ -1008,76 +1008,74 @@ export const autoAssignPfesToTeamsWithoutPfe = catchAsync(async (req, res, next)
 
 export const autoAssignPfesToTeamWithoutPfe = catchAsync(async (req, res, next) => {
   const { teamId } = req.body;
-  if (!teamId) return next(new appError('Team id is required', 400));
+  if (!teamId) 
+    return next(new appError('Team id is required', 400));
 
-  // Fetch team
+  // 1. Fetch team
   const team = await Team.findByPk(teamId);
-  if (!team) return next(new appError('Team not found', 404));
-  if (team.pfe_id !== null) return next(new appError('This team already has a PFE assigned', 400));
+  if (!team) 
+    return next(new appError('Team not found', 404));
+  if (team.pfe_id !== null) 
+    return next(new appError('This team already has a PFE assigned', 400));
 
-  // Fetch members
+  // 2. Fetch members
   const members = await Student.findAll({ where: { team_id: teamId } });
-  if (members.length === 0) return next(new appError('Team has no members', 400));
+  if (!members.length) 
+    return next(new appError('Team has no members', 400));
 
-  const { year: teamYear, specialite: teamSpecialite } = members[0];
-  if (!teamYear) return next(new appError('Team members must have a year defined', 400));
+  const { year: teamYear, specialite: teamSpec } = members[0];
+  if (!teamYear) 
+    return next(new appError('Team members must have a year defined', 400));
 
-  // Build PFE query
-  const pfeSearchQuery = { year: teamYear, status: 'VALIDE' };
-  if ((teamYear === '2CS' || teamYear === '3CS')) {
-    if (!teamSpecialite) {
+  // 3. Build PFE query
+  const where = { year: teamYear, status: 'VALIDE' };
+  if (['2CS','3CS'].includes(teamYear)) {
+    if (!teamSpec)
       return next(new appError('Specialization is required for 2CS and 3CS teams', 400));
-    }
-    pfeSearchQuery.specialization = teamSpecialite;
+    where.specialization = teamSpec;
   }
 
-  const pfes = await PFE.findAll({ where: pfeSearchQuery });
-  if (pfes.length === 0) {
-    return next(new appError(`No available PFEs for ${teamYear}${teamSpecialite ? ` - ${teamSpecialite}` : ''}`, 404));
-  }
+  const pfes = await PFE.findAll({ where });
+  if (!pfes.length) 
+    return next(new appError(`No available PFEs for ${teamYear}${teamSpec ? ` - ${teamSpec}` : ''}`, 404));
 
-  // Exclude already-assigned PFEs
-  const assignedTeams = await Team.findAll({
+  // 4. Exclude already-assigned
+  const assigned = await Team.findAll({
     attributes: ['pfe_id'],
-    where: { pfe_id: { [Op.ne]: null } },
+    where: { pfe_id: { [Op.ne]: null } }
   });
-  console.log(assignedTeams)
-  const assignedPfeIds = new Set(assignedTeams.map(t => t.pfe_id));
+  const usedIds = new Set(assigned.map(t => t.pfe_id));
 
-  let selectedPfe;
-  if (teamYear === '3CS') {
-    const unassigned = pfes.filter(pfe => !assignedPfeIds.has(pfe.id));
-    if (!unassigned.length) {
+  // 5. Pick one
+  let pool = pfes.filter(p => !usedIds.has(p.id));
+  if (!pool.length) {
+    if (teamYear === '3CS') {
       return next(new appError('No unassigned PFEs available for 3CS teams', 404));
     }
-    selectedPfe = unassigned[Math.floor(Math.random() * unassigned.length)];
-  } else {
-    const unassigned = pfes.filter(pfe => !assignedPfeIds.has(pfe.id));
-    selectedPfe = unassigned.length
-      ? unassigned[Math.floor(Math.random() * unassigned.length)]
-      : pfes[Math.floor(Math.random() * pfes.length)];
+    pool = pfes; // allow sharing for lower years
   }
+  const selected = pool[Math.floor(Math.random() * pool.length)];
+  team.pfe_id = selected.id;
 
-  // Assign PFE to team
-  team.pfe_id = selectedPfe.id;
+  // 6. Fetch supervisors **via the singular alias**,
+  //    map to IDs, and pass *that* array into setSupervisor(...)
+  let supervisors = await selected.getSupervisor();  
+  // getSupervisor() should return an array, but just in case:
+  if (!Array.isArray(supervisors)) supervisors = [ supervisors ];
 
-  // Fetch supervisors, map to IDs, and use the plural setter
-  const supervisors = await selectedPfe.getSupervisors();
-  if (!Array.isArray(supervisors)) {
-    return next(new appError('Supervisors must be an array', 500));
-  }
-  console.log(supervisors)
   const supervisorIds = supervisors.map(s => s.id);
-  await team.setSupervisor(supervisorIds);
+  await team.setSupervisor(supervisorIds);  
 
+  // 7. Save and respond
   await team.save();
 
   res.status(200).json({
     status: 'success',
-    message: `PFE assigned to team ${teamId}`,
-    assigned: selectedPfe,
+    message: `PFE ${selected.id} assigned to team ${teamId}`,
+    assigned: selected,
   });
 });
+
 
 
 
