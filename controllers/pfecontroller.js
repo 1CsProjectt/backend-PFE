@@ -477,6 +477,16 @@ const downloadfile=(req, res) => {
             where: {
                 status: 'VALIDE',
                 [Op.and]: [literal(`EXTRACT(YEAR FROM "PFE"."createdAt") = ${currentYear}`)]
+  //                createdAt: {
+  //   [Op.or]: [
+  //     {
+  //       [Op.between]: [sepLastYear, junThisYear]
+  //     },
+  //     {
+  //       [Op.between]: [sepThisYear, junNextYear]
+  //     }
+  //   ]
+  // }
             },
             include: [
                 { model: User, as: "creator", attributes: ["id", "username", "email","role"] },
@@ -702,8 +712,11 @@ export const displayPFEforstudents = catchAsync(async (req, res, next) => {
     };
 
     if (!["2CP", "1CS"].includes(currentStudent.year) && currentStudent.specialite) {
-        filterConditions.specialization = [currentStudent.specialite];
-    }
+    filterConditions.specialization = {
+        [Op.contains]: [currentStudent.specialite],
+    };
+}
+
 
     const pfeList = await PFE.findAll({
         where: {
