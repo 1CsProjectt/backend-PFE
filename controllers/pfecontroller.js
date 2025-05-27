@@ -866,9 +866,12 @@ export const getIsiPfes = async (req, res) => {
     const initialPfeWhere = {
       year: upperYear,
       status: 'VALIDE',
-      ...(upperYear === '2CS' || upperYear === '3CS' ? { specialization: upperSpecialite } : {}),
+      ...(upperYear === '2CS' || upperYear === '3CS'
+        ? { specialization: upperSpecialite }
+        : {}),
     };
   
+    // Check if there are any PFEs available for the given year and specialization
     const availablePfesCount = await PFE.count({ where: initialPfeWhere });
   
     if (availablePfesCount === 0) {
@@ -884,8 +887,11 @@ export const getIsiPfes = async (req, res) => {
       return next(new appError('Specialite is required for 2CS and 3CS', 400));
     }
   
+    // Find teams without PFE and with students of matching year (+specialite if needed)
     const teamsWithoutPFE = await Team.findAll({
-      where: { pfe_id: null },
+      where: {
+        pfe_id: null,
+      },
       include: [
         {
           model: Student,
@@ -893,7 +899,9 @@ export const getIsiPfes = async (req, res) => {
           required: true,
           where: {
             year: upperYear,
-            ...(upperYear === '2CS' || upperYear === '3CS' ? { specialite: upperSpecialite } : {}),
+            ...(upperYear === '2CS' || upperYear === '3CS'
+              ? { specialite: upperSpecialite }
+              : {}),
           },
         },
       ],
@@ -908,8 +916,11 @@ export const getIsiPfes = async (req, res) => {
       );
     }
   
+    // Get all PFE IDs already used in other teams
     const usedPfeRecords = await Team.findAll({
-      where: { pfe_id: { [Op.ne]: null } },
+      where: {
+        pfe_id: { [Op.ne]: null },
+      },
       attributes: ['pfe_id'],
     });
   
@@ -923,6 +934,7 @@ export const getIsiPfes = async (req, res) => {
   
     const assignmentLog = [];
   
+    // Loop through all teams without a PFE
     for (const team of teamsWithoutPFE) {
       const students = team.members;
       if (!students || students.length === 0) continue;
@@ -933,7 +945,9 @@ export const getIsiPfes = async (req, res) => {
       const pfeWhere = {
         year: studentYear,
         status: 'VALIDE',
-        ...(studentYear === '2CS' || studentYear === '3CS' ? { specialization: studentSpecialite } : {}),
+        ...(studentYear === '2CS' || studentYear === '3CS'
+          ? { specialization: studentSpecialite }
+          : {}),
       };
   
       const availablePfes = await PFE.findAll({ where: pfeWhere });
@@ -942,8 +956,9 @@ export const getIsiPfes = async (req, res) => {
   
       if (studentYear === '3CS') {
         const unassignedPfes = availablePfes.filter(pfe => !usedPfeIds.has(pfe.id));
-        if (unassignedPfes.length === 0) continue;
-  
+        if (unassignedPfes.length === 0) {
+          continue;
+        }
         selectedPfe = unassignedPfes[Math.floor(Math.random() * unassignedPfes.length)];
         usedPfeIds.add(selectedPfe.id);
       } else {
@@ -958,9 +973,10 @@ export const getIsiPfes = async (req, res) => {
         }
       }
   
+      // Assign the selected PFE to the team
       team.pfe_id = selectedPfe.id;
   
-      // Fix here: make sure supervisors is always an array
+      // Fix: get supervisors and wrap in array if needed
       let supervisors = await selectedPfe.getSupervisor();
   
       if (!supervisors) {
@@ -974,8 +990,14 @@ export const getIsiPfes = async (req, res) => {
       await team.save();
   
       assignmentLog.push({
-        team: { id: team.id, name: team.groupName },
-        pfe: { id: selectedPfe.id, title: selectedPfe.title },
+        team: {
+          id: team.id,
+          name: team.groupName,
+        },
+        pfe: {
+          id: selectedPfe.id,
+          title: selectedPfe.title,
+        },
         specialization: studentSpecialite,
         year: studentYear,
       });
@@ -988,6 +1010,7 @@ export const getIsiPfes = async (req, res) => {
       assigned: assignmentLog,
     });
   });
+  
   
   
   
