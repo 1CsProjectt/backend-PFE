@@ -1158,7 +1158,7 @@ export const autoAssignPfesToTeamWithoutPfe = catchAsync(async (req, res, next) 
       // Assign the new PFE to the team
       team.pfe_id = newPfe.id;
       const supervisors = await newPfe.getSupervisors(); 
-      await team.setSupervisors(supervisors); 
+      await team.setSupervisor(supervisors); 
 
       await team.save();
 
