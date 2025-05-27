@@ -13,7 +13,7 @@ const setEvent = catchAsync(async (req, res, next) => {
     let { name, startTime, endTime, maxNumber, targeted = 'students' } = req.body;
     const year = req.body.year?.toUpperCase();
 
-    const allowedNames = ['PFE_SUBMISSION', 'PFE_VALIDATION', 'TEAM_CREATION', 'PFE_ASSIGNMENT', 'WORK_STARTING'];
+    const allowedNames = ['PFE_SUBMISSION', 'SOUTENANCE', 'TEAM_CREATION', 'PFE_ASSIGNMENT', 'WORK_STARTING'];
     const allowedYears = ['2CP', '1CS', '2CS', '3CS'];
     const allowedTargets = ['teachers', 'students'];
 
