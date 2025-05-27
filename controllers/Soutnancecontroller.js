@@ -4,6 +4,8 @@ import { catchAsync } from "../utils/catchAsync.js";
 import appError from "../utils/appError.js";
 import Soutenance from "../models/soutModel.js";
 import Notification from "../models/notificationModel.js";
+import Student from "../models/studenModel.js";
+
 
 export const uploadGlobalPlanning = catchAsync(async (req, res, next) => {
   const { year } = req.body;
@@ -25,7 +27,6 @@ export const uploadGlobalPlanning = catchAsync(async (req, res, next) => {
   const soutenance = await Soutenance.create({
     soutplanning: filePath,
     year,
-    teamId: null,
   });
 
 //   // Find users to notify (students + teachers of this year)
@@ -65,12 +66,18 @@ export const uploadGlobalPlanning = catchAsync(async (req, res, next) => {
 
 
 export const getGlobalPlanningforstudent = catchAsync(async (req, res, next) => {
-  const planning = await Soutenance.findOne({
-    where: { year: req.user.year },
-    order: [['createdAt', 'DESC']], 
-  });
 
-  if (!planning || !planning.soutplanning) {
+    const mystudent=await Student.findByPk(req.user.id)
+    let planning;
+    if (mystudent){
+   planning = await Soutenance.findOne({
+    where: { year: mystudent.year },
+    order: [['createdAt', 'DESC']], 
+  })
+    }else{
+        next(new appError('student not found',404))
+    }
+  if (!planning ) {
     return next(new appError('No global soutenance planning found.', 404));
   }
 
@@ -82,12 +89,9 @@ export const getGlobalPlanningforstudent = catchAsync(async (req, res, next) => 
 });
 
 export const getGlobalPlanningforteachers = catchAsync(async (req, res, next) => {
-  const planning = await Soutenance.findAll({
-    where: {  },
-    order: [['createdAt', 'DESC']], 
-  });
+  const planning = await Soutenance.findAll();
 
-  if (!planning || !planning.soutplanning) {
+  if (!planning ) {
     return next(new appError('No global soutenance planning found.', 404));
   }
 

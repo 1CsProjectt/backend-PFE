@@ -50,7 +50,7 @@ export const login = catchAsync(async (req, res, next) => {
         maxAge: 168 * 60 * 60 * 1000,
     });
 
-    res.status(200).json({ status: "success", user: { id: user.id, email: user.email, role: user.role , team_id: student ? student.team_id : null,} });
+    res.status(200).json({ status: "success", user: { id: user.id, email: user.email, role: user.role , team_id: student ? student.team_id : null,year:student ? student.year : null} });
 });
 
 
@@ -65,7 +65,7 @@ export const forgotPassword = catchAsync(async (req, res, next) => {
     user.resetTokenExpiry = Date.now() + parseInt(process.env.RESET_TOKEN_EXPIRY);
     await user.save();
 
-    const resetUrl = `https://backend-pfe-1.onrender.com/api/v1/auth/reset-password/${resetToken}`;
+    const resetUrl = `http://localhost:3001/auth/reset-password/${resetToken}`;
 
     await transporter.sendMail({
         from: process.env.EMAIL_USER,

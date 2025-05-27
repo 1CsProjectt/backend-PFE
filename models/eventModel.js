@@ -20,7 +20,7 @@ const Event = sequelize.define("Event", {
         autoIncrement: true
     },
     name: {
-        type: DataTypes.ENUM('PFE_SUBMISSION', 'PFE_VALIDATION', 'TEAM_CREATION','PFE_ASSIGNMENT','WORK_STARTING'),
+        type: DataTypes.ENUM('PFE_SUBMISSION', 'SOUTNANCE', 'TEAM_CREATION','PFE_ASSIGNMENT','WORK_STARTING'),
         allowNull: false,
     },
     startTime: {

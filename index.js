@@ -164,10 +164,10 @@ app.use(session({
 // Routes
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.use('/api/v1/auth', authRoutes);
-app.use('/api/v1/users', userRoutes);
+
 app.use(protect,getCurrentSession);
 app.use(injectCurrentSession);
-
+app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/pfe', pfeRoutes);
 app.use("/api/v1/session", eventRoutes);
 app.use("/api/v1/student", studentroute);
@@ -178,7 +178,7 @@ app.use("/api/v1/preflist",preflistroute);
 app.use("/api/v1/mettings",meetingsroute);
 app.use("/api/v1/notification",notificationRoute);
 app.use("/api/v1/autsout",autosoutroute);
-app.use("/api/v1//soutenances",soutnanceRoute);
+app.use("/api/v1/soutenances",soutnanceRoute);
 
 
 
