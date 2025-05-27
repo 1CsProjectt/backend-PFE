@@ -979,7 +979,7 @@ if (Array.isArray(usedPfeRecords)) {
       // Assign the selected PFE to the team
       team.pfe_id = selectedPfe.id;
       const supervisors = await selectedPfe.getSupervisors();
-      const supervisorIds = supervisors.map(s => s.id);
+      
       await team.setSupervisor(supervisorIds); // Link supervisors to the team
     
       await team.save();
@@ -1099,8 +1099,8 @@ export const autoAssignPfesToTeamWithoutPfe = catchAsync(async (req, res, next) 
 
   team.pfe_id = selectedPfe.id;
   const supervisors = await selectedPfe.getSupervisors();
-  const supervisorIds = supervisors.map(s => s.id);
-  await team.setSupervisor(supervisorIds); // Link supervisors to the team
+  
+  await team.setSupervisors(supervisors); // Link supervisors to the team
 
   await team.save();
 
@@ -1163,8 +1163,7 @@ export const autoAssignPfesToTeamWithoutPfe = catchAsync(async (req, res, next) 
       // Assign the new PFE to the team
       team.pfe_id = newPfe.id;
       const supervisors = await newPfe.getSupervisors(); 
-      const supervisorIds = supervisors.map(s => s.id);   
-      await team.setSupervisor(supervisorIds);                        // <- tu lies ces superviseurs à l’équipe
+      await team.setSupervisors(supervisors); // ✅ correct plural method with instances
 
       await team.save();
 
