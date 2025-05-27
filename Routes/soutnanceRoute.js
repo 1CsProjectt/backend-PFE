@@ -15,7 +15,7 @@ router.post(
 router.get(
   '/teacher',
   protect,
-  restrictedfor('teacher'),
+  restrictedfor('teacher','admin'),
   getGlobalPlanningforteachers
 );
 
