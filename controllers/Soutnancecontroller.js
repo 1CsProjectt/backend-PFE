@@ -25,7 +25,7 @@ export const uploadGlobalPlanning = catchAsync(async (req, res, next) => {
   const soutenance = await Soutenance.create({
     soutplanning: filePath,
     year,
-    teamId: null,
+    teamid: null,
   });
 
 //   // Find users to notify (students + teachers of this year)
