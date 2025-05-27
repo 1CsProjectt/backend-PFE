@@ -910,6 +910,7 @@ export const getIsiPfes = async (req, res) => {
       );
     }
   
+<<<<<<< HEAD
     // Get PFEs already assigned to some teams
     const usedPfeRecords = await Team.findAll({
       where: {
@@ -926,6 +927,26 @@ export const getIsiPfes = async (req, res) => {
       return next(new appError('Error retrieving used PFE records', 500));
     }
   
+=======
+    // Get all PFE IDs already used in other teams
+  // Get all PFE IDs already used in other teams
+const usedPfeRecords = await Team.findAll({
+  attributes: ['pfe_id'],
+  where: {
+    pfe_id: { [Op.ne]: null },
+  },
+});
+
+let usedPfeIds = new Set();
+
+if (Array.isArray(usedPfeRecords)) {
+  usedPfeIds = new Set(usedPfeRecords.map(record => record.pfe_id));
+} else {
+  return next(new appError('Error retrieving used PFE records', 500));
+}
+
+
+>>>>>>> b2d44e576e835bd98759891058dfdaa9db00c094
     const assignmentLog = [];
   
     for (const team of teamsWithoutPFE) {
@@ -1097,11 +1118,10 @@ export const autoAssignPfesToTeamWithoutPfe = catchAsync(async (req, res, next) 
 
   team.pfe_id = selectedPfe.id;
   const supervisors = await selectedPfe.getSupervisors();
-
-if (!Array.isArray(supervisors)) {
+  if (!Array.isArray(supervisors)) {
   return next(new appError('Supervisors must be an array', 500));
 }
-  await team.setSupervisors(supervisors); // Link supervisors to the team
+  await team.setSupervisor(supervisors); // Link supervisors to the team
 
   await team.save();
 
@@ -1164,7 +1184,7 @@ if (!Array.isArray(supervisors)) {
       // Assign the new PFE to the team
       team.pfe_id = newPfe.id;
       const supervisors = await newPfe.getSupervisors(); 
-      await team.setSupervisors(supervisors); // ✅ correct plural method with instances
+      await team.setSupervisors(supervisors); 
 
       await team.save();
 
