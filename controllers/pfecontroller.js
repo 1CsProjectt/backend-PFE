@@ -1101,7 +1101,7 @@ export const autoAssignPfesToTeamWithoutPfe = catchAsync(async (req, res, next) 
   if (!Array.isArray(supervisors)) {
   return next(new appError('Supervisors must be an array', 500));
 }
-  await team.setSupervisors(supervisors); // Link supervisors to the team
+  await team.setSupervisor(supervisors); // Link supervisors to the team
 
   await team.save();
 
