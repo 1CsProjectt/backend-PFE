@@ -136,10 +136,7 @@ export const createPreflist = catchAsync(async (req, res, next) => {
     return next(new appError('You must provide exactly 5 PFE IDs.', 400));
   }
   
-const invalidPfe = pfes.find(pfe => pfe.status !== 'VALIDE');
-if (invalidPfe) {
-  return next(new appError(`PFE ${invalidPfe.id} is not valid (status: ${invalidPfe.status}) and cannot be added to the preflist.`, 400));
-}
+
 
   const unique = new Set(pfeIds);
   if (unique.size !== 5) {
