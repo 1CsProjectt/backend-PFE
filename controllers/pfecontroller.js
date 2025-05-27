@@ -979,8 +979,7 @@ if (Array.isArray(usedPfeRecords)) {
       // Assign the selected PFE to the team
       team.pfe_id = selectedPfe.id;
       const supervisors = await selectedPfe.getSupervisors();
-      
-      await team.setSupervisor(supervisorIds); // Link supervisors to the team
+      await team.setSupervisor(supervisors); 
     
       await team.save();
   
