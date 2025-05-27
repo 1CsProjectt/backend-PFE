@@ -1066,7 +1066,7 @@ export const autoAssignPfesToTeamWithoutPfe = catchAsync(async (req, res, next) 
     return next(new appError('Supervisors must be an array', 500));
   }
   const supervisorIds = supervisors.map(s => s.id);
-  await team.setSupervisors(supervisorIds);
+  await team.setSupervisor(supervisorIds);
 
   await team.save();
 
