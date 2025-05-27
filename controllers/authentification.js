@@ -50,7 +50,7 @@ export const login = catchAsync(async (req, res, next) => {
         maxAge: 168 * 60 * 60 * 1000,
     });
 
-    res.status(200).json({ status: "success", user: { id: user.id, email: user.email, role: user.role , team_id: student ? student.team_id : null,year:student.year} });
+    res.status(200).json({ status: "success", user: { id: user.id, email: user.email, role: user.role , team_id: student ? student.team_id : null,year:student ? student.year : null} });
 });
 
 
