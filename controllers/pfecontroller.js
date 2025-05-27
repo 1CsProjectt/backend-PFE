@@ -1008,94 +1008,65 @@ export const autoAssignPfesToTeamsWithoutPfe = catchAsync(async (req, res, next)
 
 export const autoAssignPfesToTeamWithoutPfe = catchAsync(async (req, res, next) => {
   const { teamId } = req.body;
+  if (!teamId) return next(new appError('Team id is required', 400));
 
-  if (!teamId) {
-    return next(new appError('Team id is required', 400));
-  }
-
-  // Get the team
+  // Fetch team
   const team = await Team.findByPk(teamId);
-  if (!team) {
-    return next(new appError('Team not found', 404));
-  }
+  if (!team) return next(new appError('Team not found', 404));
+  if (team.pfe_id !== null) return next(new appError('This team already has a PFE assigned', 400));
 
-  if (team.pfe_id !== null) {
-    return next(new appError('This team already has a PFE assigned', 400));
-  }
-  // Get all members of the team 
-
+  // Fetch members
   const members = await Student.findAll({ where: { team_id: teamId } });
-  if (!members || members.length === 0) {
-    return next(new appError('Team has no members', 400));
-  }
-// Get the year and specialization of the first member
-  const teamYear = members[0].year;
-  const teamSpecialite = members[0].specialite;
+  if (members.length === 0) return next(new appError('Team has no members', 400));
 
-  if (!teamYear) {
-    return next(new appError('Team members must have a year defined', 400));
-  }
+  const { year: teamYear, specialite: teamSpecialite } = members[0];
+  if (!teamYear) return next(new appError('Team members must have a year defined', 400));
 
-  // Build PFE search query
-  let pfeSearchQuery = {
-    year: teamYear,
-    status: 'VALIDE',
-  };
-
-  // Specialization needed only for 2CS and 3CS
-  if ((teamYear === '2CS' || teamYear === '3CS') && !teamSpecialite) {
-    return next(new appError('Specialization is required for 2CS and 3CS teams', 400));
-  }
-
-  if (teamSpecialite && (teamYear === '2CS' || teamYear === '3CS')) {
+  // Build PFE query
+  const pfeSearchQuery = { year: teamYear, status: 'VALIDE' };
+  if ((teamYear === '2CS' || teamYear === '3CS')) {
+    if (!teamSpecialite) {
+      return next(new appError('Specialization is required for 2CS and 3CS teams', 400));
+    }
     pfeSearchQuery.specialization = teamSpecialite;
   }
 
   const pfes = await PFE.findAll({ where: pfeSearchQuery });
-
-  if (!pfes || pfes.length === 0) {
+  if (pfes.length === 0) {
     return next(new appError(`No available PFEs for ${teamYear}${teamSpecialite ? ` - ${teamSpecialite}` : ''}`, 404));
   }
 
-  // Get all currently assigned PFE ids 
-  // to avoid assigning the same PFE to multiple teams
+  // Exclude already-assigned PFEs
   const assignedTeams = await Team.findAll({
     attributes: ['pfe_id'],
-    where: {
-      pfe_id: { [Op.ne]: null },
-    },
+    where: { pfe_id: { [Op.ne]: null } },
   });
-  // Extract the PFE ids from the assigned teams
   const assignedPfeIds = new Set(assignedTeams.map(t => t.pfe_id));
 
-  let selectedPfe = null;
-
+  let selectedPfe;
   if (teamYear === '3CS') {
-    // Strict: use only unassigned
-    const unassignedPfes = pfes.filter(pfe => !assignedPfeIds.has(pfe.id));
-    if (unassignedPfes.length === 0) {
+    const unassigned = pfes.filter(pfe => !assignedPfeIds.has(pfe.id));
+    if (!unassigned.length) {
       return next(new appError('No unassigned PFEs available for 3CS teams', 404));
     }
-    selectedPfe = unassignedPfes[Math.floor(Math.random() * unassignedPfes.length)];
+    selectedPfe = unassigned[Math.floor(Math.random() * unassigned.length)];
   } else {
-    // Flexible: prefer unassigned, fallback to shared 
-    // Get unassigned PFEs
-    const unassignedPfes = pfes.filter(pfe => !assignedPfeIds.has(pfe.id));
-    if (unassignedPfes.length > 0) {
-      selectedPfe = unassignedPfes[Math.floor(Math.random() * unassignedPfes.length)];
-    } else {
-      // If no unassigned PFEs, pick any available PFE
-      // that matches the year and specialization
-      selectedPfe = pfes[Math.floor(Math.random() * pfes.length)];
-    }
+    const unassigned = pfes.filter(pfe => !assignedPfeIds.has(pfe.id));
+    selectedPfe = unassigned.length
+      ? unassigned[Math.floor(Math.random() * unassigned.length)]
+      : pfes[Math.floor(Math.random() * pfes.length)];
   }
 
+  // Assign PFE to team
   team.pfe_id = selectedPfe.id;
+
+  // Fetch supervisors, map to IDs, and use the plural setter
   const supervisors = await selectedPfe.getSupervisors();
   if (!Array.isArray(supervisors)) {
-  return next(new appError('Supervisors must be an array', 500));
-}
-  await team.setSupervisor(supervisors); // Link supervisors to the team
+    return next(new appError('Supervisors must be an array', 500));
+  }
+  const supervisorIds = supervisors.map(s => s.id);
+  await team.setSupervisors(supervisorIds);
 
   await team.save();
 
@@ -1105,6 +1076,7 @@ export const autoAssignPfesToTeamWithoutPfe = catchAsync(async (req, res, next) 
     assigned: selectedPfe,
   });
 });
+
 
 
   export const changePfeForTeam = catchAsync(async (req, res, next) => {
