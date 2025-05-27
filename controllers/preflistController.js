@@ -159,6 +159,10 @@ export const createPreflist = catchAsync(async (req, res, next) => {
   if (pfes.length !== 5) {
     return next(new appError('One or more selected PFEs do not exist.', 400));
   }
+  const invalidPfe = pfes.find(pfe => pfe.status !== 'VALIDE');
+if (invalidPfe) {
+  return next(new appError(`PFE ${invalidPfe.id} is not valid (status: ${invalidPfe.status}) and cannot be added to the preflist.`, 400));
+}
 
   const { year: studentYear, specialite: studentSpec } = mystudent;
 
