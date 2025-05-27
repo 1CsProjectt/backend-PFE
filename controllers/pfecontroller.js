@@ -1144,6 +1144,19 @@ export const autoAssignPfesToTeamWithoutPfe = catchAsync(async (req, res, next) 
       if (newPfe.year !== teamYear) {
           return next(new appError(`PFE year (${newPfe.year}) does not match the team's year (${teamYear})`, 400));
       }
+      // All students in the team share the same specialite
+    const teamSpecialite = students[0].specialite;
+
+    // Check if the team's specialite is included in the PFE's specialization array
+      const pfeSpecializations = newPfe.specialization || [];
+
+    if (!pfeSpecializations.includes(teamSpecialite)) {
+    return next(new appError(
+        `The team's specialization (${teamSpecialite}) is not allowed for this PFE`,
+        400
+    ));
+    }
+
 
       // Assign the new PFE to the team
       team.pfe_id = newPfe.id;

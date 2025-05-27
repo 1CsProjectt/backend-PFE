@@ -844,10 +844,7 @@ export const getMyPreflist = catchAsync(async (req, res, next) => {
     ],
   });
 
-  if (!preflist || preflist.length === 0) {
-    return next(new appError('No preflist found for your team.', 404));
-  }
-
+  
   res.status(200).json({
     status: 'success',
     results: preflist.length,
@@ -892,10 +889,7 @@ export const getpreflist = catchAsync(async (req, res, next) => {
     ],
   });
 
-  if (!preflist || preflist.length === 0) {
-    return next(new appError('No preflist found for your team.', 404));
-  }
-
+  
   res.status(200).json({
     status: 'success',
     results: preflist.length,
