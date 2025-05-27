@@ -869,7 +869,6 @@ export const getIsiPfes = async (req, res) => {
       ...(upperYear === '2CS' || upperYear === '3CS' ? { specialization: upperSpecialite } : {}),
     };
   
-    // Check if PFEs exist
     const availablePfesCount = await PFE.count({ where: initialPfeWhere });
   
     if (availablePfesCount === 0) {
@@ -885,7 +884,6 @@ export const getIsiPfes = async (req, res) => {
       return next(new appError('Specialite is required for 2CS and 3CS', 400));
     }
   
-    // Find teams without assigned PFE and matching criteria
     const teamsWithoutPFE = await Team.findAll({
       where: { pfe_id: null },
       include: [
@@ -910,24 +908,19 @@ export const getIsiPfes = async (req, res) => {
       );
     }
   
-    // Get all PFE IDs already used in other teams
-  // Get all PFE IDs already used in other teams
-const usedPfeRecords = await Team.findAll({
-  attributes: ['pfe_id'],
-  where: {
-    pfe_id: { [Op.ne]: null },
-  },
-});
-
-let usedPfeIds = new Set();
-
-if (Array.isArray(usedPfeRecords)) {
-  usedPfeIds = new Set(usedPfeRecords.map(record => record.pfe_id));
-} else {
-  return next(new appError('Error retrieving used PFE records', 500));
-}
-
-
+    const usedPfeRecords = await Team.findAll({
+      where: { pfe_id: { [Op.ne]: null } },
+      attributes: ['pfe_id'],
+    });
+  
+    let usedPfeIds = new Set();
+  
+    if (Array.isArray(usedPfeRecords)) {
+      usedPfeIds = new Set(usedPfeRecords.map(record => record.pfe_id));
+    } else {
+      return next(new appError('Error retrieving used PFE records', 500));
+    }
+  
     const assignmentLog = [];
   
     for (const team of teamsWithoutPFE) {
@@ -948,14 +941,12 @@ if (Array.isArray(usedPfeRecords)) {
       let selectedPfe;
   
       if (studentYear === '3CS') {
-        // Only PFEs not assigned yet
         const unassignedPfes = availablePfes.filter(pfe => !usedPfeIds.has(pfe.id));
         if (unassignedPfes.length === 0) continue;
   
         selectedPfe = unassignedPfes[Math.floor(Math.random() * unassignedPfes.length)];
         usedPfeIds.add(selectedPfe.id);
       } else {
-        // Try unassigned PFEs first, then allow duplicates
         const unassignedPfes = availablePfes.filter(pfe => !usedPfeIds.has(pfe.id));
         if (unassignedPfes.length > 0) {
           selectedPfe = unassignedPfes[Math.floor(Math.random() * unassignedPfes.length)];
@@ -969,30 +960,22 @@ if (Array.isArray(usedPfeRecords)) {
   
       team.pfe_id = selectedPfe.id;
   
-      // Important: your association alias is singular 'supervisor', so:
-      const supervisors = await selectedPfe.getSupervisor();
+      // Fix here: make sure supervisors is always an array
+      let supervisors = await selectedPfe.getSupervisor();
   
-      // Make sure supervisors is an array for setSupervisor (in case getSupervisor returns one instance)
-      const supervisorsArray = Array.isArray(supervisors)
-        ? supervisors
-        : supervisors
-        ? [supervisors]
-        : [];
+      if (!supervisors) {
+        supervisors = [];
+      } else if (!Array.isArray(supervisors)) {
+        supervisors = [supervisors];
+      }
   
-      // Set supervisors (singular alias)
-      await team.setSupervisor(supervisorsArray);
+      await team.setSupervisor(supervisors);
   
       await team.save();
   
       assignmentLog.push({
-        team: {
-          id: team.id,
-          name: team.groupName,
-        },
-        pfe: {
-          id: selectedPfe.id,
-          title: selectedPfe.title,
-        },
+        team: { id: team.id, name: team.groupName },
+        pfe: { id: selectedPfe.id, title: selectedPfe.title },
         specialization: studentSpecialite,
         year: studentYear,
       });
@@ -1005,6 +988,7 @@ if (Array.isArray(usedPfeRecords)) {
       assigned: assignmentLog,
     });
   });
+  
   
   
 
