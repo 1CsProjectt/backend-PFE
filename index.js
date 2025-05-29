@@ -52,7 +52,7 @@ import soutnanceRoute from './Routes/soutnanceRoute.js'
 
 (async () => {
   try {
-    await sequelize.sync({  alter: true }); 
+    await sequelize.sync({  force: true }); 
     console.log("✅ Database synced!");
     
   } catch (error) {
