@@ -52,7 +52,7 @@ import soutnanceRoute from './Routes/soutnanceRoute.js'
 
 (async () => {
   try {
-    await sequelize.sync({  force: true }); 
+    await sequelize.sync({  alter: true }); 
     console.log("✅ Database synced!");
     
   } catch (error) {
@@ -164,10 +164,10 @@ app.use(session({
 // Routes
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.use('/api/v1/auth', authRoutes);
-app.use('/api/v1/users', userRoutes);
+
 app.use(protect,getCurrentSession);
 app.use(injectCurrentSession);
-
+app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/pfe', pfeRoutes);
 app.use("/api/v1/session", eventRoutes);
 app.use("/api/v1/student", studentroute);
