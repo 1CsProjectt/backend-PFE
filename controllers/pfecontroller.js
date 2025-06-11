@@ -1057,18 +1057,15 @@ export const autoAssignPfesToTeamWithoutPfe = catchAsync(async (req, res, next) 
   const selected = pool[Math.floor(Math.random() * pool.length)];
   team.pfe_id = selected.id;
 
-  // 6. Fetch supervisors **via the singular alias**,
-  //    map to IDs, and pass *that* array into setSupervisor(...)
-  let supervisors = await selected.getSupervisor();  
-  // getSupervisor() should return an array, but just in case:
-  if (!Array.isArray(supervisors)) supervisors = [ supervisors ];
+  // 6. Fetch supervisors (via plural alias 'supervisors')
+  let supervisors = await selected.getSupervisors();  
+  if (!Array.isArray(supervisors) || supervisors.length === 0) {
+    return next(new appError('No supervisors found for this PFE', 400));
+  }
 
   const supervisorIds = supervisors.map(s => s.id);
-  if (Array.isArray(supervisorIds)) {
-  await team.setSupervisor(supervisorIds);  
-  }else{
-    next(new appError('error not a string',400))
-  }
+  await team.setSupervisor(supervisorIds); // this uses 'as: supervisor' in association
+
   // 7. Save and respond
   await team.save();
 
@@ -1078,6 +1075,7 @@ export const autoAssignPfesToTeamWithoutPfe = catchAsync(async (req, res, next) 
     assigned: selected,
   });
 });
+
 
 
 
