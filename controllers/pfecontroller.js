@@ -1064,7 +1064,10 @@ export const autoAssignPfesToTeamWithoutPfe = catchAsync(async (req, res, next) 
   }
 
   const supervisorIds = supervisors.map(s => s.id);
-  await team.setSupervisor(supervisorIds); // this uses 'as: supervisor' in association
+  if (!Array.isArray(supervisorIds) || supervisorIds.length === 0) {
+    return next(new appError('No supervisorIds found for this PFE', 400));
+  }
+  await team.setSupervisor(supervisorIds); 
 
   // 7. Save and respond
   await team.save();
@@ -1142,7 +1145,7 @@ export const autoAssignPfesToTeamWithoutPfe = catchAsync(async (req, res, next) 
       });
   });
 
-
+  
 export const getPFEByID = catchAsync(async (req, res, next) => {
     const { id } = req.params;
   
